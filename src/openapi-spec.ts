@@ -15,6 +15,7 @@ async function exportOpenApiSpec(): Promise<void> {
   const app = new CopoCheioServerApplication(config);
   await app.boot();
   await app.exportOpenApiSpec(outFile);
+  console.log({outFile})
 }
 
 exportOpenApiSpec().catch(err => {

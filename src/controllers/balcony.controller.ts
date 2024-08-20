@@ -7,13 +7,13 @@ import {
   Where,
 } from '@loopback/repository';
 import {
-  post,
-  param,
+  del,
   get,
   getModelSchemaRef,
+  param,
   patch,
+  post,
   put,
-  del,
   requestBody,
   response,
 } from '@loopback/rest';
@@ -37,7 +37,7 @@ export class BalconyController {
         'application/json': {
           schema: getModelSchemaRef(Balcony, {
             title: 'NewBalcony',
-            exclude: ['id'],
+            exclude: ['id','updated_at','created_at'],
           }),
         },
       },

@@ -3,7 +3,7 @@ import {juggler} from "@loopback/repository";
 
 const config = {
   name: "SqliteDb",
-  connector: "loopback-connector-sqlite3x",
+  connector: "loopback-connector-sqlite3",
   file: "data/db.sqlite",
   poolMin: 2,
 };

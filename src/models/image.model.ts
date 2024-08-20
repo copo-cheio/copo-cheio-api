@@ -1,8 +1,14 @@
 import {model, property} from '@loopback/repository';
-import {BaseModel} from '.';
+import {Base} from '.';
 
 @model()
-export class Image extends BaseModel {
+export class Image extends Base {
+  @property({
+    type: 'string',
+    required: true,
+  })
+  url: string;
+
   @property({
     type: 'string',
     required: true,
@@ -13,7 +19,7 @@ export class Image extends BaseModel {
     type: 'string',
     required: true,
   })
-  url: string;
+  refId: string;
 
 
   constructor(data?: Partial<Image>) {
