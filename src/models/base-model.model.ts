@@ -1,5 +1,5 @@
-import { Entity, model, property } from "@loopback/repository";
-import { v4 as uuid } from "uuid";
+import {Entity,model,property} from "@loopback/repository";
+import {v4 as uuid} from "uuid";
 @model()
 export class BaseModel extends Entity {
   @property({
@@ -11,9 +11,24 @@ export class BaseModel extends Entity {
   })
   id: string;
 
+
+  @property({
+    type: 'date',
+    default: () => new Date()
+  })
+  created_at ? : string;
+
+  @property({
+    type: 'date',
+    default: () => new Date()
+  })
+  updated_at ? : string;
+
   constructor(data?: Partial<BaseModel>) {
     super(data);
   }
+
+
 }
 
 export interface BaseModelRelations {
