@@ -15,3 +15,5 @@ export * from './schedule-range.repository';
 export * from './currency.repository';
 export * from './price.repository';
 export * from './ticket.repository';
+export * from './event-rule.repository';
+export * from './rule.repository';

@@ -57,6 +57,10 @@ import {EventRepository} from '../repositories';
           }
         ]
       }
+    },
+ {
+      "relation": "rules"
+
     }
   ]
 }

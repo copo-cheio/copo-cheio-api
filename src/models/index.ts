@@ -18,3 +18,5 @@ export * from './schedule-range.model';
 export * from './currency.model';
 export * from './price.model';
 export * from './ticket.model';
+export * from './event-rule.model';
+export * from './rule.model';

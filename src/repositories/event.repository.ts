@@ -1,7 +1,7 @@
 import {Getter,inject} from '@loopback/core';
 import {BelongsToAccessor,DefaultCrudRepository,HasManyThroughRepositoryFactory,repository, HasManyRepositoryFactory} from '@loopback/repository';
 import {SqliteDbDataSource} from '../datasources';
-import {Event,EventRelations,Image,Tag,TagReferences, Address, Place, Schedule, Ticket} from '../models';
+import {Event,EventRelations,Image,Tag,TagReferences, Address, Place, Schedule, Ticket, Rule, EventRule} from '../models';
 import {ImageRepository} from './image.repository';
 import {TagReferencesRepository} from './tag-relations.repository';
 import {TagRepository} from './tag.repository';
@@ -9,6 +9,8 @@ import {AddressRepository} from './address.repository';
 import {PlaceRepository} from './place.repository';
 import {ScheduleRepository} from './schedule.repository';
 import {TicketRepository} from './ticket.repository';
+import {EventRuleRepository} from './event-rule.repository';
+import {RuleRepository} from './rule.repository';
 
 export class EventRepository extends DefaultCrudRepository<
   Event,
@@ -31,10 +33,17 @@ export class EventRepository extends DefaultCrudRepository<
 
   public readonly tickets: HasManyRepositoryFactory<Ticket, typeof Event.prototype.id>;
 
+  public readonly rules: HasManyThroughRepositoryFactory<Rule, typeof Rule.prototype.id,
+          EventRule,
+          typeof Event.prototype.id
+        >;
+
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource, @repository.getter('ImageRepository') protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('TagReferencesRepository') protected tagRelationsRepositoryGetter: Getter<TagReferencesRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('AddressRepository') protected addressRepositoryGetter: Getter<AddressRepository>, @repository.getter('PlaceRepository') protected placeRepositoryGetter: Getter<PlaceRepository>, @repository.getter('ScheduleRepository') protected scheduleRepositoryGetter: Getter<ScheduleRepository>, @repository.getter('TicketRepository') protected ticketRepositoryGetter: Getter<TicketRepository>,
+    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource, @repository.getter('ImageRepository') protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('TagReferencesRepository') protected tagRelationsRepositoryGetter: Getter<TagReferencesRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('AddressRepository') protected addressRepositoryGetter: Getter<AddressRepository>, @repository.getter('PlaceRepository') protected placeRepositoryGetter: Getter<PlaceRepository>, @repository.getter('ScheduleRepository') protected scheduleRepositoryGetter: Getter<ScheduleRepository>, @repository.getter('TicketRepository') protected ticketRepositoryGetter: Getter<TicketRepository>, @repository.getter('EventRuleRepository') protected eventRuleRepositoryGetter: Getter<EventRuleRepository>, @repository.getter('RuleRepository') protected ruleRepositoryGetter: Getter<RuleRepository>,
   ) {
     super(Event, dataSource);
+    this.rules = this.createHasManyThroughRepositoryFactoryFor('rules', ruleRepositoryGetter, eventRuleRepositoryGetter,);
+    this.registerInclusionResolver('rules', this.rules.inclusionResolver);
     this.tickets = this.createHasManyRepositoryFactoryFor('tickets', ticketRepositoryGetter,);
     this.registerInclusionResolver('tickets', this.tickets.inclusionResolver);
     this.schedule = this.createBelongsToAccessorFor('schedule', scheduleRepositoryGetter,);

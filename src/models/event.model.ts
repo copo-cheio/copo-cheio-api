@@ -7,6 +7,8 @@ import {Address} from './address.model';
 import {Place} from './place.model';
 import {Schedule} from './schedule.model';
 import {Ticket} from './ticket.model';
+import {Rule} from './rule.model';
+import {EventRule} from './event-rule.model';
 
 @model()
 export class Event extends Base {
@@ -54,6 +56,9 @@ export class Event extends Base {
 
   @hasMany(() => Ticket, {keyTo: 'refId'})
   tickets: Ticket[];
+
+  @hasMany(() => Rule, {through: {model: () => EventRule}})
+  rules: Rule[];
 
   constructor(data?: Partial<Event>) {
     super(data);

@@ -38,3 +38,4 @@ export * from './price-currency.controller';
 export * from './ticket.controller';
 export * from './ticket-price.controller';
 export * from './event-ticket.controller';
+export * from './event-rule.controller';
