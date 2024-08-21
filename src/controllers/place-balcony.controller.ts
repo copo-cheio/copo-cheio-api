@@ -16,8 +16,8 @@ import {
   requestBody,
 } from '@loopback/rest';
 import {
-  Place,
   Balcony,
+  Place,
 } from '../models';
 import {PlaceRepository} from '../repositories';
 
@@ -58,9 +58,10 @@ export class PlaceBalconyController {
     @requestBody({
       content: {
         'application/json': {
+          exclude: ["id", "updated_at", "created_at"],
           schema: getModelSchemaRef(Balcony, {
             title: 'NewBalconyInPlace',
-            exclude: ['id'],
+            exclude: ["id", "updated_at", "created_at"],
             optional: ['placeId']
           }),
         },
@@ -83,6 +84,7 @@ export class PlaceBalconyController {
     @requestBody({
       content: {
         'application/json': {
+          exclude: ["id", "updated_at", "created_at"],
           schema: getModelSchemaRef(Balcony, {partial: true}),
         },
       },

@@ -1,17 +1,15 @@
 import {belongsTo,hasMany,model,property} from '@loopback/repository';
-import {Address} from './address.model';
-import {Balcony} from './balcony.model';
 import {Base} from './base.model';
 import {Image} from './image.model';
-import {Schedule} from './schedule.model';
 import {TagReferences} from './tag-relations.model';
 import {Tag} from './tag.model';
-import {Event} from './event.model';
+import {Address} from './address.model';
+import {Place} from './place.model';
+import {Schedule} from './schedule.model';
+import {Ticket} from './ticket.model';
 
 @model()
-export class Place extends Base {
-
-
+export class Event extends Base {
   @property({
     type: 'string',
     required: true,
@@ -20,13 +18,11 @@ export class Place extends Base {
 
   @property({
     type: 'string',
-    required: true,
   })
-  description: string;
+  description?: string;
 
   @property({
     type: 'string',
-
   })
   email?: string;
 
@@ -36,37 +32,36 @@ export class Place extends Base {
   webpage?: string;
 
   @property({
-    type: 'string',
+    type: 'number',
+    required: true,
   })
-  phone?: string;
-
-  @hasMany(() => Balcony, {keyTo: 'placeId'})
-  balconies?: Balcony[];
+  status: number;
 
   @belongsTo(() => Image)
   coverId: string;
 
+  @hasMany(() => Tag, {through: {model: () => TagReferences, keyFrom: 'refId'}})
+  tags: Tag[];
 
   @belongsTo(() => Address)
   addressId: string;
 
+  @belongsTo(() => Place)
+  placeId: string;
+
   @belongsTo(() => Schedule)
   scheduleId: string;
 
-  @hasMany(() => Tag, {through: {model: () => TagReferences, keyFrom: 'refId'}})
-  tags: Tag[];
+  @hasMany(() => Ticket, {keyTo: 'refId'})
+  tickets: Ticket[];
 
-  @hasMany(() => Event)
-  events: Event[];
-
-  constructor(data?: Partial<Place>) {
-    console.log({data}, 'PLACE')
+  constructor(data?: Partial<Event>) {
     super(data);
   }
 }
 
-export interface PlaceRelations {
+export interface EventRelations {
   // describe navigational properties here
 }
 
-export type PlaceWithRelations = Place & PlaceRelations;
+export type EventWithRelations = Event & EventRelations;

@@ -25,10 +25,7 @@ import {PlaceRepository} from "../repositories";
   "offset": 0,
   "limit": 100,
   "skip": 0,
-  "order": "string",
-  "where": {
-    "additionalProp1": {}
-  },
+
   "fields": {
     "id": true,
     "created_at": true,
@@ -37,8 +34,34 @@ import {PlaceRepository} from "../repositories";
     "coverId": true
   },
   "include": [
-  "balconies","cover"
+  "balconies","cover","address","tags"
   ]
+
+
+{
+  "include": [
+    "balconies",
+    "cover",
+    "address",
+    "tags",
+    {
+      "relation": "schedule",
+      "scope": {
+        "include": [
+          {
+            "relation": "scheduleRanges",
+            "scope": {
+              "include": [
+                "start",
+                "end"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
 }
 */
 
@@ -104,6 +127,7 @@ export class PlaceController {
       content: {
         "application/json": {
           schema: getModelSchemaRef(Place, { partial: true }),
+          exclude: ["id", "updated_at", "created_at"],
         },
       },
     })
@@ -199,3 +223,4 @@ export class PlaceController {
     await this.placeRepository.deleteById(id);
   }
 }
+

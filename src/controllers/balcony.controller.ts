@@ -35,9 +35,11 @@ export class BalconyController {
     @requestBody({
       content: {
         'application/json': {
+          exclude: ["id", "updated_at", "created_at"],
           schema: getModelSchemaRef(Balcony, {
             title: 'NewBalcony',
-            exclude: ['id','updated_at','created_at'],
+
+
           }),
         },
       },
@@ -85,7 +87,9 @@ export class BalconyController {
     @requestBody({
       content: {
         'application/json': {
+          exclude: ["id", "updated_at", "created_at"],
           schema: getModelSchemaRef(Balcony, {partial: true}),
+
         },
       },
     })
@@ -120,7 +124,9 @@ export class BalconyController {
     @requestBody({
       content: {
         'application/json': {
+          exclude: ["id", "updated_at", "created_at"],
           schema: getModelSchemaRef(Balcony, {partial: true}),
+
         },
       },
     })

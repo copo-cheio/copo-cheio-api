@@ -1,7 +1,7 @@
 import {belongsTo,model,property} from '@loopback/repository';
-import {Base} from '.';
-import {Place} from './place.model';
+import {Base} from './base.model';
 import {Image} from './image.model';
+import {Place} from './place.model';
 
 @model()
 export class Balcony extends Base {
