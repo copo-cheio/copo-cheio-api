@@ -7,14 +7,15 @@ import {
   repository
 } from "@loopback/repository";
 import {SqliteDbDataSource} from "../datasources";
-import {Address,Balcony,Image,Place,PlaceRelations,Schedule,Tag,TagReferences, Event} from "../models";
+import {Address,Balcony,Event,Image,Place,PlaceRelations,Schedule,Tag,TagReferences, Playlist} from "../models";
 import {AddressRepository} from './address.repository';
 import {BalconyRepository} from "./balcony.repository";
+import {EventRepository} from './event.repository';
 import {ImageRepository} from "./image.repository";
 import {ScheduleRepository} from './schedule.repository';
-import {TagReferencesRepository} from './tag-relations.repository';
+import {TagReferencesRepository} from './tag-references.repository';
 import {TagRepository} from './tag.repository';
-import {EventRepository} from './event.repository';
+import {PlaylistRepository} from './playlist.repository';
 
 /**
   {
@@ -47,14 +48,18 @@ export class PlaceRepository extends DefaultCrudRepository<
 
   public readonly events: HasManyRepositoryFactory<Event, typeof Place.prototype.id>;
 
+  public readonly playlist: BelongsToAccessor<Playlist, typeof Place.prototype.id>;
+
   constructor(
     @inject("datasources.SqliteDb") dataSource: SqliteDbDataSource,
     @repository.getter("BalconyRepository")
     protected balconyRepositoryGetter: Getter<BalconyRepository>,
     @repository.getter("ImageRepository")
-    protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('AddressRepository') protected addressRepositoryGetter: Getter<AddressRepository>, @repository.getter('ScheduleRepository') protected scheduleRepositoryGetter: Getter<ScheduleRepository>, @repository.getter('TagReferencesRepository') protected tagReferencesRepositoryGetter: Getter<TagReferencesRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('EventRepository') protected eventRepositoryGetter: Getter<EventRepository>,
+    protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('AddressRepository') protected addressRepositoryGetter: Getter<AddressRepository>, @repository.getter('ScheduleRepository') protected scheduleRepositoryGetter: Getter<ScheduleRepository>, @repository.getter('TagReferencesRepository') protected tagReferencesRepositoryGetter: Getter<TagReferencesRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('EventRepository') protected eventRepositoryGetter: Getter<EventRepository>, @repository.getter('PlaylistRepository') protected playlistRepositoryGetter: Getter<PlaylistRepository>,
   ) {
     super(Place, dataSource);
+    this.playlist = this.createBelongsToAccessorFor('playlist', playlistRepositoryGetter,);
+    this.registerInclusionResolver('playlist', this.playlist.inclusionResolver);
     this.events = this.createHasManyRepositoryFactoryFor('events', eventRepositoryGetter,);
     this.registerInclusionResolver('events', this.events.inclusionResolver);
     this.tags = this.createHasManyThroughRepositoryFactoryFor('tags', tagRepositoryGetter, tagReferencesRepositoryGetter,);

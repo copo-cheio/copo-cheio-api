@@ -1,16 +1,17 @@
 import {Getter,inject} from '@loopback/core';
-import {BelongsToAccessor,DefaultCrudRepository,HasManyThroughRepositoryFactory,repository, HasManyRepositoryFactory} from '@loopback/repository';
+import {BelongsToAccessor,DefaultCrudRepository,HasManyRepositoryFactory,HasManyThroughRepositoryFactory,repository} from '@loopback/repository';
 import {SqliteDbDataSource} from '../datasources';
-import {Event,EventRelations,Image,Tag,TagReferences, Address, Place, Schedule, Ticket, Rule, EventRule} from '../models';
-import {ImageRepository} from './image.repository';
-import {TagReferencesRepository} from './tag-relations.repository';
-import {TagRepository} from './tag.repository';
+import {Address,Event,EventRelations,EventRule,Image,Place,Rule,Schedule,Tag,TagReferences,Ticket, Playlist} from '../models';
 import {AddressRepository} from './address.repository';
-import {PlaceRepository} from './place.repository';
-import {ScheduleRepository} from './schedule.repository';
-import {TicketRepository} from './ticket.repository';
 import {EventRuleRepository} from './event-rule.repository';
+import {ImageRepository} from './image.repository';
+import {PlaceRepository} from './place.repository';
 import {RuleRepository} from './rule.repository';
+import {ScheduleRepository} from './schedule.repository';
+import {TagReferencesRepository} from './tag-references.repository';
+import {TagRepository} from './tag.repository';
+import {TicketRepository} from './ticket.repository';
+import {PlaylistRepository} from './playlist.repository';
 
 export class EventRepository extends DefaultCrudRepository<
   Event,
@@ -38,10 +39,14 @@ export class EventRepository extends DefaultCrudRepository<
           typeof Event.prototype.id
         >;
 
+  public readonly playlist: BelongsToAccessor<Playlist, typeof Event.prototype.id>;
+
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource, @repository.getter('ImageRepository') protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('TagReferencesRepository') protected tagRelationsRepositoryGetter: Getter<TagReferencesRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('AddressRepository') protected addressRepositoryGetter: Getter<AddressRepository>, @repository.getter('PlaceRepository') protected placeRepositoryGetter: Getter<PlaceRepository>, @repository.getter('ScheduleRepository') protected scheduleRepositoryGetter: Getter<ScheduleRepository>, @repository.getter('TicketRepository') protected ticketRepositoryGetter: Getter<TicketRepository>, @repository.getter('EventRuleRepository') protected eventRuleRepositoryGetter: Getter<EventRuleRepository>, @repository.getter('RuleRepository') protected ruleRepositoryGetter: Getter<RuleRepository>,
+    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource, @repository.getter('ImageRepository') protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('TagReferencesRepository') protected tagRelationsRepositoryGetter: Getter<TagReferencesRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('AddressRepository') protected addressRepositoryGetter: Getter<AddressRepository>, @repository.getter('PlaceRepository') protected placeRepositoryGetter: Getter<PlaceRepository>, @repository.getter('ScheduleRepository') protected scheduleRepositoryGetter: Getter<ScheduleRepository>, @repository.getter('TicketRepository') protected ticketRepositoryGetter: Getter<TicketRepository>, @repository.getter('EventRuleRepository') protected eventRuleRepositoryGetter: Getter<EventRuleRepository>, @repository.getter('RuleRepository') protected ruleRepositoryGetter: Getter<RuleRepository>, @repository.getter('PlaylistRepository') protected playlistRepositoryGetter: Getter<PlaylistRepository>,
   ) {
     super(Event, dataSource);
+    this.playlist = this.createBelongsToAccessorFor('playlist', playlistRepositoryGetter,);
+    this.registerInclusionResolver('playlist', this.playlist.inclusionResolver);
     this.rules = this.createHasManyThroughRepositoryFactoryFor('rules', ruleRepositoryGetter, eventRuleRepositoryGetter,);
     this.registerInclusionResolver('rules', this.rules.inclusionResolver);
     this.tickets = this.createHasManyRepositoryFactoryFor('tickets', ticketRepositoryGetter,);

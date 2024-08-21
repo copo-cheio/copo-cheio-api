@@ -1,14 +1,15 @@
 import {belongsTo,hasMany,model,property} from '@loopback/repository';
-import {Base} from './base.model';
-import {Image} from './image.model';
-import {TagReferences} from './tag-relations.model';
-import {Tag} from './tag.model';
 import {Address} from './address.model';
-import {Place} from './place.model';
-import {Schedule} from './schedule.model';
-import {Ticket} from './ticket.model';
-import {Rule} from './rule.model';
+import {Base} from './base.model';
 import {EventRule} from './event-rule.model';
+import {Image} from './image.model';
+import {Place} from './place.model';
+import {Rule} from './rule.model';
+import {Schedule} from './schedule.model';
+import {TagReferences} from './tag-references.model';
+import {Tag} from './tag.model';
+import {Ticket} from './ticket.model';
+import {Playlist} from './playlist.model';
 
 @model()
 export class Event extends Base {
@@ -59,6 +60,9 @@ export class Event extends Base {
 
   @hasMany(() => Rule, {through: {model: () => EventRule}})
   rules: Rule[];
+
+  @belongsTo(() => Playlist)
+  playlistId: string;
 
   constructor(data?: Partial<Event>) {
     super(data);

@@ -59,6 +59,29 @@ import {PlaceRepository} from "../repositories";
           }
         ]
       }
+    },
+    {
+      "relation": "playlist",
+      "scope": {
+        "include": [
+          {
+            "relation": "songs",
+            "scope": {
+              "include": [
+                "artist"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "relation": "events",
+      "scope": {
+        "include": [
+         "cover"
+        ]
+      }
     }
   ]
 }

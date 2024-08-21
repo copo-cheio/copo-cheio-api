@@ -2,11 +2,12 @@ import {belongsTo,hasMany,model,property} from '@loopback/repository';
 import {Address} from './address.model';
 import {Balcony} from './balcony.model';
 import {Base} from './base.model';
+import {Event} from './event.model';
 import {Image} from './image.model';
 import {Schedule} from './schedule.model';
-import {TagReferences} from './tag-relations.model';
+import {TagReferences} from './tag-references.model';
 import {Tag} from './tag.model';
-import {Event} from './event.model';
+import {Playlist} from './playlist.model';
 
 @model()
 export class Place extends Base {
@@ -58,6 +59,9 @@ export class Place extends Base {
 
   @hasMany(() => Event)
   events: Event[];
+
+  @belongsTo(() => Playlist)
+  playlistId: string;
 
   constructor(data?: Partial<Place>) {
     console.log({data}, 'PLACE')

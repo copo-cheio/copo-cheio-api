@@ -59,6 +59,21 @@ import {EventRepository} from '../repositories';
       }
     },
  {
+      "relation": "playlist",
+      "scope": {
+        "include": [
+          {
+            "relation": "songs",
+            "scope": {
+              "include": [
+                "artist"
+              ]
+            }
+          }
+        ]
+      }
+    },
+ {
       "relation": "rules"
 
     }
