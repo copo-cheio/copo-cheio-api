@@ -77,12 +77,11 @@ import {PlaceRepository} from "../repositories";
     },
     {
       "relation": "events",
-      "scope": {
-        "include": [
-         "cover"
-        ]
-      }
+       "scope":{
+           "include":[{"relation":"tags"},{"relation":"cover"}]
+}
     }
+
   ]
 }
 }
