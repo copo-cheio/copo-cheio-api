@@ -1,6 +1,6 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {SqliteDbDataSource} from '../datasources';
+import {PostgresSqlDataSource} from '../datasources';
 import {TagReferences,TagReferencesRelations} from '../models';
 
 export class TagReferencesRepository extends DefaultCrudRepository<
@@ -9,7 +9,7 @@ export class TagReferencesRepository extends DefaultCrudRepository<
   TagReferencesRelations
 > {
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
   ) {
     super(TagReferences, dataSource);
   }

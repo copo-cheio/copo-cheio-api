@@ -1,6 +1,6 @@
 import {Getter,inject} from '@loopback/core';
 import {BelongsToAccessor,DefaultCrudRepository,repository} from '@loopback/repository';
-import {SqliteDbDataSource} from '../datasources';
+import {PostgresSqlDataSource} from '../datasources';
 import {DateTime,Schedule,ScheduleRange,ScheduleRangeRelations} from '../models';
 import {DateTimeRepository} from './date-time.repository';
 import {ScheduleRepository} from './schedule.repository';
@@ -20,7 +20,7 @@ export class ScheduleRangeRepository extends DefaultCrudRepository<
   public readonly schedule: BelongsToAccessor<Schedule, typeof ScheduleRange.prototype.id>;
 
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource, @repository.getter('DateTimeRepository') protected dateTimeRepositoryGetter: Getter<DateTimeRepository>, @repository.getter('ScheduleRepository') protected scheduleRepositoryGetter: Getter<ScheduleRepository>,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource, @repository.getter('DateTimeRepository') protected dateTimeRepositoryGetter: Getter<DateTimeRepository>, @repository.getter('ScheduleRepository') protected scheduleRepositoryGetter: Getter<ScheduleRepository>,
   ) {
     super(ScheduleRange, dataSource);
     this.schedule = this.createBelongsToAccessorFor('schedule', scheduleRepositoryGetter,);

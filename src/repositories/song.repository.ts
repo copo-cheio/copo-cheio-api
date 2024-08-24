@@ -1,7 +1,7 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, BelongsToAccessor} from '@loopback/repository';
-import {SqliteDbDataSource} from '../datasources';
-import {Song, SongRelations, Artist, Image} from '../models';
+import {Getter,inject} from '@loopback/core';
+import {BelongsToAccessor,DefaultCrudRepository,repository} from '@loopback/repository';
+import {PostgresSqlDataSource} from '../datasources';
+import {Artist,Image,Song,SongRelations} from '../models';
 import {ArtistRepository} from './artist.repository';
 import {ImageRepository} from './image.repository';
 
@@ -16,7 +16,7 @@ export class SongRepository extends DefaultCrudRepository<
   public readonly thumbnail: BelongsToAccessor<Image, typeof Song.prototype.id>;
 
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource, @repository.getter('ArtistRepository') protected artistRepositoryGetter: Getter<ArtistRepository>, @repository.getter('ImageRepository') protected imageRepositoryGetter: Getter<ImageRepository>,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource, @repository.getter('ArtistRepository') protected artistRepositoryGetter: Getter<ArtistRepository>, @repository.getter('ImageRepository') protected imageRepositoryGetter: Getter<ImageRepository>,
   ) {
     super(Song, dataSource);
     this.thumbnail = this.createBelongsToAccessorFor('thumbnail', imageRepositoryGetter,);

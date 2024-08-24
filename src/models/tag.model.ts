@@ -1,6 +1,6 @@
-import {model,property} from '@loopback/repository';
+import {model,property, belongsTo} from '@loopback/repository';
 import {Base} from './base.model';
-
+import {Translation} from './translation.model';
 
 /**
  * [
@@ -76,6 +76,8 @@ export class Tag extends Base {
   })
   type: string;
 
+  @belongsTo(() => Translation)
+  translationId: string;
 
   constructor(data?: Partial<Tag>) {
     super(data);

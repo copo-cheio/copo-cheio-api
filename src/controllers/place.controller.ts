@@ -17,81 +17,35 @@ import {
   requestBody,
   response,
 } from "@loopback/rest";
+import {PlaceQueryFull,PlacesQuery} from "../blueprints/place.blueprint";
 import {Place} from "../models";
 import {PlaceRepository} from "../repositories";
-
-/*
-{
-  "offset": 0,
-  "limit": 100,
-  "skip": 0,
-
-  "fields": {
-    "id": true,
-    "created_at": true,
-    "updated_at": true,
-    "name": true,
-    "coverId": true
-  },
-  "include": [
-  "balconies","cover","address","tags"
-  ]
-
-
-{
-  "include": [
-    "balconies",
-    "cover",
-    "address",
-    "tags",
-    {
-      "relation": "schedule",
-      "scope": {
-        "include": [
-          {
-            "relation": "scheduleRanges",
-            "scope": {
-              "include": [
-                "start",
-                "end"
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      "relation": "playlist",
-      "scope": {
-        "include": [
-          {
-            "relation": "songs",
-            "scope": {
-              "include": [
-                "artist"
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      "relation": "events",
-       "scope":{
-           "include":[{"relation":"tags"},{"relation":"cover"}]
-}
-    }
-
-  ]
-}
-}
-*/
 
 export class PlaceController {
   constructor(
     @repository(PlaceRepository)
     public placeRepository: PlaceRepository
   ) {}
+
+  @get("/places/nearby")
+  async findNearbyPlaces(
+    @param.query.number("lat") lat: number,
+    @param.query.number("lon") lon: number
+  ) {
+    const results = await this.placeRepository.findByDistance(lat || 0, lon|| 0);
+
+    console.log(results)
+    const _filter = {
+
+      ...PlacesQuery,
+      where:{
+        "or":results.map((r:any)=>{return {id:r.id}})
+      },
+      // sort:["distance DESC"]
+    }
+    return this.placeRepository.find(_filter)
+  }
+
 
   @post("/places")
   @response(200, {
@@ -136,7 +90,7 @@ export class PlaceController {
     },
   })
   async find(@param.filter(Place) filter?: Filter<Place>): Promise<Place[]> {
-    return this.placeRepository.find(filter);
+    return this.placeRepository.find(PlacesQuery);
   }
 
   @patch("/places")
@@ -190,22 +144,7 @@ export class PlaceController {
     @param.filter(Place, { exclude: "where" })
     filter?: FilterExcludingWhere<Place>
   ): Promise<Place> {
-    return this.placeRepository.findById(id, {
-      "include": [
-        {
-          relation: 'balconies',
-          scope:{
-            include:["cover"]
-          }
-
-        },
-        {
-          relation: 'cover',
-        },
-      ]
-
-
-  });
+    return this.placeRepository.findById(id, PlaceQueryFull);
   }
 
   @patch("/places/{id}")
@@ -245,4 +184,3 @@ export class PlaceController {
     await this.placeRepository.deleteById(id);
   }
 }
-

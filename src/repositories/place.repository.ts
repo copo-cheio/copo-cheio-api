@@ -6,16 +6,18 @@ import {
   HasManyThroughRepositoryFactory,
   repository
 } from "@loopback/repository";
-import {SqliteDbDataSource} from "../datasources";
-import {Address,Balcony,Event,Image,Place,PlaceRelations,Schedule,Tag,TagReferences, Playlist} from "../models";
+import {PostgresSqlDataSource} from '../datasources';
+import {Address,Balcony,Event,Image,Place,PlaceRelations,PlaceRule,Playlist,Rule,Schedule,Tag,TagReferences} from "../models";
 import {AddressRepository} from './address.repository';
 import {BalconyRepository} from "./balcony.repository";
 import {EventRepository} from './event.repository';
 import {ImageRepository} from "./image.repository";
+import {PlaceRuleRepository} from './place-rule.repository';
+import {PlaylistRepository} from './playlist.repository';
+import {RuleRepository} from './rule.repository';
 import {ScheduleRepository} from './schedule.repository';
 import {TagReferencesRepository} from './tag-references.repository';
 import {TagRepository} from './tag.repository';
-import {PlaylistRepository} from './playlist.repository';
 
 /**
   {
@@ -50,14 +52,21 @@ export class PlaceRepository extends DefaultCrudRepository<
 
   public readonly playlist: BelongsToAccessor<Playlist, typeof Place.prototype.id>;
 
+  public readonly rules: HasManyThroughRepositoryFactory<Rule, typeof Rule.prototype.id,
+          PlaceRule,
+          typeof Place.prototype.id
+        >;
+
   constructor(
-    @inject("datasources.SqliteDb") dataSource: SqliteDbDataSource,
+    @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
     @repository.getter("BalconyRepository")
     protected balconyRepositoryGetter: Getter<BalconyRepository>,
     @repository.getter("ImageRepository")
-    protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('AddressRepository') protected addressRepositoryGetter: Getter<AddressRepository>, @repository.getter('ScheduleRepository') protected scheduleRepositoryGetter: Getter<ScheduleRepository>, @repository.getter('TagReferencesRepository') protected tagReferencesRepositoryGetter: Getter<TagReferencesRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('EventRepository') protected eventRepositoryGetter: Getter<EventRepository>, @repository.getter('PlaylistRepository') protected playlistRepositoryGetter: Getter<PlaylistRepository>,
+    protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('AddressRepository') protected addressRepositoryGetter: Getter<AddressRepository>, @repository.getter('ScheduleRepository') protected scheduleRepositoryGetter: Getter<ScheduleRepository>, @repository.getter('TagReferencesRepository') protected tagReferencesRepositoryGetter: Getter<TagReferencesRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('EventRepository') protected eventRepositoryGetter: Getter<EventRepository>, @repository.getter('PlaylistRepository') protected playlistRepositoryGetter: Getter<PlaylistRepository>, @repository.getter('PlaceRuleRepository') protected placeRuleRepositoryGetter: Getter<PlaceRuleRepository>, @repository.getter('RuleRepository') protected ruleRepositoryGetter: Getter<RuleRepository>,
   ) {
     super(Place, dataSource);
+    this.rules = this.createHasManyThroughRepositoryFactoryFor('rules', ruleRepositoryGetter, placeRuleRepositoryGetter,);
+    this.registerInclusionResolver('rules', this.rules.inclusionResolver);
     this.playlist = this.createBelongsToAccessorFor('playlist', playlistRepositoryGetter,);
     this.registerInclusionResolver('playlist', this.playlist.inclusionResolver);
     this.events = this.createHasManyRepositoryFactoryFor('events', eventRepositoryGetter,);
@@ -86,4 +95,25 @@ export class PlaceRepository extends DefaultCrudRepository<
       ctx.data.updated_at = new Date();
     });
   }
+
+
+
+  async findByDistance(lat: number, lon: number): Promise<Place[]> {
+
+    const sql = `
+      SELECT p.*, 
+             ( 6371 * acos( cos( radians(${lat}) ) 
+             * cos( radians( a.latitude ) ) 
+             * cos( radians( a.longitude ) - radians(${lon}) ) 
+             + sin( radians(${lat}) ) 
+             * sin( radians( a.latitude ) ) ) ) AS distance 
+      FROM place p
+      JOIN address a ON p.addressid = a.id::text
+      ORDER BY distance;
+    `;
+
+    return this.dataSource.execute(sql);
+  }
+
+
 }

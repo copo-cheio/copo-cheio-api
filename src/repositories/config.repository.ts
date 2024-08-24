@@ -1,7 +1,7 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {SqliteDbDataSource} from '../datasources';
-import {Config, ConfigRelations} from '../models';
+import {PostgresSqlDataSource} from '../datasources';
+import {Config,ConfigRelations} from '../models';
 
 export class ConfigRepository extends DefaultCrudRepository<
   Config,
@@ -9,7 +9,7 @@ export class ConfigRepository extends DefaultCrudRepository<
   ConfigRelations
 > {
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
   ) {
     super(Config, dataSource);
   }

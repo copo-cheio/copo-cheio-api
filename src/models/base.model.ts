@@ -1,11 +1,18 @@
 import {Entity,model,property} from '@loopback/repository';
-import {v4 as uuid} from 'uuid';
 @model()
 export class Base extends Entity {
   @property({
     type: 'string',
     id: true,
-    default: () => uuid()
+    // defaultFn: 'uuid'
+    generated: true,
+    useDefaultIdType: false,
+    postgresql: {
+      dataType: 'uuid',
+      extension: 'pgcrypto',
+      defaultFn: 'gen_random_uuid()', //<---- only this line is different
+    },
+
   })
   id?: string;
 
@@ -25,7 +32,7 @@ export class Base extends Entity {
 
   constructor(data?: Partial<Base>) {
     super(data);
-    console.log(this,'BASE')
+    // console.log(this,'BASE')
   }
 }
 

@@ -1,7 +1,7 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {SqliteDbDataSource} from '../datasources';
-import {Currency, CurrencyRelations} from '../models';
+import {PostgresSqlDataSource} from '../datasources';
+import {Currency,CurrencyRelations} from '../models';
 
 export class CurrencyRepository extends DefaultCrudRepository<
   Currency,
@@ -9,7 +9,7 @@ export class CurrencyRepository extends DefaultCrudRepository<
   CurrencyRelations
 > {
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
   ) {
     super(Currency, dataSource);
   }

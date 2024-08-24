@@ -1,5 +1,6 @@
-import { model, property } from '@loopback/repository';
+import { model, property, belongsTo} from '@loopback/repository';
 import { Base } from './base.model';
+import {Translation} from './translation.model';
 
 @model()
 export class Rule extends Base {
@@ -21,6 +22,11 @@ export class Rule extends Base {
   })
   value: string;
 
+  @belongsTo(() => Translation)
+  translationId: string;
+
+  @belongsTo(() => Translation)
+  valueTranslationId: string;
 
   constructor(data?: Partial<Rule>) {
     super(data);

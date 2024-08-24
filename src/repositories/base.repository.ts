@@ -1,6 +1,6 @@
 // import {inject, Getter} from '@loopback/core';
 // import {DefaultCrudRepository, repository, HasManyRepositoryFactory, BelongsToAccessor, Entity} from '@loopback/repository';
-// import {SqliteDbDataSource} from '../datasources';
+// import {PostgresSqlDataSource} from '../datasources';
 
 
 // export class BaseRepository<

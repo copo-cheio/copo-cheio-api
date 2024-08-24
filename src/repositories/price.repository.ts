@@ -1,7 +1,7 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, BelongsToAccessor} from '@loopback/repository';
-import {SqliteDbDataSource} from '../datasources';
-import {Price, PriceRelations, Currency} from '../models';
+import {Getter,inject} from '@loopback/core';
+import {BelongsToAccessor,DefaultCrudRepository,repository} from '@loopback/repository';
+import {PostgresSqlDataSource} from '../datasources';
+import {Currency,Price,PriceRelations} from '../models';
 import {CurrencyRepository} from './currency.repository';
 
 export class PriceRepository extends DefaultCrudRepository<
@@ -13,7 +13,7 @@ export class PriceRepository extends DefaultCrudRepository<
   public readonly currency: BelongsToAccessor<Currency, typeof Price.prototype.id>;
 
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource, @repository.getter('CurrencyRepository') protected currencyRepositoryGetter: Getter<CurrencyRepository>,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource, @repository.getter('CurrencyRepository') protected currencyRepositoryGetter: Getter<CurrencyRepository>,
   ) {
     super(Price, dataSource);
     this.currency = this.createBelongsToAccessorFor('currency', currencyRepositoryGetter,);

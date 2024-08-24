@@ -17,6 +17,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import {EventFullQuery,EventsQuery} from '../blueprints/event.blueprint';
 import {Event} from '../models';
 import {EventRepository} from '../repositories';
 
@@ -86,6 +87,43 @@ export class EventController {
     public eventRepository : EventRepository,
   ) {}
 
+  @get("/events/nearby")
+  async findNearbyPlaces(
+    @param.query.number("lat") lat: number,
+    @param.query.number("lon") lon: number
+  ) {
+    const results = await this.eventRepository.findByDistance(lat, lon);
+    // console.log(results)
+    const _filter = {
+
+      ...EventsQuery,
+      where:{
+        "or":results.map((r:any)=>{return {id:r.id}})
+      },
+      sort:["distance DESC"]
+    }
+    return this.eventRepository.find(_filter)
+  }
+
+
+  @get("/events/{id}/full")
+  @response(200, {
+    description: "Place model instance with all dependencies",
+    content: {
+      "application/json": {
+        schema: getModelSchemaRef(Event, { includeRelations: true }),
+      },
+    },
+  })
+  async findByIdFull(
+    @param.path.string("id") id: string,
+    @param.filter(Event, { exclude: "where" })
+    filter?: FilterExcludingWhere<Event>
+  ): Promise<Event> {
+    return this.eventRepository.findById(id, EventFullQuery);
+  }
+
+
   @post('/events')
   @response(200, {
     description: 'Event model instance',
@@ -134,7 +172,7 @@ export class EventController {
   async find(
     @param.filter(Event) filter?: Filter<Event>,
   ): Promise<Event[]> {
-    return this.eventRepository.find(filter);
+    return this.eventRepository.find(EventsQuery);
   }
 
   @patch('/events')

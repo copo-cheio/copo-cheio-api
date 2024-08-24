@@ -21,11 +21,7 @@ import {Address} from '../models';
 import {AddressRepository} from '../repositories';
 
 
-/*
-{
-  "include": ["region", "country"]
-}
-*/
+
 
 export class AddressController {
   constructor(

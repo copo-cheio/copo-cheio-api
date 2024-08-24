@@ -1,6 +1,6 @@
 import {Getter,inject} from '@loopback/core';
 import {DefaultCrudRepository,HasManyRepositoryFactory,repository} from '@loopback/repository';
-import {SqliteDbDataSource} from '../datasources';
+import {PostgresSqlDataSource} from '../datasources';
 import {Country,CountryRelations,Region} from '../models';
 import {RegionRepository} from './region.repository';
 
@@ -13,7 +13,7 @@ export class CountryRepository extends DefaultCrudRepository<
   public readonly regions: HasManyRepositoryFactory<Region, typeof Country.prototype.id>;
 
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource, @repository.getter('RegionRepository') protected regionRepositoryGetter: Getter<RegionRepository>,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource, @repository.getter('RegionRepository') protected regionRepositoryGetter: Getter<RegionRepository>,
   ) {
     super(Country, dataSource);
     this.regions = this.createHasManyRepositoryFactoryFor('regions', regionRepositoryGetter,);

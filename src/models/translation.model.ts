@@ -5,9 +5,16 @@ import {Base} from './base.model';
 export class Translation extends Base {
   @property({
     type: 'string',
+    // required: true,
+  })
+  code: string;
+
+  @property({
+    type: 'string',
     required: true,
   })
   pt: string;
+
 
   @property({
     type: 'string',

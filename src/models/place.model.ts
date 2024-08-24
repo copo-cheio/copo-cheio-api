@@ -4,10 +4,12 @@ import {Balcony} from './balcony.model';
 import {Base} from './base.model';
 import {Event} from './event.model';
 import {Image} from './image.model';
+import {PlaceRule} from './place-rule.model';
+import {Playlist} from './playlist.model';
+import {Rule} from './rule.model';
 import {Schedule} from './schedule.model';
 import {TagReferences} from './tag-references.model';
 import {Tag} from './tag.model';
-import {Playlist} from './playlist.model';
 
 @model()
 export class Place extends Base {
@@ -63,8 +65,11 @@ export class Place extends Base {
   @belongsTo(() => Playlist)
   playlistId: string;
 
+  @hasMany(() => Rule, {through: {model: () => PlaceRule}})
+  rules: Rule[];
+
   constructor(data?: Partial<Place>) {
-    console.log({data}, 'PLACE')
+    // console.log({data}, 'PLACE')
     super(data);
   }
 }

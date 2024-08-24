@@ -1,14 +1,16 @@
 import {Getter,inject} from "@loopback/core";
 import {
+  BelongsToAccessor,
   DefaultCrudRepository,
   HasManyThroughRepositoryFactory,
-  repository, BelongsToAccessor} from "@loopback/repository";
-import {SqliteDbDataSource} from "../datasources";
-import {Artist,ArtistRelations,Tag,TagReferences, Playlist, Image} from "../models";
+  repository
+} from "@loopback/repository";
+import {PostgresSqlDataSource} from '../datasources';
+import {Artist,ArtistRelations,Image,Playlist,Tag,TagReferences} from "../models";
+import {ImageRepository} from './image.repository';
+import {PlaylistRepository} from './playlist.repository';
 import {TagReferencesRepository} from "./tag-references.repository";
 import {TagRepository} from "./tag.repository";
-import {PlaylistRepository} from './playlist.repository';
-import {ImageRepository} from './image.repository';
 
 export class ArtistRepository extends DefaultCrudRepository<
   Artist,
@@ -27,7 +29,7 @@ export class ArtistRepository extends DefaultCrudRepository<
   public readonly cover: BelongsToAccessor<Image, typeof Artist.prototype.id>;
 
   constructor(
-    @inject("datasources.SqliteDb") dataSource: SqliteDbDataSource,
+    @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
 
     @repository.getter("TagReferencesRepository")
     protected tagRelationsRepositoryGetter: Getter<TagReferencesRepository>,

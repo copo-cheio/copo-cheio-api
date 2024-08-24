@@ -1,6 +1,6 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {SqliteDbDataSource} from '../datasources';
+import {PostgresSqlDataSource} from '../datasources';
 import {Image,ImageRelations} from '../models';
 
 export class ImageRepository extends DefaultCrudRepository<
@@ -9,7 +9,7 @@ export class ImageRepository extends DefaultCrudRepository<
   ImageRelations
 > {
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
   ) {
     super(Image, dataSource);
 

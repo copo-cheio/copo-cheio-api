@@ -1,7 +1,7 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {SqliteDbDataSource} from '../datasources';
-import {Translation, TranslationRelations} from '../models';
+import {PostgresSqlDataSource} from '../datasources';
+import {Translation,TranslationRelations} from '../models';
 
 export class TranslationRepository extends DefaultCrudRepository<
   Translation,
@@ -9,7 +9,7 @@ export class TranslationRepository extends DefaultCrudRepository<
   TranslationRelations
 > {
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
   ) {
     super(Translation, dataSource);
   }

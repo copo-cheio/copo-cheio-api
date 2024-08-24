@@ -1,18 +1,15 @@
-import {model,property} from '@loopback/repository';
+import {model,property, belongsTo} from '@loopback/repository';
 import {Base} from './base.model';
+import {Playlist} from './playlist.model';
+import {Song} from './song.model';
 
 @model()
 export class PlaylistSong extends Base {
+  @belongsTo(() => Playlist, {name: 'playlist'})
+  refId: string;
 
-  @property({
-    type: 'string',
-  })
-  playlistId?: string;
-
-  @property({
-    type: 'string',
-  })
-  songId?: string;
+  @belongsTo(() => Song)
+  songId: string;
 
   constructor(data?: Partial<PlaylistSong>) {
     super(data);

@@ -4,7 +4,7 @@ import {
   DefaultCrudRepository,
   repository,
 } from "@loopback/repository";
-import {SqliteDbDataSource} from "../datasources";
+import {PostgresSqlDataSource} from '../datasources';
 import {Balcony,BalconyRelations,Image,Place} from "../models";
 import {ImageRepository} from "./image.repository";
 import {PlaceRepository} from "./place.repository";
@@ -19,7 +19,7 @@ export class BalconyRepository extends DefaultCrudRepository<
   public readonly cover: BelongsToAccessor<Image, typeof Balcony.prototype.id>;
 
   constructor(
-    @inject("datasources.SqliteDb") dataSource: SqliteDbDataSource,
+    @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
     @repository.getter("PlaceRepository")
     protected placeRepositoryGetter: Getter<PlaceRepository>,
     @repository.getter("ImageRepository")

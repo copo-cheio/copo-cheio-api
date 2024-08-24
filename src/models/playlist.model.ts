@@ -1,7 +1,9 @@
-import {model,property, hasMany} from '@loopback/repository';
+import {hasMany,model,property} from '@loopback/repository';
 import {Base} from './base.model';
-import {Song} from './song.model';
 import {PlaylistSong} from './playlist-song.model';
+import {Song} from './song.model';
+import {Tag} from './tag.model';
+import {TagReferences} from './tag-references.model';
 
 @model()
 export class Playlist extends Base {
@@ -16,8 +18,15 @@ export class Playlist extends Base {
   })
   description?: string;
 
-  @hasMany(() => Song, {through: {model: () => PlaylistSong}})
+  @hasMany(() => Song, {through: {
+    model: () => PlaylistSong,
+    keyFrom: 'refId',
+    keyTo: 'songId',
+  }})
   songs: Song[];
+
+  @hasMany(() => Tag, {through: {model: () => TagReferences, keyFrom: 'refId'}})
+  tags: Tag[];
 
   constructor(data?: Partial<Playlist>) {
     super(data);

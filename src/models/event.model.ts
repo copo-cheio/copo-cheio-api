@@ -10,6 +10,7 @@ import {TagReferences} from './tag-references.model';
 import {Tag} from './tag.model';
 import {Ticket} from './ticket.model';
 import {Playlist} from './playlist.model';
+import {Lineup} from './lineup.model';
 
 @model()
 export class Event extends Base {
@@ -63,6 +64,9 @@ export class Event extends Base {
 
   @belongsTo(() => Playlist)
   playlistId: string;
+
+  @hasMany(() => Lineup)
+  lineups: Lineup[];
 
   constructor(data?: Partial<Event>) {
     super(data);

@@ -1,7 +1,7 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {SqliteDbDataSource} from '../datasources';
-import {EventRule, EventRuleRelations} from '../models';
+import {PostgresSqlDataSource} from '../datasources';
+import {EventRule,EventRuleRelations} from '../models';
 
 export class EventRuleRepository extends DefaultCrudRepository<
   EventRule,
@@ -9,7 +9,7 @@ export class EventRuleRepository extends DefaultCrudRepository<
   EventRuleRelations
 > {
   constructor(
-    @inject('datasources.SqliteDb') dataSource: SqliteDbDataSource,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
   ) {
     super(EventRule, dataSource);
   }

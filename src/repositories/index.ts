@@ -22,3 +22,6 @@ export * from './ticket.repository';
 export * from './translation.repository';
 
 export * from './playlist-song.repository';
+export * from './place-rule.repository';
+export * from './lineup.repository';
+export * from './line-up-artist.repository';
