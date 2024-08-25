@@ -4,19 +4,30 @@ import {
   DefaultCrudRepository,
   HasManyRepositoryFactory,
   HasManyThroughRepositoryFactory,
+  ReferencesManyAccessor,
   repository
 } from "@loopback/repository";
-import {PostgresSqlDataSource} from '../datasources';
-import {Address,Balcony,Event,Image,Place,PlaceRelations,PlaceRule,Playlist,Rule,Schedule,Tag,TagReferences} from "../models";
-import {AddressRepository} from './address.repository';
+import {PostgresSqlDataSource} from "../datasources";
+import {
+  Address,
+  Balcony,
+  Event,
+  Image,
+  Place,
+  PlaceRelations,
+  PlaceRule,
+  Playlist,
+  Rule,
+  Schedule,Tag
+} from "../models";
+import {AddressRepository} from "./address.repository";
 import {BalconyRepository} from "./balcony.repository";
-import {EventRepository} from './event.repository';
+import {EventRepository} from "./event.repository";
 import {ImageRepository} from "./image.repository";
-import {PlaceRuleRepository} from './place-rule.repository';
-import {PlaylistRepository} from './playlist.repository';
-import {RuleRepository} from './rule.repository';
-import {ScheduleRepository} from './schedule.repository';
-import {TagReferencesRepository} from './tag-references.repository';
+import {PlaceRuleRepository} from "./place-rule.repository";
+import {PlaylistRepository} from "./playlist.repository";
+import {RuleRepository} from "./rule.repository";
+import {ScheduleRepository} from "./schedule.repository";
 import {TagRepository} from './tag.repository';
 
 /**
@@ -39,44 +50,89 @@ export class PlaceRepository extends DefaultCrudRepository<
   >;
   public readonly cover: BelongsToAccessor<Image, typeof Balcony.prototype.id>;
 
-  public readonly address: BelongsToAccessor<Address, typeof Place.prototype.id>;
+  public readonly address: BelongsToAccessor<
+    Address,
+    typeof Place.prototype.id
+  >;
 
-  public readonly schedule: BelongsToAccessor<Schedule, typeof Place.prototype.id>;
+  public readonly schedule: BelongsToAccessor<
+    Schedule,
+    typeof Place.prototype.id
+  >;
 
-  public readonly tags: HasManyThroughRepositoryFactory<Tag, typeof Tag.prototype.id,
-          TagReferences,
-          typeof Place.prototype.id
-        >;
+  public readonly events: HasManyRepositoryFactory<
+    Event,
+    typeof Place.prototype.id
+  >;
 
-  public readonly events: HasManyRepositoryFactory<Event, typeof Place.prototype.id>;
+  public readonly playlist: BelongsToAccessor<
+    Playlist,
+    typeof Place.prototype.id
+  >;
 
-  public readonly playlist: BelongsToAccessor<Playlist, typeof Place.prototype.id>;
+  public readonly rules: HasManyThroughRepositoryFactory<
+    Rule,
+    typeof Rule.prototype.id,
+    PlaceRule,
+    typeof Place.prototype.id
+  >;
 
-  public readonly rules: HasManyThroughRepositoryFactory<Rule, typeof Rule.prototype.id,
-          PlaceRule,
-          typeof Place.prototype.id
-        >;
+  public readonly tags: ReferencesManyAccessor<Tag, typeof Place.prototype.id>;
+  // public readonly tags: ReferencesManyAccessor<Tag, typeof Artist.prototype.id>;
+
 
   constructor(
     @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
     @repository.getter("BalconyRepository")
     protected balconyRepositoryGetter: Getter<BalconyRepository>,
     @repository.getter("ImageRepository")
-    protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('AddressRepository') protected addressRepositoryGetter: Getter<AddressRepository>, @repository.getter('ScheduleRepository') protected scheduleRepositoryGetter: Getter<ScheduleRepository>, @repository.getter('TagReferencesRepository') protected tagReferencesRepositoryGetter: Getter<TagReferencesRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('EventRepository') protected eventRepositoryGetter: Getter<EventRepository>, @repository.getter('PlaylistRepository') protected playlistRepositoryGetter: Getter<PlaylistRepository>, @repository.getter('PlaceRuleRepository') protected placeRuleRepositoryGetter: Getter<PlaceRuleRepository>, @repository.getter('RuleRepository') protected ruleRepositoryGetter: Getter<RuleRepository>,
+    protected imageRepositoryGetter: Getter<ImageRepository>,
+    @repository.getter("AddressRepository")
+    protected addressRepositoryGetter: Getter<AddressRepository>,
+    @repository.getter("ScheduleRepository")
+    protected scheduleRepositoryGetter: Getter<ScheduleRepository>,
+
+    @repository.getter("EventRepository")
+    protected eventRepositoryGetter: Getter<EventRepository>,
+    @repository.getter("PlaylistRepository")
+    protected playlistRepositoryGetter: Getter<PlaylistRepository>,
+    @repository.getter("PlaceRuleRepository")
+    protected placeRuleRepositoryGetter: Getter<PlaceRuleRepository>,
+    @repository.getter("RuleRepository")
+    protected ruleRepositoryGetter: Getter<RuleRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>,
+
+
   ) {
     super(Place, dataSource);
-    this.rules = this.createHasManyThroughRepositoryFactoryFor('rules', ruleRepositoryGetter, placeRuleRepositoryGetter,);
-    this.registerInclusionResolver('rules', this.rules.inclusionResolver);
-    this.playlist = this.createBelongsToAccessorFor('playlist', playlistRepositoryGetter,);
-    this.registerInclusionResolver('playlist', this.playlist.inclusionResolver);
-    this.events = this.createHasManyRepositoryFactoryFor('events', eventRepositoryGetter,);
-    this.registerInclusionResolver('events', this.events.inclusionResolver);
-    this.tags = this.createHasManyThroughRepositoryFactoryFor('tags', tagRepositoryGetter, tagReferencesRepositoryGetter,);
+    this.tags = this.createReferencesManyAccessorFor('tags', tagRepositoryGetter,);
     this.registerInclusionResolver('tags', this.tags.inclusionResolver);
-    this.schedule = this.createBelongsToAccessorFor('schedule', scheduleRepositoryGetter,);
-    this.registerInclusionResolver('schedule', this.schedule.inclusionResolver);
-    this.address = this.createBelongsToAccessorFor('address', addressRepositoryGetter,);
-    this.registerInclusionResolver('address', this.address.inclusionResolver);
+    this.rules = this.createHasManyThroughRepositoryFactoryFor(
+      "rules",
+      ruleRepositoryGetter,
+      placeRuleRepositoryGetter
+    );
+    this.registerInclusionResolver("rules", this.rules.inclusionResolver);
+    this.playlist = this.createBelongsToAccessorFor(
+      "playlist",
+      playlistRepositoryGetter
+    );
+    this.registerInclusionResolver("playlist", this.playlist.inclusionResolver);
+    this.events = this.createHasManyRepositoryFactoryFor(
+      "events",
+      eventRepositoryGetter
+    );
+    this.registerInclusionResolver("events", this.events.inclusionResolver);
+
+    this.schedule = this.createBelongsToAccessorFor(
+      "schedule",
+      scheduleRepositoryGetter
+    );
+    this.registerInclusionResolver("schedule", this.schedule.inclusionResolver);
+    this.address = this.createBelongsToAccessorFor(
+      "address",
+      addressRepositoryGetter
+    );
+    this.registerInclusionResolver("address", this.address.inclusionResolver);
     this.cover = this.createBelongsToAccessorFor(
       "cover",
       imageRepositoryGetter
@@ -96,10 +152,7 @@ export class PlaceRepository extends DefaultCrudRepository<
     });
   }
 
-
-
   async findByDistance(lat: number, lon: number): Promise<Place[]> {
-
     const sql = `
       SELECT p.*, 
              ( 6371 * acos( cos( radians(${lat}) ) 
@@ -114,6 +167,4 @@ export class PlaceRepository extends DefaultCrudRepository<
 
     return this.dataSource.execute(sql);
   }
-
-
 }

@@ -17,6 +17,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import {CountryQueryFull} from '../blueprints/country.blueprint';
 import {Country} from '../models';
 import {CountryRepository} from '../repositories';
 
@@ -74,7 +75,7 @@ export class CountryController {
   async find(
     @param.filter(Country) filter?: Filter<Country>,
   ): Promise<Country[]> {
-    return this.countryRepository.find(filter);
+    return this.countryRepository.find(CountryQueryFull);
   }
 
   @patch('/countries')

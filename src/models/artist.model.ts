@@ -1,12 +1,14 @@
-import {hasMany,model,property, belongsTo} from '@loopback/repository';
+import {belongsTo,model,property,referencesMany} from '@loopback/repository';
 import {Base} from './base.model';
-import {TagReferences} from './tag-references.model';
-import {Tag} from './tag.model';
-import {Playlist} from './playlist.model';
 import {Image} from './image.model';
+import {Playlist} from './playlist.model';
+import {Tag} from './tag.model';
 
 @model()
 export class Artist extends Base {
+
+
+
   @property({
     type: 'string',
     required: true,
@@ -19,9 +21,11 @@ export class Artist extends Base {
   })
   url: string;
 
-  @hasMany(() => Tag, {through: {model: () => TagReferences, keyFrom: 'refId'}})
-  tags: Tag[];
 
+  // @hasMany(() => Tag, {through: {model: () => TagReferences, keyFrom: 'refId'}})
+  // tags: Tag[];
+  @referencesMany(() => Tag)
+  tagIds: string[];
   @belongsTo(() => Playlist)
   playlistId: string;
 

@@ -7,16 +7,17 @@ import {
   Where,
 } from '@loopback/repository';
 import {
-  post,
-  param,
+  del,
   get,
   getModelSchemaRef,
+  param,
   patch,
+  post,
   put,
-  del,
   requestBody,
   response,
 } from '@loopback/rest';
+import {FilterByTags} from '../blueprints/shared/tag.include';
 import {Artist} from '../models';
 import {ArtistRepository} from '../repositories';
 
@@ -73,8 +74,10 @@ export class ArtistController {
   async find(
     @param.filter(Artist) filter?: Filter<Artist>,
   ): Promise<Artist[]> {
-    return this.artistRepository.find(filter);
+
+    return this.artistRepository.find(FilterByTags(filter));
   }
+
 
   @patch('/artists')
   @response(200, {
@@ -147,4 +150,8 @@ export class ArtistController {
   async deleteById(@param.path.string('id') id: string): Promise<void> {
     await this.artistRepository.deleteById(id);
   }
+
+
+
+
 }

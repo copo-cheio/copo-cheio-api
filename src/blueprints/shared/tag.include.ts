@@ -4,3 +4,18 @@ export const IncludeTagsRelation:any = {
     include: [{"relation": "translation"}]
   }
 }
+
+export const FilterByTags = (query:any)=>{
+  let tags = query?.where?.tags || []
+  if(tags.length > 0){
+    delete query.where.tags;
+
+
+    query.where.or = query.where.or || [];
+    for(let tag of tags){
+      query.where.or.push({tagIds:{like: "%"+tag+"%"}})
+    }
+  }
+  console.log(JSON.stringify(query))
+  return query
+}

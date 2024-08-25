@@ -1,4 +1,4 @@
-import {belongsTo,hasMany,model,property} from '@loopback/repository';
+import {belongsTo,hasMany,model,property, referencesMany} from '@loopback/repository';
 import {Address} from './address.model';
 import {Balcony} from './balcony.model';
 import {Base} from './base.model';
@@ -8,7 +8,6 @@ import {PlaceRule} from './place-rule.model';
 import {Playlist} from './playlist.model';
 import {Rule} from './rule.model';
 import {Schedule} from './schedule.model';
-import {TagReferences} from './tag-references.model';
 import {Tag} from './tag.model';
 
 @model()
@@ -56,8 +55,6 @@ export class Place extends Base {
   @belongsTo(() => Schedule)
   scheduleId: string;
 
-  @hasMany(() => Tag, {through: {model: () => TagReferences, keyFrom: 'refId'}})
-  tags: Tag[];
 
   @hasMany(() => Event)
   events: Event[];
@@ -67,6 +64,9 @@ export class Place extends Base {
 
   @hasMany(() => Rule, {through: {model: () => PlaceRule}})
   rules: Rule[];
+
+  @referencesMany(() => Tag)
+  tagIds: string[];
 
   constructor(data?: Partial<Place>) {
     // console.log({data}, 'PLACE')

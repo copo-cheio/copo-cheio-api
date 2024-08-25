@@ -18,14 +18,16 @@ import {
   response,
 } from "@loopback/rest";
 import {PlaceQueryFull,PlacesQuery} from "../blueprints/place.blueprint";
+import {FilterByTags} from '../blueprints/shared/tag.include';
 import {Place} from "../models";
 import {PlaceRepository} from "../repositories";
-
 export class PlaceController {
   constructor(
     @repository(PlaceRepository)
     public placeRepository: PlaceRepository
   ) {}
+
+
 
   @get("/places/nearby")
   async findNearbyPlaces(
@@ -34,7 +36,7 @@ export class PlaceController {
   ) {
     const results = await this.placeRepository.findByDistance(lat || 0, lon|| 0);
 
-    console.log(results)
+
     const _filter = {
 
       ...PlacesQuery,
@@ -43,6 +45,7 @@ export class PlaceController {
       },
       // sort:["distance DESC"]
     }
+    console.log(JSON.stringify(_filter))
     return this.placeRepository.find(_filter)
   }
 
@@ -89,8 +92,10 @@ export class PlaceController {
       },
     },
   })
-  async find(@param.filter(Place) filter?: Filter<Place>): Promise<Place[]> {
-    return this.placeRepository.find(PlacesQuery);
+  async find(@param.filter(Place) filter?: Filter<Place>) {
+
+  return  this.placeRepository.find(FilterByTags({...filter,...PlacesQuery}));
+
   }
 
   @patch("/places")
@@ -144,6 +149,7 @@ export class PlaceController {
     @param.filter(Place, { exclude: "where" })
     filter?: FilterExcludingWhere<Place>
   ): Promise<Place> {
+    console.log({PlaceQueryFull})
     return this.placeRepository.findById(id, PlaceQueryFull);
   }
 

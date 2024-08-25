@@ -1,7 +1,7 @@
-import {belongsTo,model,property} from '@loopback/repository';
-import {Base} from './base.model';
-import {Region} from './region.model';
-import {Country} from './country.model';
+import {belongsTo,model,property} from "@loopback/repository";
+import {Base} from "./base.model";
+import {Country} from "./country.model";
+import {Region} from "./region.model";
 
 /*
 {
@@ -23,50 +23,49 @@ import {Country} from './country.model';
 @model()
 export class Address extends Base {
   @property({
-    type: 'number',
+    type: "number",
     required: true,
+    dataType: "FLOAT",
   })
   latitude: number;
 
   @property({
-    type: 'number',
+    type: "number",
     required: true,
+    dataType: "FLOAT",
   })
   longitude: number;
 
   @property({
-    type: 'string',
+    type: "string",
     default: "POI",
   })
   type?: string;
 
   @property({
-    type: 'string',
+    type: "string",
     required: true,
   })
   address: string;
 
-
   @property({
-    type: 'string',
+    type: "string",
     required: true,
   })
   postal: string;
 
-
-
   @property({
-    type: 'string',
+    type: "string",
   })
   name?: string;
 
   @property({
-    type: 'string',
+    type: "string",
   })
   long_label?: string;
 
   @property({
-    type: 'string',
+    type: "string",
   })
   short_label?: string;
 

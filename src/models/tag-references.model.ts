@@ -14,6 +14,11 @@ export class TagReferences extends Base {
   })
   tagId?: string;
 
+  // @property({
+  //   type: 'string',
+  // })
+  // refId?: string;
+
   constructor(data?: Partial<TagReferences>) {
     super(data);
   }

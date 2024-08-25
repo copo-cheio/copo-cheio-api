@@ -1,17 +1,22 @@
-import {QueryFilterBaseBlueprint} from './shared/query-filter.interface';
 
 export const TagQueryFull: any = {
-  ...QueryFilterBaseBlueprint,
+  // ...QueryFilterBaseBlueprint,
   fields: {
     id: true,
-
     name: true,
     type: true,
-    translationId:true,
+    translationId: true,
   },
   include: [
     {
       relation: "translation",
+      scope: {
+        fields: {
+          id: true,
+          pt: true,
+          en: true,
+        },
+      },
     },
   ],
 };

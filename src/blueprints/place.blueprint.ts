@@ -20,6 +20,7 @@ export const PlaceQueryFull: any = {
     addressId: true,
     playlistId: true,
     scheduleId:true,
+    tagIds:true
   },
 
   include: [
@@ -46,10 +47,11 @@ export const PlacesQuery: any = {
     coverId: true,
     addressId: true,
     scheduleId:true,
+    tagIds:true
   },
 
   include: [
-    "cover",
+    {"relation":"cover"},
     IncludeAddressRelation,
     IncludeTagsRelation,
     IncludeScheduleRelation,

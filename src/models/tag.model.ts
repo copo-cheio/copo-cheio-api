@@ -1,5 +1,7 @@
-import {model,property, belongsTo} from '@loopback/repository';
+import {belongsTo,hasMany,model,property} from '@loopback/repository';
 import {Base} from './base.model';
+import {Event} from './event.model';
+import {TagReferences} from './tag-references.model';
 import {Translation} from './translation.model';
 
 /**
@@ -78,6 +80,10 @@ export class Tag extends Base {
 
   @belongsTo(() => Translation)
   translationId: string;
+
+
+  @hasMany(() => Event, {through: {model: () => TagReferences, keyTo: 'refId'}})
+  events: Event[];
 
   constructor(data?: Partial<Tag>) {
     super(data);

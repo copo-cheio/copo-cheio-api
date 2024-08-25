@@ -2,27 +2,24 @@ import {Getter,inject} from "@loopback/core";
 import {
   BelongsToAccessor,
   DefaultCrudRepository,
-  HasManyThroughRepositoryFactory,
+  ReferencesManyAccessor,
   repository
 } from "@loopback/repository";
 import {PostgresSqlDataSource} from '../datasources';
-import {Artist,ArtistRelations,Image,Playlist,Tag,TagReferences} from "../models";
+import {Artist,ArtistRelations,Image,Playlist,Tag} from "../models";
 import {ImageRepository} from './image.repository';
 import {PlaylistRepository} from './playlist.repository';
-import {TagReferencesRepository} from "./tag-references.repository";
-import {TagRepository} from "./tag.repository";
+import {TagRepository} from './tag.repository';
 
 export class ArtistRepository extends DefaultCrudRepository<
   Artist,
   typeof Artist.prototype.id,
   ArtistRelations
 > {
-  public readonly tags: HasManyThroughRepositoryFactory<
-    Tag,
-    typeof Tag.prototype.id,
-    TagReferences,
-    typeof Artist.prototype.id
-  >;
+
+
+  public readonly tags: ReferencesManyAccessor<Tag, typeof Artist.prototype.id>;
+
 
   public readonly playlist: BelongsToAccessor<Playlist, typeof Artist.prototype.id>;
 
@@ -31,21 +28,15 @@ export class ArtistRepository extends DefaultCrudRepository<
   constructor(
     @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
 
-    @repository.getter("TagReferencesRepository")
-    protected tagRelationsRepositoryGetter: Getter<TagReferencesRepository>,
-    @repository.getter("TagRepository")
-    protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('PlaylistRepository') protected playlistRepositoryGetter: Getter<PlaylistRepository>, @repository.getter('ImageRepository') protected imageRepositoryGetter: Getter<ImageRepository>,
+    @repository.getter('PlaylistRepository') protected playlistRepositoryGetter: Getter<PlaylistRepository>, @repository.getter('ImageRepository') protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>,
   ) {
     super(Artist, dataSource);
+    this.tags = this.createReferencesManyAccessorFor('tags', tagRepositoryGetter,);
+    this.registerInclusionResolver('tags', this.tags.inclusionResolver);
     this.cover = this.createBelongsToAccessorFor('cover', imageRepositoryGetter,);
     this.registerInclusionResolver('cover', this.cover.inclusionResolver);
     this.playlist = this.createBelongsToAccessorFor('playlist', playlistRepositoryGetter,);
     this.registerInclusionResolver('playlist', this.playlist.inclusionResolver);
-    this.tags = this.createHasManyThroughRepositoryFactoryFor(
-      "tags",
-      tagRepositoryGetter,
-      tagRelationsRepositoryGetter
-    );
-    this.registerInclusionResolver("tags", this.tags.inclusionResolver);
+
   }
 }

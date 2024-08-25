@@ -1,30 +1,42 @@
 import {
-    Count,
-    CountSchema,
-    Filter,
-    FilterExcludingWhere,
-    repository,
-    Where,
+  Count,
+  CountSchema,
+  Filter,
+  FilterExcludingWhere,
+  repository,
+  Where,
 } from '@loopback/repository';
 import {
-    del,
-    get,
-    getModelSchemaRef,
-    param,
-    patch,
-    post,
-    put,
-    requestBody,
-    response,
+  del,
+  get,
+  getModelSchemaRef,
+  param,
+  patch,
+  post,
+  put,
+  requestBody,
+  response,
 } from '@loopback/rest';
-import { Tag } from '../models';
-import { TagRepository } from '../repositories';
+import {TagQueryFull} from '../blueprints/tag.blueprint';
+import {Artist,Event,Place,Playlist,Tag} from '../models';
+import {ArtistRepository,EventRepository,PlaceRepository,PlaylistRepository,TagRepository} from '../repositories';
 
 export class TagController {
   constructor(
     @repository(TagRepository)
     public tagRepository : TagRepository,
+    @repository(ArtistRepository)
+    public artistRepository : ArtistRepository,
+    @repository(PlaceRepository)
+    public placeRepository : PlaceRepository,
+    @repository(EventRepository)
+    public eventRepository : EventRepository,
+    @repository(PlaylistRepository)
+    public playlistRepository : PlaylistRepository,
   ) {}
+
+
+
 
   @post('/tags')
   @response(200, {
@@ -74,7 +86,24 @@ export class TagController {
   async find(
     @param.filter(Tag) filter?: Filter<Tag>,
   ): Promise<Tag[]> {
-    return this.tagRepository.find(filter);
+    return this.tagRepository.find(TagQueryFull);
+  }
+  @get('/tags/all')
+  @response(200, {
+    description: 'Array of all Tag model instances',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'array',
+          items: getModelSchemaRef(Tag, {includeRelations: true}),
+        },
+      },
+    },
+  })
+  async findAll(
+    @param.filter(Tag) filter?: Filter<Tag>,
+  ): Promise<Tag[]> {
+    return this.tagRepository.find(TagQueryFull);
   }
 
   @patch('/tags')
@@ -149,5 +178,191 @@ export class TagController {
   })
   async deleteById(@param.path.string('id') id: string): Promise<void> {
     await this.tagRepository.deleteById(id);
+  }
+
+
+  /* ********************************** */
+  /*              HELPER                */
+  /* ********************************** */
+  async addTagToRecord(repository:any, id:string, tagId:string){
+    const record = await repository.findById(id);
+    record.tagIds = record.tagIds || [];
+    if (!record.tagIds.includes(tagId)) {
+      record.tagIds.push(tagId);
+      await repository.updateById(id, record);
+    }
+  }
+  async removeTagFromRecord(repository:any, id:string, tagId:string){
+    const record = await repository.findById(id);
+    record.tagIds = record.tagIds || [];
+    if (record.tagIds.includes(tagId)) {
+      record.tagIds = record.tagIds.filter((_tagId:any)=> _tagId !== tagId)
+      await repository.updateById(id, record);
+    }
+  }
+
+  @patch('/artist/{id}/tag/{tagId}')
+  @response(204, {
+    description: 'Artist PATCH success',
+  })
+  async addTagToArtist(
+    @param.path.string('id') id: string,
+    @param.path.string('tagId') tagId: string,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Artist, {partial: true}),
+        },
+      },
+    })
+    artist: Artist,
+  ): Promise<void> {
+    return this.addTagToRecord(this.artistRepository,id,tagId)
+
+  }
+  @del('/artist/{id}/tag/{tagId}')
+  @response(204, {
+    description: 'Artist PATCH success',
+  })
+  async removeTagFromArtist(
+    @param.path.string('id') id: string,
+    @param.path.string('tagId') tagId: string,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Artist, {partial: true}),
+        },
+      },
+    })
+    artist: Artist,
+  ): Promise<void> {
+    return this.removeTagFromRecord(this.artistRepository,id,tagId)
+
+  }
+
+/* ********************************** */
+/*                PLACE               */
+/* ********************************** */
+  @patch('/place/{id}/tag/{tagId}')
+  @response(204, {
+    description: 'Place PATCH success',
+  })
+  async addTagToPlace(
+    @param.path.string('id') id: string,
+    @param.path.string('tagId') tagId: string,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Place, {partial: true}),
+        },
+      },
+    })
+    place: Place,
+  ): Promise<void> {
+    return this.addTagToRecord(this.placeRepository,id,tagId)
+
+  }
+  @del('/place/{id}/tag/{tagId}')
+  @response(204, {
+    description: 'Place PATCH success',
+  })
+  async removeTagFromPlace(
+    @param.path.string('id') id: string,
+    @param.path.string('tagId') tagId: string,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Place, {partial: true}),
+        },
+      },
+    })
+    place: Place,
+  ): Promise<void> {
+    return this.removeTagFromRecord(this.placeRepository,id,tagId)
+
+  }
+
+/* ********************************** */
+/*                EVENT               */
+/* ********************************** */
+  @patch('/event/{id}/tag/{tagId}')
+  @response(204, {
+    description: 'Event PATCH success',
+  })
+  async addTagToEvent(
+    @param.path.string('id') id: string,
+    @param.path.string('tagId') tagId: string,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Event, {partial: true}),
+        },
+      },
+    })
+    event: Event,
+  ): Promise<void> {
+    return this.addTagToRecord(this.eventRepository,id,tagId)
+
+  }
+  @del('/event/{id}/tag/{tagId}')
+  @response(204, {
+    description: 'Event PATCH success',
+  })
+  async removeTagFromEvent(
+    @param.path.string('id') id: string,
+    @param.path.string('tagId') tagId: string,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Event, {partial: true}),
+        },
+      },
+    })
+    event: Event,
+  ): Promise<void> {
+    return this.removeTagFromRecord(this.eventRepository,id,tagId)
+
+  }
+
+/* ********************************** */
+/*                PLAYLIST               */
+/* ********************************** */
+  @patch('/playlist/{id}/tag/{tagId}')
+  @response(204, {
+    description: 'Playlist PATCH success',
+  })
+  async addTagToPlaylist(
+    @param.path.string('id') id: string,
+    @param.path.string('tagId') tagId: string,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Playlist, {partial: true}),
+        },
+      },
+    })
+    playlist: Playlist,
+  ): Promise<void> {
+    return this.addTagToRecord(this.playlistRepository,id,tagId)
+
+  }
+  @del('/playlist/{id}/tag/{tagId}')
+  @response(204, {
+    description: 'Playlist PATCH success',
+  })
+  async removeTagFromPlaylist(
+    @param.path.string('id') id: string,
+    @param.path.string('tagId') tagId: string,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Playlist, {partial: true}),
+        },
+      },
+    })
+    playlist: Playlist,
+  ): Promise<void> {
+    return this.removeTagFromRecord(this.playlistRepository,id,tagId)
+
   }
 }
