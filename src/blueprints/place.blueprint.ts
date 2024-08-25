@@ -1,6 +1,7 @@
 import {IncludeAddressRelation} from "./shared/address.include";
 import {IncludeBalconysRelations} from "./shared/balcony.include";
 import {IncludeEventsRelation} from "./shared/event.include";
+import {IncludeCover} from './shared/image.include';
 import {IncludePlaylistRelation} from "./shared/playlist.include";
 import {QueryFilterBaseBlueprint} from "./shared/query-filter.interface";
 import {IncludeRulesRelation} from "./shared/rule.include";
@@ -24,7 +25,7 @@ export const PlaceQueryFull: any = {
   },
 
   include: [
-    "cover",
+    IncludeCover,
     IncludeBalconysRelations,
     IncludeAddressRelation,
     IncludeTagsRelation,

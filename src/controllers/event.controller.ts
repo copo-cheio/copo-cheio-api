@@ -5,7 +5,7 @@ import {
   FilterExcludingWhere,
   repository,
   Where,
-} from '@loopback/repository';
+} from "@loopback/repository";
 import {
   del,
   get,
@@ -16,75 +16,21 @@ import {
   put,
   requestBody,
   response,
-} from '@loopback/rest';
-import {EventFullQuery,EventsQuery} from '../blueprints/event.blueprint';
-import {Event} from '../models';
-import {EventRepository} from '../repositories';
+} from "@loopback/rest";
+import {EventFullQuery,EventsQuery} from "../blueprints/event.blueprint";
+import {
+  IncludeScheduleRangeRelation,
+  ScheduleTypes,
+} from "../blueprints/shared/schedule.include";
+import {Event} from "../models";
+import {EventRepository,ScheduleRepository} from "../repositories";
 
-/**
-{
-  "include": [
-    "place",
-    "cover",
-    "address",
-    "tags",
-    {
-      "relation": "schedule",
-      "scope": {
-        "include": [
-          {
-            "relation": "scheduleRanges",
-            "scope": {
-              "include": [
-                "start",
-                "end"
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      "relation": "tickets",
-      "scope": {
-        "include": [
-          {
-            "relation": "price",
-            "scope": {
-              "include": [
-                "currency"
-              ]
-            }
-          }
-        ]
-      }
-    },
- {
-      "relation": "playlist",
-      "scope": {
-        "include": [
-          {
-            "relation": "songs",
-            "scope": {
-              "include": [
-                "artist"
-              ]
-            }
-          }
-        ]
-      }
-    },
- {
-      "relation": "rules"
-
-    }
-  ]
-}
-  */
 export class EventController {
   constructor(
     @repository(EventRepository)
-    public eventRepository : EventRepository,
+    public eventRepository: EventRepository,
+    @repository(ScheduleRepository)
+    public scheduleRepository: ScheduleRepository
   ) {}
 
   @get("/events/nearby")
@@ -95,16 +41,16 @@ export class EventController {
     const results = await this.eventRepository.findByDistance(lat, lon);
     // console.log(results)
     const _filter = {
-
       ...EventsQuery,
-      where:{
-        "or":results.map((r:any)=>{return {id:r.id}})
+      where: {
+        or: results.map((r: any) => {
+          return { id: r.id };
+        }),
       },
-      sort:["distance DESC"]
-    }
-    return this.eventRepository.find(_filter)
+      sort: ["distance DESC"],
+    };
+    return this.eventRepository.find(_filter);
   }
-
 
   @get("/events/{id}/full")
   @response(200, {
@@ -123,129 +69,195 @@ export class EventController {
     return this.eventRepository.findById(id, EventFullQuery);
   }
 
-
-  @post('/events')
+  @post("/events")
   @response(200, {
-    description: 'Event model instance',
-    content: {'application/json': {schema: getModelSchemaRef(Event)}},
+    description: "Event model instance",
+    content: { "application/json": { schema: getModelSchemaRef(Event) } },
   })
   async create(
     @requestBody({
       content: {
-        'application/json': {
+        "application/json": {
           exclude: ["id", "updated_at", "created_at"],
           schema: getModelSchemaRef(Event, {
-            title: 'NewEvent',
-            exclude: ["id", "updated_at", "created_at"],
+            title: "NewEvent",
+            exclude: [ "updated_at", "created_at"],
           }),
         },
       },
     })
-    event: Omit<Event, 'id'>,
+    event: Omit<Event, "id">
   ): Promise<Event> {
-    return this.eventRepository.create(event);
+    const response = await this.eventRepository.create(event);
+    const entity = await this.eventRepository.findById(response.id);
+    await this.updateScheduleData(entity);
+    return response;
   }
 
-  @get('/events/count')
+  @post("/event")
   @response(200, {
-    description: 'Event model count',
-    content: {'application/json': {schema: CountSchema}},
+    description: "Event model instance",
+    content: { "application/json": { schema: getModelSchemaRef(Event) } },
   })
-  async count(
-    @param.where(Event) where?: Where<Event>,
-  ): Promise<Count> {
+  async createFull(
+    @requestBody({
+      content: {
+        "application/json": {
+          exclude: ["id", "updated_at", "created_at"],
+          schema: getModelSchemaRef(Event, {
+            title: "NewEvent",
+            exclude: [ "updated_at", "created_at"],
+          }),
+        },
+      },
+    })
+    event: any
+  ): Promise<Event> {
+
+    const data = event.event;
+    const cover = event.cover;
+    const schedule = event.schedule;
+    const tags = event.tags;
+    const address = event.address;
+    const playlist = event.playlist;
+    const rules = event.rules;
+    const tickets = event.tickets;
+    const lineup = event.lineup;
+
+    const response = await this.eventRepository.create(event);
+    const entity = await this.eventRepository.findById(response.id);
+    await this.updateScheduleData(entity);
+    return response;
+  }
+
+  @get("/events/count")
+  @response(200, {
+    description: "Event model count",
+    content: { "application/json": { schema: CountSchema } },
+  })
+  async count(@param.where(Event) where?: Where<Event>): Promise<Count> {
     return this.eventRepository.count(where);
   }
 
-  @get('/events')
+  @get("/events")
   @response(200, {
-    description: 'Array of Event model instances',
+    description: "Array of Event model instances",
     content: {
-      'application/json': {
+      "application/json": {
         schema: {
-          type: 'array',
-          items: getModelSchemaRef(Event, {includeRelations: true}),
+          type: "array",
+          items: getModelSchemaRef(Event, { includeRelations: true }),
         },
       },
     },
   })
-  async find(
-    @param.filter(Event) filter?: Filter<Event>,
-  ): Promise<Event[]> {
+  async find(@param.filter(Event) filter?: Filter<Event>): Promise<Event[]> {
     return this.eventRepository.find(EventsQuery);
   }
 
-  @patch('/events')
+  @patch("/events")
   @response(200, {
-    description: 'Event PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
+    description: "Event PATCH success count",
+    content: { "application/json": { schema: CountSchema } },
   })
   async updateAll(
     @requestBody({
       content: {
-        'application/json': {
+        "application/json": {
           exclude: ["id", "updated_at", "created_at"],
-          schema: getModelSchemaRef(Event, {partial: true}),
+          schema: getModelSchemaRef(Event, { partial: true }),
         },
       },
     })
     event: Event,
-    @param.where(Event) where?: Where<Event>,
+    @param.where(Event) where?: Where<Event>
   ): Promise<Count> {
     return this.eventRepository.updateAll(event, where);
   }
 
-  @get('/events/{id}')
+  @get("/events/{id}")
   @response(200, {
-    description: 'Event model instance',
+    description: "Event model instance",
     content: {
-      'application/json': {
-        schema: getModelSchemaRef(Event, {includeRelations: true}),
+      "application/json": {
+        schema: getModelSchemaRef(Event, { includeRelations: true }),
       },
     },
   })
   async findById(
-    @param.path.string('id') id: string,
-    @param.filter(Event, {exclude: 'where'}) filter?: FilterExcludingWhere<Event>
+    @param.path.string("id") id: string,
+    @param.filter(Event, { exclude: "where" })
+    filter?: FilterExcludingWhere<Event>
   ): Promise<Event> {
     return this.eventRepository.findById(id, filter);
   }
 
-  @patch('/events/{id}')
+  @patch("/events/{id}")
   @response(204, {
-    description: 'Event PATCH success',
+    description: "Event PATCH success",
   })
   async updateById(
-    @param.path.string('id') id: string,
+    @param.path.string("id") id: string,
     @requestBody({
       content: {
-        'application/json': {
+        "application/json": {
           exclude: ["id", "updated_at", "created_at"],
-          schema: getModelSchemaRef(Event, {partial: true}),
+          schema: getModelSchemaRef(Event, { partial: true }),
         },
       },
     })
-    event: Event,
+    event: Event
   ): Promise<void> {
-    await this.eventRepository.updateById(id, event);
+    const response = await this.eventRepository.updateById(id, event);
+    const entity = await this.eventRepository.findById(id);
+    await this.updateScheduleData(entity);
+    return response;
   }
 
-  @put('/events/{id}')
+  @put("/events/{id}")
   @response(204, {
-    description: 'Event PUT success',
+    description: "Event PUT success",
   })
   async replaceById(
-    @param.path.string('id') id: string,
-    @requestBody() event: Event,
+    @param.path.string("id") id: string,
+    @requestBody() event: Event
   ): Promise<void> {
-    await this.eventRepository.replaceById(id, event);
+    const response = await this.eventRepository.replaceById(id, event);
+    const entity = await this.eventRepository.findById(id);
+    await this.updateScheduleData(entity);
+    return response;
   }
 
-  @del('/events/{id}')
+  @del("/events/{id}")
   @response(204, {
-    description: 'Event DELETE success',
+    description: "Event DELETE success",
   })
-  async deleteById(@param.path.string('id') id: string): Promise<void> {
+  async deleteById(@param.path.string("id") id: string): Promise<void> {
     await this.eventRepository.deleteById(id);
+  }
+
+  private async updateScheduleData(entity: any) {
+    if (entity?.scheduleId) {
+      const schedule = await this.scheduleRepository.findById(
+        entity.scheduleId,
+        {
+          include: [IncludeScheduleRangeRelation],
+        }
+      );
+      if (schedule.type == ScheduleTypes[0]) {
+        const ends: any[] = [new Date("1900-01-01")];
+        if (Array.isArray(schedule?.scheduleRanges)) {
+          schedule.scheduleRanges.forEach((sr: any) => {
+            if (sr?.end?.datetime) {
+              ends.push(new Date(sr.end.datetime));
+            }
+          });
+        }
+        ends.sort((a, b) => b - a);
+        console.log(ends);
+        entity.endDate = ends[0];
+        await entity.updateById(entity.id, entity);
+      }
+    }
   }
 }

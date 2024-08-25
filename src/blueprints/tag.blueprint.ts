@@ -1,3 +1,4 @@
+import {IncludeTranslation} from './shared/translation.include';
 
 export const TagQueryFull: any = {
   // ...QueryFilterBaseBlueprint,
@@ -8,15 +9,6 @@ export const TagQueryFull: any = {
     translationId: true,
   },
   include: [
-    {
-      relation: "translation",
-      scope: {
-        fields: {
-          id: true,
-          pt: true,
-          en: true,
-        },
-      },
-    },
+  IncludeTranslation
   ],
 };

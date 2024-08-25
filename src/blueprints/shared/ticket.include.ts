@@ -1,11 +1,8 @@
+import {IncludePriceRelation} from './price.include';
+
 export const IncludeTicketsRelation:any = {
   relation: "tickets",
   scope: {
-    include:[{
-      relation: "price",
-      scope:{
-        include: "currency"
-      }
-    }]
+    include:[IncludePriceRelation]
   }
 }

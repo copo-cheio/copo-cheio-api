@@ -1,3 +1,4 @@
+import {IncludeCover} from './image.include';
 import {IncludeScheduleRelation} from './schedule.include';
 
 export const IncludeLineupRelation: any = {
@@ -11,7 +12,7 @@ export const IncludeLineupRelation: any = {
             {
               relation: "artist",
               scope: {
-                include: [{ relation: "cover" }],
+                include: [IncludeCover],
               },
             },
             IncludeScheduleRelation

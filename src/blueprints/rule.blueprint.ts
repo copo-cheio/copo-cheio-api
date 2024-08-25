@@ -1,4 +1,5 @@
 import {QueryFilterBaseBlueprint} from './shared/query-filter.interface';
+import {IncludeTranslation} from './shared/translation.include';
 
 export const RuleQueryFull: any = {
   ...QueryFilterBaseBlueprint,
@@ -11,9 +12,7 @@ export const RuleQueryFull: any = {
     valueTranslationId:true
   },
   include: [
-    {
-      relation: "translation",
-    },
+    IncludeTranslation,
     {
       relation: "valueTranslation",
     },

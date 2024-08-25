@@ -1,3 +1,4 @@
+import {IncludeThumbnail} from './image.include';
 import {IncludeTagsRelation} from "./tag.include";
 
 export const IncludePlaylistRelation: any = {
@@ -9,7 +10,7 @@ export const IncludePlaylistRelation: any = {
         scope: {
           include: [
             { relation: "artist" },
-            { relation: "thumbnail" },
+            IncludeThumbnail
 
           ],
         },

@@ -2,20 +2,23 @@ import {
   repository,
 } from '@loopback/repository';
 import {
-  param,
   get,
   getModelSchemaRef,
+  param,
 } from '@loopback/rest';
+import {IncludeScheduleRelation} from '../blueprints/shared/schedule.include';
 import {
   Event,
   Schedule,
 } from '../models';
-import {EventRepository} from '../repositories';
+import {EventRepository,ScheduleRepository} from '../repositories';
 
 export class EventScheduleController {
   constructor(
     @repository(EventRepository)
     public eventRepository: EventRepository,
+    @repository(ScheduleRepository)
+    public scheduleRepository: ScheduleRepository,
   ) { }
 
   @get('/events/{id}/schedule', {
@@ -24,7 +27,7 @@ export class EventScheduleController {
         description: 'Schedule belonging to Event',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(Schedule),
+            schema: getModelSchemaRef(Schedule,{includeRelations:true}),
           },
         },
       },
@@ -33,6 +36,8 @@ export class EventScheduleController {
   async getSchedule(
     @param.path.string('id') id: typeof Event.prototype.id,
   ): Promise<Schedule> {
-    return this.eventRepository.schedule(id);
+    const evt = await this.eventRepository.findById(id,{include:[IncludeScheduleRelation]});
+    return (evt as any).schedule ;
   }
+
 }

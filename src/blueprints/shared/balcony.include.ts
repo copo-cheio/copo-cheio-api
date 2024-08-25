@@ -1,6 +1,8 @@
+import {IncludeCover} from './image.include';
+
 export const IncludeBalconysRelations: any = {
   relation: "balconies",
   scope: {
-    include: [{"relation":"cover"}],
+    include: [IncludeCover],
   },
 };

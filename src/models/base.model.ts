@@ -4,7 +4,6 @@ export class Base extends Entity {
   @property({
     type: 'string',
     id: true,
-    // defaultFn: 'uuid'
     generated: true,
     useDefaultIdType: false,
     postgresql: {
@@ -18,13 +17,21 @@ export class Base extends Entity {
 
   @property({
     type: 'date',
-    default: () => new Date()
+    generated: true,
+    postgresql: {
+      dataType: 'date',
+      defaultFn: 'now()', //<---- only this line is different
+    },
   })
   created_at ? : string;
 
   @property({
     type: 'date',
-    default: () => new Date()
+    generated: true,
+    postgresql: {
+      dataType: 'date',
+      defaultFn: 'now()', //<---- only this line is different
+    },
   })
   updated_at ? : string;
 

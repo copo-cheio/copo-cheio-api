@@ -1,4 +1,4 @@
-import {belongsTo,hasMany,model,property, referencesMany} from '@loopback/repository';
+import {belongsTo,hasMany,model,property,referencesMany} from '@loopback/repository';
 import {Address} from './address.model';
 import {Base} from './base.model';
 import {EventRule} from './event-rule.model';
@@ -9,8 +9,9 @@ import {Playlist} from './playlist.model';
 import {Rule} from './rule.model';
 import {Schedule} from './schedule.model';
 
-import {Ticket} from './ticket.model';
+import {ScheduleTypes} from '../blueprints/shared/schedule.include';
 import {Tag} from './tag.model';
+import {Ticket} from './ticket.model';
 
 @model()
 export class Event extends Base {
@@ -36,15 +37,25 @@ export class Event extends Base {
   webpage?: string;
 
   @property({
+    type: 'string',
+    jsonSchema: {
+      enum: ScheduleTypes
+    },
+    default: ScheduleTypes[1]
+  })
+  type?: string;
+
+
+  @property({
     type: 'number',
     required: true,
+    default:0
   })
   status: number;
 
+
   @belongsTo(() => Image)
   coverId: string;
-
-
 
   @belongsTo(() => Address)
   addressId: string;
@@ -70,7 +81,20 @@ export class Event extends Base {
   @referencesMany(() => Tag)
   tagIds: string[];
 
+  /* ********************************** */
+  /*         Computed Properties        */
+  /* ********************************** */
+
+  @property({
+    type: 'date',
+  })
+  endDate: Date;
+
+
+
+
   constructor(data?: Partial<Event>) {
+
     super(data);
   }
 }

@@ -1,4 +1,5 @@
 import {IncludeAddressRelation} from "./shared/address.include";
+import {IncludeCover} from './shared/image.include';
 import {IncludeLineupRelation} from "./shared/lineup.include";
 import {IncludePlaceRelation} from "./shared/place.include";
 import {IncludePlaylistRelation} from "./shared/playlist.include";
@@ -21,6 +22,8 @@ export const EventsQuery: any = {
     scheduleId: true,
     playlistId: true,
     placeId: true,
+    endDate:true,
+    type:true,
   },
   include: [
     "cover",
@@ -38,14 +41,17 @@ export const EventFullQuery: any = {
     email: true,
     webpage: true,
     status: true,
+    endDate:true,
+    type:true,
     coverId: true,
     addressId: true,
     scheduleId: true,
     playlistId: true,
     placeId: true,
+
   },
   include: [
-    "cover",
+    IncludeCover,
     IncludeAddressRelation,
     IncludeScheduleRelation,
     IncludePlaceRelation,
