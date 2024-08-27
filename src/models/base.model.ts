@@ -19,21 +19,21 @@ export class Base extends Entity {
     type: 'date',
     generated: true,
     postgresql: {
-      dataType: 'date',
-      defaultFn: 'now()', //<---- only this line is different
+      dataType: 'date', //<---- only this line is different
     },
+    defaultFn: 'now', //<---- only this line is different
   })
-  created_at ? : string;
+  created_at ? : Date;
 
   @property({
     type: 'date',
     generated: true,
     postgresql: {
       dataType: 'date',
-      defaultFn: 'now()', //<---- only this line is different
     },
+    defaultFn: 'now', //<---- only this line is different
   })
-  updated_at ? : string;
+  updated_at ? : Date;
 
 
 

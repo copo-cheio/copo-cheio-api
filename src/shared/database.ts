@@ -1,3 +1,5 @@
+import {IsolationLevel} from '@loopback/repository';
+
 export const sortByDistance = ($user_lat: any, $user_lng: any) => {
   return `SELECT
     id, (
@@ -16,20 +18,56 @@ ORDER BY distance
 };
 
 
-// Haversine formula to calculate distance
-// export const haversine=   (lat1: number, lon1: number, lat2: number, lon2: number): number {
-//   const toRadians = (degrees: number) => degrees * (Math.PI / 180);
-//   const R = 6371; // Earth's radius in km
+export const belongsToTransformer = (record:any, type:any , key:string , defaults:any={})=>{
 
-//   const dLat = toRadians(lat2 - lat1);
-//   const dLon = toRadians(lon2 - lon1);
+  let value = record?.[key]
+  let valid = typeof value == "string" && value.indexOf('-') >-1;
+  if(!valid){
+    record[key] = defaults[type]
+  }
+  return record;
+}
 
-//   const a =
-//     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-//     Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
-//     Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
-//   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+export const validateLiveRecord = (record:any, requiredFields:string[] = [], nonDefaultRelations:string[] = [])=>{
+  let validate = ()=>{
 
-//   return R * c; // Distance in km
-// }
+    let isValid = true;
+    const notNull = new Set([...requiredFields,...nonDefaultRelations]);
+
+    for(let nN of notNull){
+      if(record[nN] == null){
+        isValid = false;
+        return false;
+      }
+    }
+    for(let nonDefault of nonDefaultRelations){
+      if(record[nonDefault] && record[nonDefault].indexOf('00000000')>0){
+        isValid = false;
+        return false;
+      }
+    }
+
+    return isValid
+  }
+
+  let live = validate();
+  record.live = live
+  return record;
+}
+
+export const transactionWrapper = async (repository:any, operation:(transaction:any) =>Promise<any>)=>{
+  const transaction = await repository.dataSource.beginTransaction(
+    {isolationLevel: IsolationLevel.READ_COMMITTED}
+  );
+  try {
+    const result = await operation(transaction);
+    await transaction.commit();
+    return result;
+  } catch (ex){
+    console.log({ex})
+    await transaction.rollback();
+    throw ex
+  }
+
+}

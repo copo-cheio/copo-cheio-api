@@ -1,4 +1,4 @@
-import {belongsTo,hasMany,model,property, referencesMany} from '@loopback/repository';
+import {belongsTo,hasMany,model,property,referencesMany} from '@loopback/repository';
 import {Address} from './address.model';
 import {Balcony} from './balcony.model';
 import {Base} from './base.model';
@@ -41,6 +41,13 @@ export class Place extends Base {
     type: 'string',
   })
   phone?: string;
+
+  @property({
+    type: 'boolean',
+
+    default:false
+  })
+  live: boolean;
 
   @hasMany(() => Balcony, {keyTo: 'placeId'})
   balconies?: Balcony[];

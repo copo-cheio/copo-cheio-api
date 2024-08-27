@@ -16,6 +16,6 @@ export const FilterByTags = (query:any)=>{
       query.where.or.push({tagIds:{like: "%"+tag+"%"}})
     }
   }
-  console.log(JSON.stringify(query))
+
   return query
 }

@@ -24,6 +24,7 @@ export class Image extends Base {
   @property({
     type: 'string',
     required: true,
+    default:"a813bc90-d422-4d60-aa48-1e7d6c69ae8e"
   })
   url: string;
 
@@ -35,7 +36,7 @@ export class Image extends Base {
 
   @property({
     type: 'string',
-    required: true,
+
   })
   refId: string;
 

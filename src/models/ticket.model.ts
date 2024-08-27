@@ -18,6 +18,13 @@ export class Ticket extends Base {
     type: 'number',
   })
   status?: number;
+  @property({
+    type: 'number',
+    jsonSchema:{
+      maximum:0
+    }
+  })
+  quantity?: number;
 
   @belongsTo(() => Price)
   priceId: string;

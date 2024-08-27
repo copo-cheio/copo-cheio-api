@@ -1,16 +1,14 @@
-import {IncludeCountryRelation} from './shared/country.include';
-import {QueryFilterBaseBlueprint} from './shared/query-filter.interface';
-import {IncludeRegionRelation} from './shared/region.include';
+import {belongsToTransformer} from '../shared/database';
 
-export const DefaultAddress = {
-  place: "00000000-0000-0000-0000-000000000003",
-  event: "00000000-0000-0000-0000-000000000003",
-  region:"00000000-0000-0000-0000-000000000004",
-  country:"00000000-0000-0000-0000-000000000005",
+export const DefaultSchedule = {
+  once: "00000000-0000-0000-0000-000000000011",
+  repeat: "00000000-0000-0000-0000-000000000012",
+  lineup:"00000000-0000-0000-0000-00000000013",
+
 }
 
 
-
+/*
 export const AddressFullQuery:any = {
   ...QueryFilterBaseBlueprint,
 
@@ -34,13 +32,21 @@ export const AddressFullQuery:any = {
 }
 
 
-
 export const AddressBelongsToTransformer = (record:any, type:"place"|"event")=>{
-  let key = "addressId"
+export const AddressBelongsToTransformer = (record:any, type:"place"|"event")=>{
+  let key = "addresssId"
   let value = record?.[key]
   let valid = typeof value == "string" && value.indexOf('-') >-1;
   if(!valid){
     record[key] = DefaultAddress[type]
   }
+  return record;
+}
+
+*/
+
+export const ScheduleBelongsToTransformer = (record:any, type:"once"|"repeat" |"lineup" ="once")=>{
+  record = belongsToTransformer(record, type,"scheduleId",DefaultSchedule);
+  delete record.schedule;
   return record;
 }

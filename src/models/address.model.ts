@@ -25,14 +25,20 @@ export class Address extends Base {
   @property({
     type: "number",
     required: true,
-    dataType: "FLOAT",
+    dataType: 'numeric',
+    precision: 10,
+    scale:7,
+    default: 0,
   })
   latitude: number;
 
   @property({
     type: "number",
     required: true,
-    dataType: "FLOAT",
+    dataType: 'numeric',
+    precision: 10,
+    scale:7,
+    default:0
   })
   longitude: number;
 

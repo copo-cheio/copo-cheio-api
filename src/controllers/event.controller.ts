@@ -17,20 +17,38 @@ import {
   requestBody,
   response,
 } from "@loopback/rest";
-import {EventFullQuery,EventsQuery} from "../blueprints/event.blueprint";
+import {
+  EventCreateTransformer,
+  EventFullQuery,
+  EventsQuery,
+  EventValidation,
+} from "../blueprints/event.blueprint";
 import {
   IncludeScheduleRangeRelation,
   ScheduleTypes,
 } from "../blueprints/shared/schedule.include";
-import {Event} from "../models";
-import {EventRepository,ScheduleRepository} from "../repositories";
+import {Event,Price} from "../models";
+import {
+  EventRepository,
+  EventRuleRepository,
+  PriceRepository,
+  ScheduleRepository,
+  TicketRepository,
+} from "../repositories";
+import {transactionWrapper} from "../shared/database";
 
 export class EventController {
   constructor(
     @repository(EventRepository)
     public eventRepository: EventRepository,
     @repository(ScheduleRepository)
-    public scheduleRepository: ScheduleRepository
+    public scheduleRepository: ScheduleRepository,
+    @repository(TicketRepository)
+    public ticketRepository: TicketRepository,
+    @repository(PriceRepository)
+    public priceRepository: PriceRepository,
+    @repository(EventRuleRepository)
+    public eventRuleRepository: EventRuleRepository
   ) {}
 
   @get("/events/nearby")
@@ -66,6 +84,7 @@ export class EventController {
     @param.filter(Event, { exclude: "where" })
     filter?: FilterExcludingWhere<Event>
   ): Promise<Event> {
+    console.log({ EventFullQuery: JSON.stringify(EventFullQuery) });
     return this.eventRepository.findById(id, EventFullQuery);
   }
 
@@ -81,13 +100,27 @@ export class EventController {
           exclude: ["id", "updated_at", "created_at"],
           schema: getModelSchemaRef(Event, {
             title: "NewEvent",
-            exclude: [ "updated_at", "created_at"],
+            exclude: ["updated_at", "created_at"],
           }),
         },
       },
     })
     event: Omit<Event, "id">
   ): Promise<Event> {
+    console.log(event, {
+      content: {
+        "application/json": {
+          exclude: ["id", "updated_at", "created_at"],
+          schema: JSON.stringify(
+            getModelSchemaRef(Event, {
+              title: "NewEvent",
+              exclude: ["updated_at", "created_at"],
+            })
+          ),
+        },
+      },
+    });
+
     const response = await this.eventRepository.create(event);
     const entity = await this.eventRepository.findById(response.id);
     await this.updateScheduleData(entity);
@@ -101,33 +134,123 @@ export class EventController {
   })
   async createFull(
     @requestBody({
+      description: "Required input for login",
+      required: true,
       content: {
         "application/json": {
-          exclude: ["id", "updated_at", "created_at"],
-          schema: getModelSchemaRef(Event, {
-            title: "NewEvent",
-            exclude: [ "updated_at", "created_at"],
-          }),
+          schema: {
+            type: "object",
+            required: ["name", "placeId"],
+            properties: {
+              name: {
+                type: "string",
+              },
+              placeId: {
+                type: "string",
+              },
+            },
+          },
         },
       },
     })
-    event: any
+    data: any
   ): Promise<Event> {
+    console.log("");
+    console.log("");
+    console.log("");
+    console.log("");
+    console.log("");
+    console.log("");
+    console.log("");
+    console.log("");
+    console.log("");
+    // @todo create schedule
+    console.log(data, {
+      content: {
+        "application/json": {
+          exclude: ["id", "updated_at", "created_at"],
+          schema: JSON.stringify(
+            getModelSchemaRef(Event, {
+              title: "NewEvent",
+              exclude: ["updated_at", "created_at"],
+            })
+          ),
+        },
+      },
+    });
 
-    const data = event.event;
-    const cover = event.cover;
-    const schedule = event.schedule;
-    const tags = event.tags;
-    const address = event.address;
-    const playlist = event.playlist;
-    const rules = event.rules;
-    const tickets = event.tickets;
-    const lineup = event.lineup;
+    const result = await transactionWrapper(
+      this.eventRepository,
+      async (transaction: any) => {
+        const payload = await EventCreateTransformer(data);
+        const rules = data.rules || [];
+        const tickets = data.tickets || [];
+        const schedule = data?.schedule;
 
-    const response = await this.eventRepository.create(event);
-    const entity = await this.eventRepository.findById(response.id);
-    await this.updateScheduleData(entity);
-    return response;
+        delete payload.rules;
+        delete payload.tickets;
+        delete payload.tag;
+
+        const response = await this.eventRepository.create(
+          payload,
+          transaction
+        );
+        let entity = await this.eventRepository.findById(
+          response.id,
+          transaction
+        );
+
+        for (let ruleId of rules) {
+          await this.eventRuleRepository.create(
+            {
+              eventId: entity.id,
+              ruleId: ruleId,
+              name: "01917710-0669-7a83-be5c-88ec7a599853",
+              code: "01917710-0669-7a83-be5c-88ec7a599853",
+              value: "01917710-0669-7a83-be5c-88ec7a599853",
+            },
+            transaction
+          );
+        }
+
+        for (let ticket of tickets) {
+          let price = ticket?.price?.price;
+          if (price) {
+            let priceRecordPayload: any = {
+              where: {
+                price,
+                currencyId: "bc6635ea-7273-4518-b18a-c066fb300b1f",
+              },
+            };
+            let priceRecord: Price | null = await this.priceRepository.findOne(
+              priceRecordPayload
+            );
+            if (!priceRecord) {
+              priceRecord = await this.priceRepository.create(
+                priceRecordPayload.where,
+                transaction
+              );
+            }
+            if (priceRecord) {
+              delete ticket.price;
+              delete ticket.id;
+              const ticketPayload = { ...ticket };
+              ticketPayload.status = 1;
+              ticketPayload.priceId = priceRecord.id;
+              ticketPayload.refId = entity.id;
+              await this.ticketRepository.create(ticketPayload, transaction);
+            }
+          }
+        }
+
+        entity =await this.updateScheduleData(entity);
+        entity = await EventValidation(this.eventRepository, entity);
+
+        return entity;
+      }
+    );
+
+    return result;
   }
 
   @get("/events/count")
@@ -245,7 +368,7 @@ export class EventController {
         }
       );
       if (schedule.type == ScheduleTypes[0]) {
-        const ends: any[] = [new Date("1900-01-01")];
+        const ends: any[] = [new Date("1900-01-01 ")];
         if (Array.isArray(schedule?.scheduleRanges)) {
           schedule.scheduleRanges.forEach((sr: any) => {
             if (sr?.end?.datetime) {
@@ -254,10 +377,11 @@ export class EventController {
           });
         }
         ends.sort((a, b) => b - a);
-        console.log(ends);
+
         entity.endDate = ends[0];
-        await entity.updateById(entity.id, entity);
+        await this.eventRepository.updateById(entity.id, entity);
       }
     }
+    return entity;
   }
 }

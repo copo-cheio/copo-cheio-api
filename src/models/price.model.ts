@@ -7,12 +7,19 @@ export class Price extends Base {
   @property({
     type: 'number',
     required: true,
-  dataType: 'FLOAT'
+    dataType: 'numeric',
+    precision: 6,
+    scale:2,
+    default: 0,
+    min:0,
+    jsonSchema:{
+      minimum:0
+    }
   })
   price: number;
 
   @belongsTo(() => Currency)
-  currencyId: string;
+  currencyId: string ;
 
   constructor(data?: Partial<Price>) {
     super(data);

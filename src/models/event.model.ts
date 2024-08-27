@@ -52,6 +52,12 @@ export class Event extends Base {
     default:0
   })
   status: number;
+  @property({
+    type: 'boolean',
+
+    default:false
+  })
+  live: boolean;
 
 
   @belongsTo(() => Image)

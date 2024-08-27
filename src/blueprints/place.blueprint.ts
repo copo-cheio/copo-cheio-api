@@ -59,6 +59,19 @@ export const PlacesQuery: any = {
   ],
 };
 
+const DefaultPlace:any = {
+  place: "00000000-0000-0000-0000-000000000021"
+}
+
+export const PlaceBelongsToTransformer = (record:any, type:string = "place")=>{
+  let key = "placeId"
+  let value = record?.[key]
+  let valid = typeof value == "string" && value.indexOf('-') >-1;
+  if(!valid){
+    record[key] = DefaultPlace[type]
+  }
+  return record;
+}
 
 
 /*
