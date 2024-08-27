@@ -99,6 +99,8 @@ export const EventCreateSchema = {
       type: "string",
     },
 
+
+
     type: {
       type: "string",
     },

@@ -51,7 +51,7 @@ export class ScheduleController {
     const result = await this.scheduleRepository.create(schedule);
     const id = result.id;
     delete result.id;
-    console.log({result,id})
+
     const entity = await this.scheduleRepository.findById(id,{include:[IncludeScheduleRangeRelation]})
     await this.updateEventScheduleData(entity);
     return result

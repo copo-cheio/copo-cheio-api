@@ -45,7 +45,7 @@ export class PlaceController {
       },
       // sort:["distance DESC"]
     }
-    console.log(JSON.stringify(_filter))
+
     return this.placeRepository.find(_filter)
   }
 
@@ -149,7 +149,7 @@ export class PlaceController {
     @param.filter(Place, { exclude: "where" })
     filter?: FilterExcludingWhere<Place>
   ): Promise<Place> {
-    console.log({PlaceQueryFull})
+
     return this.placeRepository.findById(id, PlaceQueryFull);
   }
 

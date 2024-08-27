@@ -1,19 +1,61 @@
 import {inject,lifeCycleObserver,LifeCycleObserver} from '@loopback/core';
 import {juggler} from '@loopback/repository';
-
+/** DEV
+ *
+ *
+ *
 const config = {
   name: 'PostgresSql',
   connector: 'postgresql',
   url: '',
   host: 'localhost',
   port: 5432,
-  user: 'postgres',
-  password: 'postgres',
-  database: 'ccdb',
-  min: 5,
-  max: 200,
-  idleTimeoutMillis: 60000,
-  ssl: false
+  user: 'pihh',
+  password: 'pihhrek85',
+  database: 'ccdb'
+};
+
+const config ={
+  name: 'PostgresSql',
+  connector: 'postgresql',
+  url: 'postgresql://pihh:hXHtyGLyqKyCz0jczvlfdZhZvkTSBGnw@dpg-cr72mgd6l47c7382pr40-a/cdb_4om1',
+  host: 'localhost',
+  port: 5432,
+  user: 'pihh',
+  password: 'hXHtyGLyqKyCz0jczvlfdZhZvkTSBGnw',
+  database: 'cdb_4om1'
+
+}
+*/
+//postgresql://pihh:hXHtyGLyqKyCz0jczvlfdZhZvkTSBGnw@dpg-cr72mgd6l47c7382pr40-a:5432/cdb_4om1
+const config = {
+
+  name: 'cc-db',
+  connector: 'postgresql',
+  // url: '/pihh:hXHtyGLyqKyCz0jczvlfdZhZvkTSBGnw@dpg-cr72mgd6l47c7382pr40-a.frankfurt-postgres.render.com/cdb_4om1',
+  // host: 'pg-cr72mgd6l47c7382pr40-a:5432',
+  host: 'dpg-cr72mgd6l47c7382pr40-a.frankfurt-postgres.render.com',
+  // dpg-cr72mgd6l47c7382pr40-a.frankfurt-postgres.render.com
+  //host: '216.24.57.252',
+  // port: 5432,
+  // user: 'pihh',
+  // password: 'hXHtyGLyqKyCz0jczvlfdZhZvkTSBGnw',
+  // database: 'cdb_4om1'
+
+
+  //   name: 'pgdb',
+    // connector: 'postgresql',
+    url: '',
+    // url: 'postgresql://pihh:hXHtyGLyqKyCz0jczvlfdZhZvkTSBGnw@dpg-cr72mgd6l47c7382pr40-a.frankfurt-postgres.render.com/cdb_4om1',
+    // host: 'dpg-cr72mgd6l47c7382pr40-a.frankfurt-postgres.render.com',
+    port: 5432,
+    // user: 'pihh.rocks@gmail.com',
+    user: 'pihh',
+    password: 'hXHtyGLyqKyCz0jczvlfdZhZvkTSBGnw',
+    database: 'cdb_4om1'
+    //database: 'postgres'
+  // };
+
 };
 
 // Observe application's life cycle to disconnect the datasource when
@@ -30,6 +72,8 @@ export class PostgresSqlDataSource extends juggler.DataSource
     @inject('datasources.config.PostgresSql', {optional: true})
     dsConfig: object = config,
   ) {
-    super(dsConfig);
+
+    console.log(dsConfig)
+        super(dsConfig);
   }
 }

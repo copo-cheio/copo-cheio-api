@@ -71,3 +71,40 @@ export const transactionWrapper = async (repository:any, operation:(transaction:
   }
 
 }
+
+export const updateManyRelationByIds = async (currentIds:any[],newIds:string[], callbackFn:any)=>{
+  const toAdd = []
+  const toRemove = [];
+  currentIds = currentIds.map((c:any)=> {
+    let id = c;
+    if(typeof id !== "string"){
+      id = c.id
+    }
+    return id;
+  })
+  newIds = newIds.map((c:any)=> {
+    let id = c;
+    if(typeof id !== "string"){
+      id = c.id
+    }
+    return id;
+  })
+
+  for(let id of currentIds){
+    if(!newIds.includes(id)){
+      toRemove.push(id)
+    }
+  }
+  for(let id of newIds){
+    if(!currentIds.includes(id)){
+      toAdd.push(id)
+    }
+  }
+
+  for(let id of toAdd){
+    await callbackFn(id,'add')
+  }
+  for(let id of toRemove){
+    await callbackFn(id,'remove')
+  }
+}

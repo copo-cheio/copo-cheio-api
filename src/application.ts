@@ -17,6 +17,7 @@ import {
 } from "@loopback/authentication";
 import {FirebaseAuthStrategy} from './auth-strategies/firebase-strategy';
 import {FILE_UPLOAD_SERVICE,STORAGE_DIRECTORY} from './services/FileUpload/keys';
+import {MultipartFormDataBodyParser} from './utils/parser';
 
 
 export {ApplicationConfig};
@@ -45,7 +46,9 @@ export class CopoCheioServerApplication extends BootMixin(
     registerAuthenticationStrategy(this, FirebaseAuthStrategy);
 
 
+
     // Configure Uploader
+    this.bodyParser(MultipartFormDataBodyParser);
     this.configureFileUpload(options.fileStorageDirectory);
 
 

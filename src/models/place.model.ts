@@ -76,7 +76,7 @@ export class Place extends Base {
   tagIds: string[];
 
   constructor(data?: Partial<Place>) {
-    // console.log({data}, 'PLACE')
+
     super(data);
   }
 }

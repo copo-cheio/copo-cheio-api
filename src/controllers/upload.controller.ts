@@ -1,93 +1,119 @@
-// Copyright IBM Corp. and LoopBack contributors 2020. All Rights Reserved.
-// Node module: @loopback/example-file-transfer
-// This file is licensed under the MIT License.
-// License text available at https://opensource.org/licenses/MIT
+import {repository} from "@loopback/repository";
+import {post,Request,requestBody} from "@loopback/rest";
+import {RequestHandler} from "express-serve-static-core";
+import {Client} from "minio";
+import multer from "multer";
+import {v4 as uuidv4} from "uuid";
+import {EventRepository,ImageRepository,PlaceRepository} from "../repositories";
+import minioClient,{minioClientSetup} from "../services/minio/client";
 
-import {inject} from '@loopback/core';
-import {
-  post,
-  Request,
-  requestBody,
-  Response,
-  RestBindings,
-} from '@loopback/rest';
-import {FILE_UPLOAD_SERVICE} from '../services/FileUpload/keys';
-import {FileUploadHandler} from '../services/FileUpload/types';
-import {storageService} from '../services/minio/service';
-;
-
-/**
- * A controller to handle file uploads using multipart/form-data media type
- */
 export class FileUploadController {
-  /**
-   * Constructor
-   * @param handler - Inject an express request handler to deal with the request
-   */
+  private minioClient: Client;
+
   constructor(
-    @inject(FILE_UPLOAD_SERVICE) private handler: FileUploadHandler,
-  ) {}
-  @post('/upload/cover', {
+    @repository(ImageRepository)
+    public imageRepository: ImageRepository,
+    @repository(PlaceRepository)
+    public placeRepository: PlaceRepository,
+    @repository(EventRepository)
+    public eventRepository: EventRepository
+  ) {
+    this.minioClient = minioClient;
+  }
+
+  COVER_MODELS:any = {
+    place:{repository:this.placeRepository},
+    event:{repository:this.eventRepository }
+  }
+  @post("/upload/cover", {
     responses: {
-      200: {
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-            },
-          },
-        },
-        description: 'Files and fields',
+      "200": {
+        description: "File uploaded successfully",
+        content: { "application/json": { schema: { type: "object" } } },
       },
     },
   })
   async fileUpload(
-    @requestBody.file()
-    request: Request,
-    @inject(RestBindings.Http.RESPONSE) response: Response,
+    @requestBody({
+      description: "multipart/form-data file to upload",
+      required: true,
+      content: {
+        "multipart/form-data": {
+          "x-parser": "stream",
+          schema: {
+            type: "object",
+            properties: {
+              file: {
+                type: "string",
+                format: "binary",
+              },
+              refId: {
+                type: "string"
+              },
+              model: {
+                type: "string"
+              },
+            },
+          },
+        },
+      },
+    })
+    request: Request
   ): Promise<object> {
-    return new Promise<object>((resolve, reject) => {
-      this.handler(request, response, (err: unknown) => {
-        if (err) reject(err);
-        else {
-          console.log({request})
+    const upload = multer().single("file");
+    const handler = this.promisify(upload);
+    await handler(request);
 
-      storageService().minioFileUpload(request).then((up:any)=>{
+    const bucketName = "copo-cheio"; //minioClientSetup.bucketUrl// Replace with your bucket name
+    const file = (request as any).file;
 
-        console.log('uuuup',up)
-      })
-          // await Image.create({
-          //     ref_id: id,
-          //     type: "cover",
-          //     url: cover.url
-          // })
-          resolve(FileUploadController.getFilesAndFields(request));
+    if (!file) {
+      throw new Error("File not found in request");
+    }
+
+    const fileName = uuidv4() + "-" + file.originalname;
+
+    // Upload file to MinIO
+    await this.minioClient.putObject(bucketName, fileName, file.buffer);
+
+    // Update image payload
+    const imagePayload:any = {
+      url: minioClientSetup.bucketUrl+fileName,
+      type:"cover",
+      refId:request.body.refId || "0000000-0000-0000-0000-00000000000",
+
+    }
+    const imageRecord = await this.imageRepository.create(imagePayload);
+    const {body,data}:any = request
+
+    if(request?.body?.refId && request?.body?.model){
+      let model:any = this.COVER_MODELS[request?.body?.model]
+      let repo:any = model?.repository
+      console.log(model,request.body.model)
+      if(repo && repo.findById && request.body.refId){
+        // @ts-ignore
+
+        const record = await repo.findById(request.body.refId)
+        if(record){
+
+          record.coverId = imageRecord.id
+          await repo.updateById(record.id,record)
         }
-      });
-    });
-  }
-
-  /**
-   * Get files and fields for the request
-   * @param request - Http request
-   */
-  private static getFilesAndFields(request: Request) {
-    const uploadedFiles = request.files;
-    const mapper = (f: globalThis.Express.Multer.File) => ({
-      fieldname: f.fieldname,
-      originalname: f.originalname,
-      encoding: f.encoding,
-      mimetype: f.mimetype,
-      size: f.size,
-    });
-    let files: object[] = [];
-    if (Array.isArray(uploadedFiles)) {
-      files = uploadedFiles.map(mapper);
-    } else {
-      for (const filename in uploadedFiles) {
-        files.push(...uploadedFiles[filename].map(mapper));
       }
     }
-    return {files, fields: request.body};
+
+    return imageRecord
+  }
+
+  // Utility to promisify the middleware function
+  promisify(middleware: RequestHandler) {
+    return (req: any) =>
+      new Promise<void>((resolve, reject) => {
+        middleware(req, {} as any, (err: any) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
   }
 }
+

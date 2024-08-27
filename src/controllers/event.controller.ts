@@ -57,7 +57,7 @@ export class EventController {
     @param.query.number("lon") lon: number
   ) {
     const results = await this.eventRepository.findByDistance(lat, lon);
-    // console.log(results)
+
     const _filter = {
       ...EventsQuery,
       where: {
@@ -84,7 +84,6 @@ export class EventController {
     @param.filter(Event, { exclude: "where" })
     filter?: FilterExcludingWhere<Event>
   ): Promise<Event> {
-    console.log({ EventFullQuery: JSON.stringify(EventFullQuery) });
     return this.eventRepository.findById(id, EventFullQuery);
   }
 
@@ -107,20 +106,6 @@ export class EventController {
     })
     event: Omit<Event, "id">
   ): Promise<Event> {
-    console.log(event, {
-      content: {
-        "application/json": {
-          exclude: ["id", "updated_at", "created_at"],
-          schema: JSON.stringify(
-            getModelSchemaRef(Event, {
-              title: "NewEvent",
-              exclude: ["updated_at", "created_at"],
-            })
-          ),
-        },
-      },
-    });
-
     const response = await this.eventRepository.create(event);
     const entity = await this.eventRepository.findById(response.id);
     await this.updateScheduleData(entity);
@@ -155,34 +140,13 @@ export class EventController {
     })
     data: any
   ): Promise<Event> {
-    console.log("");
-    console.log("");
-    console.log("");
-    console.log("");
-    console.log("");
-    console.log("");
-    console.log("");
-    console.log("");
-    console.log("");
-    // @todo create schedule
-    console.log(data, {
-      content: {
-        "application/json": {
-          exclude: ["id", "updated_at", "created_at"],
-          schema: JSON.stringify(
-            getModelSchemaRef(Event, {
-              title: "NewEvent",
-              exclude: ["updated_at", "created_at"],
-            })
-          ),
-        },
-      },
-    });
+
 
     const result = await transactionWrapper(
       this.eventRepository,
       async (transaction: any) => {
         const payload = await EventCreateTransformer(data);
+
         const rules = data.rules || [];
         const tickets = data.tickets || [];
         const schedule = data?.schedule;
@@ -243,7 +207,7 @@ export class EventController {
           }
         }
 
-        entity =await this.updateScheduleData(entity);
+        entity = await this.updateScheduleData(entity);
         entity = await EventValidation(this.eventRepository, entity);
 
         return entity;
@@ -251,6 +215,69 @@ export class EventController {
     );
 
     return result;
+  }
+
+  @patch("/events/{id}")
+  @response(204, {
+    description: "Event PATCH success",
+  })
+  async updateById(
+    @param.path.string("id") id: string,
+    @requestBody({
+      description: "Required input for login",
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            required: ["name", "placeId"],
+            properties: {
+              name: {
+                type: "string",
+              },
+              placeId: {
+                type: "string",
+              },
+            },
+          },
+        },
+      },
+    })
+    data: any
+  ): Promise<void> {
+    const result = await transactionWrapper(
+      this.eventRepository,
+      async (transaction: any) => {
+        const entity = await this.eventRepository.findById(id,EventFullQuery)
+        const payload = await EventCreateTransformer({...entity,...data});
+
+
+        delete payload.rules;
+        delete payload.tickets;
+        delete payload.tag;
+        delete payload.events
+        delete payload.scheduleId
+        delete payload.schedule
+        delete payload.playlistId
+        delete payload.playlist
+        delete payload.tag
+        delete payload.tags
+        delete payload.tagIds
+        delete payload.address
+        delete payload.lineup
+        const response = await this.eventRepository.updateById(id,{
+          ...entity,
+          ...payload,
+        },
+          transaction
+        );
+
+        return response;
+      }
+    );
+
+    return result;
+
   }
 
   @get("/events/count")
@@ -313,28 +340,6 @@ export class EventController {
     filter?: FilterExcludingWhere<Event>
   ): Promise<Event> {
     return this.eventRepository.findById(id, filter);
-  }
-
-  @patch("/events/{id}")
-  @response(204, {
-    description: "Event PATCH success",
-  })
-  async updateById(
-    @param.path.string("id") id: string,
-    @requestBody({
-      content: {
-        "application/json": {
-          exclude: ["id", "updated_at", "created_at"],
-          schema: getModelSchemaRef(Event, { partial: true }),
-        },
-      },
-    })
-    event: Event
-  ): Promise<void> {
-    const response = await this.eventRepository.updateById(id, event);
-    const entity = await this.eventRepository.findById(id);
-    await this.updateScheduleData(entity);
-    return response;
   }
 
   @put("/events/{id}")

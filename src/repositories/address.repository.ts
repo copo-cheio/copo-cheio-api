@@ -25,8 +25,7 @@ export class AddressRepository extends DefaultCrudRepository<
     this.registerInclusionResolver('region', this.region.inclusionResolver);
 
     (this.modelClass as any).observe("persist", async (ctx: any) => {
-      // console.log('ADREESSSS')
-      // console.log({ctx})
+
       ctx.data.updated_at = new Date();
     });
   }

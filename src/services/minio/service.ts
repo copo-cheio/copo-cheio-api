@@ -22,6 +22,8 @@ export const storageService = () => {
         //     url: img.url
         // })
         // return result.toJSON()
+
+        return img
     }
     const thumbnail = (req: any, ref_id: string) => image(req, ref_id, 'thumbnail')
     const cover = (req: any, ref_id: string) => image(req, ref_id, 'cover')
@@ -65,14 +67,18 @@ export const storageService = () => {
 
     }
     const minioFileUpload = async (req: any) => {
-        const bucket = DEFAULT_MINIO_BUCKET;
-        const name = parseFileName(req.file.originalname)
+
+      const bucket = DEFAULT_MINIO_BUCKET;
+      const file = req?.file || req?.files?.[0] ;
+
+        if(!file) return Promise.reject({message:"No file present in request"})
+        const name = parseFileName(file.originalname)
         const uploadedFileUrl = minioClientSetup.bucketUrl + name
 
         return new Promise((resolve: any, reject: any) => {
 
-            // @ts-ignore
-            minioClient.putObject(bucket, name, req.file.buffer, function (error: any, etag: any) {
+          // @ts-ignore
+            minioClient.putObject(bucket, name, file.buffer, function (error: any, etag: any) {
                 if (error) {
                     console.error(error);
                     reject(error)

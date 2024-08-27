@@ -39,7 +39,7 @@ export class Base extends Entity {
 
   constructor(data?: Partial<Base>) {
     super(data);
-    // console.log(this,'BASE')
+
   }
 }
 
