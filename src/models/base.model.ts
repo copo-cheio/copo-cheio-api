@@ -18,20 +18,20 @@ export class Base extends Entity {
   @property({
     type: 'date',
     generated: true,
-    postgresql: {
-      dataType: 'date', //<---- only this line is different
+    jsonSchema: {
+      format: 'date-time',
     },
-    defaultFn: 'now', //<---- only this line is different
+    defaultFn: 'now',
   })
   created_at ? : Date;
 
   @property({
     type: 'date',
     generated: true,
-    postgresql: {
-      dataType: 'date',
+    jsonSchema: {
+      format: 'date-time',
     },
-    defaultFn: 'now', //<---- only this line is different
+    defaultFn: 'now',
   })
   updated_at ? : Date;
 
@@ -48,3 +48,29 @@ export interface BaseRelations {
 }
 
 export type BaseWithRelations = Base & BaseRelations;
+
+
+// import {Entity, model, property} from '@loopback/repository';
+// import {TimestampMixin} from '../mixins/timestamp.mixin';
+
+// @model()
+// export class Product extends TimestampMixin(Entity) {
+//   @property({
+//     type: 'number',
+//     id: true,
+//     generated: true,
+//   })
+//   id?: number;
+
+//   @property({
+//     type: 'string',
+//     required: true,
+//   })
+//   name: string;
+
+//   // Other properties...
+
+//   constructor(data?: Partial<Product>) {
+//     super(data);
+//   }
+// }

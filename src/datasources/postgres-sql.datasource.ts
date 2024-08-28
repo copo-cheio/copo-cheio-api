@@ -52,7 +52,9 @@ const config = {
     // user: 'pihh.rocks@gmail.com',
     user: 'pihh',
     password: 'hXHtyGLyqKyCz0jczvlfdZhZvkTSBGnw',
-    database: 'cdb_4om1'
+    database: 'cdb_4om1',  ssl: {
+      rejectUnauthorized: false, // This allows self-signed certificates; set it to true for stricter security
+    },
     //database: 'postgres'
   // };
 
