@@ -53,17 +53,20 @@ const config = {
 
   // host: "dpg-cr72mgd6l47c7382pr40-a.frankfurt-postgres.render.com",
   // host: "dpg-cr72mgd6l47c7382pr40-a",
-  host: "dpg-cr72mgd6l47c7382pr40-a.onrender.com",
-
-  url: "",
+  // host: "dpg-cr72mgd6l47c7382pr40-a.onrender.com",
+  host: "dpg-cr72mgd6l47c7382pr40-a.frankfurt-postgres.render.com",
+  // url: "",
 
   port: 5432,
    user: 'pihh',
   //user: "pihh",
   password: "hXHtyGLyqKyCz0jczvlfdZhZvkTSBGnw",
   database: "cdb_4om1",
-  ssl:true,
+  ssl:{
+    rejectUnauthorized: false
+  },
   "dialectOptions": {
+    rejectUnauthorized: false,
     "ssl": true        //<============ Add this
   }
 
