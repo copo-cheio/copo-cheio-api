@@ -11,6 +11,10 @@ const config = {
   user: "pihh",
   password: "hXHtyGLyqKyCz0jczvlfdZhZvkTSBGnw",
   database: "cdb_4om1",
+  ssl:true,
+  "dialectOptions": {
+    "ssl": true        //<============ Add this
+  }
   // };
 };
 

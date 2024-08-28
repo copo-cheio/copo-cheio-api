@@ -62,7 +62,10 @@ const config = {
   //user: "pihh",
   password: "hXHtyGLyqKyCz0jczvlfdZhZvkTSBGnw",
   database: "cdb_4om1",
-  ssl:true
+  ssl:true,
+  "dialectOptions": {
+    "ssl": true        //<============ Add this
+  }
 
   // dpg-cr72mgd6l47c7382pr40-a.frankfurt-postgres.render.com
 
