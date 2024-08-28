@@ -1,4 +1,4 @@
-import {ApplicationConfig, CopoCheioServerApplication} from './application';
+import {ApplicationConfig,CopoCheioServerApplication} from './application';
 
 export * from './application';
 
@@ -30,6 +30,7 @@ if (require.main === module) {
         // useful when used with OpenAPI-to-GraphQL to locate your application
         setServersFromRequest: true,
       },
+      protocol: 'https',
     },
   };
   main(config).catch(err => {

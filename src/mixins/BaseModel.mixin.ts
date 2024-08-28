@@ -1,4 +1,4 @@
-// import {MixinTarget} from '@loopback/core';
+// import {nTarget} from '@loopback/core';
 // import {Entity,model,property} from '@loopback/repository';
 
 // export function TimestampMixin<T extends MixinTarget<Entity>>(Base: T) {
