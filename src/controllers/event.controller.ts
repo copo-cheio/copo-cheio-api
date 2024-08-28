@@ -1,3 +1,4 @@
+import {inject} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -35,6 +36,7 @@ import {
   ScheduleRepository,
   TicketRepository,
 } from "../repositories";
+import {QrFactoryService} from '../services';
 import {transactionWrapper} from "../shared/database";
 
 export class EventController {
@@ -48,8 +50,17 @@ export class EventController {
     @repository(PriceRepository)
     public priceRepository: PriceRepository,
     @repository(EventRuleRepository)
-    public eventRuleRepository: EventRuleRepository
+    public eventRuleRepository: EventRuleRepository,
+    @inject('services.QrFactoryService')
+    protected qrFactoryService:QrFactoryService
   ) {}
+
+  @get('/events/qr/check-in')
+  async createCheckInQr(
+    @param.query.string("id") id:string
+  ){
+    return this.generateCheckInQrCode(id)
+  }
 
   @get("/events/nearby")
   async findNearbyPlaces(
@@ -163,7 +174,9 @@ export class EventController {
           response.id,
           transaction
         );
-
+        if(response.id){
+          await this.generateCheckInQrCode(response.id)
+        }
         for (let ruleId of rules) {
           await this.eventRuleRepository.create(
             {
@@ -388,5 +401,18 @@ export class EventController {
       }
     }
     return entity;
+  }
+
+  /* ********************************** */
+  /*               HELPERS              */
+  /* ********************************** */
+  async generateCheckInQrCode(refId:string){
+
+      const qrRecord =await this.qrFactoryService.generateAndUploadQrCode({
+        action:"check-in",
+        type: "event",
+        id: refId
+      },refId,"check-in")
+    return qrRecord;
   }
 }

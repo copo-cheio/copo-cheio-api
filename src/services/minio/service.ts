@@ -115,8 +115,25 @@ export const storageService = () => {
     }
 
 
+    function uploadQr(filePath:any, objectName:any):any {
+      const bucketName = DEFAULT_MINIO_BUCKET;
+      const uploadedFileUrl = minioClientSetup.bucketUrl + objectName;
+      return new Promise((resolve, reject) => {
+        //@ts-ignore
+        minioClient.fPutObject(bucketName, objectName, filePath, (err: any, etag: unknown) => {
+          if (err) {
+            reject(err);
+          }
+          console.log('File uploaded successfully. ETag: ', etag);
+          resolve({etag,url:uploadedFileUrl});
+        });
+      });
+    }
+
+
+
     return {
         upload, listBuckets, fileUpload, minioFileUpload, image, thumbnail
-        , cover
+        , cover,uploadQr
     }
 }
