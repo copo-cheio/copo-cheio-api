@@ -86,7 +86,11 @@ export class TagController {
   async find(
     @param.filter(Tag) filter?: Filter<Tag>,
   ): Promise<Tag[]> {
-    return this.tagRepository.find(TagQueryFull);
+    let query = {...TagQueryFull}
+    if(filter?.where){
+      query.where = filter.where
+    }
+    return this.tagRepository.find(query);
   }
   @get('/tags/all')
   @response(200, {

@@ -1,3 +1,4 @@
+import sanitizeHtml from 'sanitize-html';
 import {AddressBelongsToTransformer} from "./address.blueprint";
 import {ImageBelongsToTransformer} from "./image.blueprint";
 import {PlaceBelongsToTransformer} from "./place.blueprint";
@@ -147,6 +148,8 @@ export const getEventEndDate = async (event: any) => {
 };
 
 export const EventCreateTransformer = async (event: any) => {
+  event.name = sanitizeHtml(event.name || "")
+  event.description = sanitizeHtml(event.description || "")
   /* ************ Schedule ************ */
   event = await getEventEndDate(event);
   event = ScheduleBelongsToTransformer(event, event?.type || "once");
@@ -173,6 +176,7 @@ export const EventCreateTransformer = async (event: any) => {
 };
 
 export const EventValidation = async (repository: any, data: any) => {
+  console.log({data:JSON.stringify(data)})
   let isLive = () => {
     let isValid = true;
     const notDefaultBelongsTo = ["addressId", "scheduleId", "placeId"];
@@ -181,7 +185,7 @@ export const EventValidation = async (repository: any, data: any) => {
       "coverId",
       "playlistId",
       "tagIds",
-      "lineupId",
+      // "playlistId",
       ...notDefaultBelongsTo,
     ];
 

@@ -1,4 +1,4 @@
-import {inject} from '@loopback/core';
+import {inject} from "@loopback/core";
 import {
   Count,
   CountSchema,
@@ -30,13 +30,16 @@ import {
 } from "../blueprints/shared/schedule.include";
 import {Event,Price} from "../models";
 import {
+  DateTimeRepository,
   EventRepository,
   EventRuleRepository,
+  PlaylistRepository,
   PriceRepository,
+  ScheduleRangeRepository,
   ScheduleRepository,
   TicketRepository,
 } from "../repositories";
-import {QrFactoryService} from '../services';
+import {QrFactoryService} from "../services";
 import {transactionWrapper} from "../shared/database";
 
 export class EventController {
@@ -45,22 +48,28 @@ export class EventController {
     public eventRepository: EventRepository,
     @repository(ScheduleRepository)
     public scheduleRepository: ScheduleRepository,
+    @repository(ScheduleRangeRepository)
+    public scheduleRangeRepository: ScheduleRangeRepository,
     @repository(TicketRepository)
     public ticketRepository: TicketRepository,
     @repository(PriceRepository)
     public priceRepository: PriceRepository,
     @repository(EventRuleRepository)
     public eventRuleRepository: EventRuleRepository,
-    @inject('services.QrFactoryService')
-    protected qrFactoryService:QrFactoryService
+    @repository(PlaylistRepository)
+    public playlistRepository: PlaylistRepository,
+    @repository(DateTimeRepository)
+    public datetimeRepository: DateTimeRepository,
+    @inject("services.QrFactoryService")
+    protected qrFactoryService: QrFactoryService
   ) {}
 
-  @get('/events/qr/check-in')
-  async createCheckInQr(
-    @param.query.string("id") id:string
-  ){
-    return this.generateCheckInQrCode(id)
-  }
+  // @get('/events/qr/check-in')
+  // async createCheckInQr(
+  //   @param.query.string("id") id:string
+  // ){
+  //   return this.generateCheckInQrCode(id)
+  // }
 
   @get("/events/nearby")
   async findNearbyPlaces(
@@ -95,6 +104,7 @@ export class EventController {
     @param.filter(Event, { exclude: "where" })
     filter?: FilterExcludingWhere<Event>
   ): Promise<Event> {
+    console.log(JSON.stringify(EventFullQuery));
     return this.eventRepository.findById(id, EventFullQuery);
   }
 
@@ -151,21 +161,67 @@ export class EventController {
     })
     data: any
   ): Promise<Event> {
-
-
     const result = await transactionWrapper(
       this.eventRepository,
       async (transaction: any) => {
+        console.log(data)
+        const schedule = data?.schedule || { scheduleRange: [] };
         const payload = await EventCreateTransformer(data);
 
         const rules = data.rules || [];
         const tickets = data.tickets || [];
-        const schedule = data?.schedule;
+        const lineup = data.lineup || [];
+        // const schedule = data?.schedule || { scheduleRange: [] };
 
         delete payload.rules;
         delete payload.tickets;
         delete payload.tag;
+        delete payload.lineup;
 
+        let playlist = await this.playlistRepository.create({
+          name: "default playlist",
+          description: "Add a description to your playlist",
+          tagIds: [],
+        });
+        let scheduleRecord = await this.scheduleRepository.create({
+          type: schedule?.type || "repeat",
+        });
+
+        const schedules = schedule.scheduleRange || []
+        for (let sr of schedules) {
+          let startKey = "start";
+          let endKey = "end";
+          if (sr.start.datetime > sr.end.datetime) {
+            startKey = "end";
+            endKey = "start";
+          }
+          let startPayload = {
+            datetime: sr[startKey].datetime,
+            timezone: sr[startKey].timezone,
+            weekDay: sr[startKey].weekDay,
+            scheduleId: scheduleRecord.id,
+          };
+          let endPayload = {
+            datetime: sr[endKey].datetime,
+            timezone: sr[endKey].timezone,
+            weekDay: sr[endKey].weekDay,
+            scheduleId: scheduleRecord.id,
+          };
+
+          const scheduleStart = await this.datetimeRepository.create(
+            startPayload
+          );
+          const scheduleEnd = await this.datetimeRepository.create(endPayload);
+          await this.scheduleRangeRepository.create({
+            startId: scheduleStart.id,
+            endId: scheduleEnd.id,
+            scheduleId: scheduleRecord.id,
+            weekDay: startPayload.weekDay,
+          });
+        }
+
+        payload.playlistId = playlist.id;
+        payload.scheduleId = scheduleRecord.id;
         const response = await this.eventRepository.create(
           payload,
           transaction
@@ -174,8 +230,8 @@ export class EventController {
           response.id,
           transaction
         );
-        if(response.id){
-          await this.generateCheckInQrCode(response.id)
+        if (response.id) {
+          await this.generateCheckInQrCode(response.id);
         }
         for (let ruleId of rules) {
           await this.eventRuleRepository.create(
@@ -220,6 +276,9 @@ export class EventController {
           }
         }
 
+        console.log({ schedule, sr: JSON.stringify(schedule.scheduleRange) });
+
+
         entity = await this.updateScheduleData(entity);
         entity = await EventValidation(this.eventRepository, entity);
 
@@ -261,27 +320,28 @@ export class EventController {
     const result = await transactionWrapper(
       this.eventRepository,
       async (transaction: any) => {
-        const entity = await this.eventRepository.findById(id,EventFullQuery)
-        const payload = await EventCreateTransformer({...entity,...data});
-
+        const entity = await this.eventRepository.findById(id, EventFullQuery);
+        const payload = await EventCreateTransformer({ ...entity, ...data });
 
         delete payload.rules;
         delete payload.tickets;
         delete payload.tag;
-        delete payload.events
-        delete payload.scheduleId
-        delete payload.schedule
-        delete payload.playlistId
-        delete payload.playlist
-        delete payload.tag
-        delete payload.tags
-        delete payload.tagIds
-        delete payload.address
-        delete payload.lineup
-        const response = await this.eventRepository.updateById(id,{
-          ...entity,
-          ...payload,
-        },
+        delete payload.events;
+        delete payload.scheduleId;
+        delete payload.schedule;
+        delete payload.playlistId;
+        delete payload.playlist;
+        delete payload.tag;
+        delete payload.tags;
+        delete payload.tagIds;
+        delete payload.address;
+        delete payload.lineup;
+        const response = await this.eventRepository.updateById(
+          id,
+          {
+            ...entity,
+            ...payload,
+          },
           transaction
         );
 
@@ -290,7 +350,6 @@ export class EventController {
     );
 
     return result;
-
   }
 
   @get("/events/count")
@@ -406,13 +465,16 @@ export class EventController {
   /* ********************************** */
   /*               HELPERS              */
   /* ********************************** */
-  async generateCheckInQrCode(refId:string){
-
-      const qrRecord =await this.qrFactoryService.generateAndUploadQrCode({
-        action:"check-in",
+  async generateCheckInQrCode(refId: string) {
+    const qrRecord = await this.qrFactoryService.generateAndUploadQrCode(
+      {
+        action: "check-in",
         type: "event",
-        id: refId
-      },refId,"check-in")
+        id: refId,
+      },
+      refId,
+      "check-in"
+    );
     return qrRecord;
   }
 }
