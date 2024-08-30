@@ -67,3 +67,5 @@ export * from './ticket.controller';
 export * from './translation.controller';
 // export * from './tag-artist.controller';
 export * from './upload.controller';
+export * from './device-token.controller';
+export * from './notification.controller';

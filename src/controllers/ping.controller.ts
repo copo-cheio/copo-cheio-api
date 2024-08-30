@@ -61,6 +61,7 @@ export class PingController {
     description: 'Secured Endpoint',
   })
   secureEndpoint() {
+    console.log(this.req.params.__auth__)
     return 'This is a secure endpoint';
   }
 

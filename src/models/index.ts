@@ -29,3 +29,4 @@ export * from './lineup.model';
 export * from './place-rule.model';
 export * from './playlist-song.model';
 
+export * from './device-token.model';

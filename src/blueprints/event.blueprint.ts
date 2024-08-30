@@ -6,14 +6,14 @@ import {PlaylistBelongsToTransformer} from "./playlist.blueprint";
 import {ScheduleBelongsToTransformer} from "./schedule.blueprint";
 import {IncludeAddressRelation} from "./shared/address.include";
 import {IncludeCover} from "./shared/image.include";
-import {IncludeLineupRelation} from "./shared/lineup.include";
+import {IncludeLineupRelation} from './shared/lineup.include';
 import {IncludePlaceRelation} from "./shared/place.include";
-import {IncludePlaylistRelation} from "./shared/playlist.include";
+import {IncludePlaylistRelation} from './shared/playlist.include';
 import {QueryFilterBaseBlueprint} from "./shared/query-filter.interface";
-import {IncludeRulesRelation} from "./shared/rule.include";
+import {IncludeRulesRelation} from './shared/rule.include';
 import {IncludeScheduleRelation} from "./shared/schedule.include";
 import {IncludeTagsRelation} from './shared/tag.include';
-import {IncludeTicketsRelation} from "./shared/ticket.include";
+import {IncludeTicketsRelation} from './shared/ticket.include';
 
 export const EventsQuery: any = {
   ...QueryFilterBaseBlueprint,
@@ -65,7 +65,7 @@ export const EventFullQuery: any = {
     IncludePlaylistRelation,
     IncludeRulesRelation,
     IncludeTicketsRelation,
-    IncludeLineupRelation,
+     IncludeLineupRelation,
     IncludeTagsRelation
   ],
 };

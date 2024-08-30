@@ -59,7 +59,7 @@
     "@loopback/security": "^0.11.5",
     "@loopback/service-proxy": "^7.0.5",
     "@monkey-space/loopback-component-filter": "^0.0.5",
-    "firebase-admin": "^12.3.1",
+    "firebase-admin": "^12.4.0",
     "jimp": "^0.22.12",
     "loopback-connector-postgresql": "^7.1.4",
     "loopback-connector-sqlite3": "^3.0.0",

@@ -25,3 +25,4 @@ export * from './playlist-song.repository';
 export * from './place-rule.repository';
 export * from './lineup.repository';
 export * from './line-up-artist.repository';
+export * from './device-token.repository';

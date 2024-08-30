@@ -1,6 +1,6 @@
 export const IncludePriceRelation: any = {
   relation: "price",
   scope: {
-    include: "currency",
+    include: [{"relation":"currency"}]
   },
 };
