@@ -2,7 +2,7 @@
 
 /**
  * @todo cleanup excludes @ models
- * import {Base} from '.';
+ * import {Base} from './base.model';
  * import { Base } from './base.model';
  */
 /**

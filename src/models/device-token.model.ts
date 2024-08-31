@@ -1,5 +1,5 @@
 import {model,property} from '@loopback/repository';
-import {Base} from '.';
+import {Base} from './base.model';
 
 @model()
 export class DeviceToken extends Base {

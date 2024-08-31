@@ -30,3 +30,13 @@ export * from './place-rule.model';
 export * from './playlist-song.model';
 
 export * from './device-token.model';
+
+export * from './user.model';
+export * from './product.model';
+export * from './cart-item.model';
+export * from './order.model';
+export * from './order-item.model';
+export * from './shopping-cart.model';
+export * from './menu.model';
+export * from './ingredient.model';
+export * from './timeline.model';

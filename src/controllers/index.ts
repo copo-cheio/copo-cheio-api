@@ -66,6 +66,15 @@ export * from './ticket-price.controller';
 export * from './ticket.controller';
 export * from './translation.controller';
 // export * from './tag-artist.controller';
-export * from './upload.controller';
 export * from './device-token.controller';
 export * from './notification.controller';
+export * from './upload.controller';
+
+
+
+
+export * from './shopping-cart-controller.controller';
+export * from './order-cart-item.controller';
+export * from './order-user.controller';
+export * from './order-place.controller';
+export * from './user-shopping-cart.controller';
