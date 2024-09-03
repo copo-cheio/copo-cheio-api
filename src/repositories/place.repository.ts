@@ -18,8 +18,7 @@ import {
   PlaceRule,
   Playlist,
   Rule,
-  Schedule,Tag
-} from "../models";
+  Schedule,Tag, OpeningHours} from "../models";
 import {AddressRepository} from "./address.repository";
 import {BalconyRepository} from "./balcony.repository";
 import {EventRepository} from "./event.repository";
@@ -29,6 +28,7 @@ import {PlaylistRepository} from "./playlist.repository";
 import {RuleRepository} from "./rule.repository";
 import {ScheduleRepository} from "./schedule.repository";
 import {TagRepository} from './tag.repository';
+import {OpeningHoursRepository} from './opening-hours.repository';
 
 /**
   {
@@ -78,6 +78,8 @@ export class PlaceRepository extends DefaultCrudRepository<
   >;
 
   public readonly tags: ReferencesManyAccessor<Tag, typeof Place.prototype.id>;
+
+  public readonly openingHours: HasManyRepositoryFactory<OpeningHours, typeof Place.prototype.id>;
   // public readonly tags: ReferencesManyAccessor<Tag, typeof Artist.prototype.id>;
 
 
@@ -99,11 +101,13 @@ export class PlaceRepository extends DefaultCrudRepository<
     @repository.getter("PlaceRuleRepository")
     protected placeRuleRepositoryGetter: Getter<PlaceRuleRepository>,
     @repository.getter("RuleRepository")
-    protected ruleRepositoryGetter: Getter<RuleRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>,
+    protected ruleRepositoryGetter: Getter<RuleRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('OpeningHoursRepository') protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>,
 
 
   ) {
     super(Place, dataSource);
+    this.openingHours = this.createHasManyRepositoryFactoryFor('openingHours', openingHoursRepositoryGetter,);
+    this.registerInclusionResolver('openingHours', this.openingHours.inclusionResolver);
     this.tags = this.createReferencesManyAccessorFor('tags', tagRepositoryGetter,);
     this.registerInclusionResolver('tags', this.tags.inclusionResolver);
     this.rules = this.createHasManyThroughRepositoryFactoryFor(

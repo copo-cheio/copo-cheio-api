@@ -78,3 +78,6 @@ export * from './order-cart-item.controller';
 export * from './order-user.controller';
 export * from './order-place.controller';
 export * from './user-shopping-cart.controller';
+export * from './opening-hours.controller';
+export * from './place-opening-hours.controller';
+export * from './event-opening-hours.controller';

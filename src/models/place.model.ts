@@ -9,6 +9,7 @@ import {Playlist} from './playlist.model';
 import {Rule} from './rule.model';
 import {Schedule} from './schedule.model';
 import {Tag} from './tag.model';
+import {OpeningHours} from './opening-hours.model';
 
 @model()
 export class Place extends Base {
@@ -74,6 +75,9 @@ export class Place extends Base {
 
   @referencesMany(() => Tag)
   tagIds: string[];
+
+  @hasMany(() => OpeningHours)
+  openingHours: OpeningHours[];
 
   constructor(data?: Partial<Place>) {
 

@@ -7,6 +7,7 @@ import {ScheduleBelongsToTransformer} from "./schedule.blueprint";
 import {IncludeAddressRelation} from "./shared/address.include";
 import {IncludeCover} from "./shared/image.include";
 import {IncludeLineupRelation} from './shared/lineup.include';
+import {IncludeOpeningHoursRelation} from './shared/openinghours.include';
 import {IncludePlaceRelation} from "./shared/place.include";
 import {IncludePlaylistRelation} from './shared/playlist.include';
 import {QueryFilterBaseBlueprint} from "./shared/query-filter.interface";
@@ -37,6 +38,7 @@ export const EventsQuery: any = {
     IncludeAddressRelation,
     IncludeScheduleRelation,
     IncludePlaceRelation,
+    IncludeOpeningHoursRelation
   ],
 };
 
@@ -66,7 +68,8 @@ export const EventFullQuery: any = {
     IncludeRulesRelation,
     IncludeTicketsRelation,
      IncludeLineupRelation,
-    IncludeTagsRelation
+    IncludeTagsRelation,
+    IncludeOpeningHoursRelation
   ],
 };
 
@@ -124,7 +127,7 @@ const EVENT_DEFAULTS = {
   },
 };
 export const getEventEndDate = async (event: any) => {
-  const type = event?.schedule?.type || event.type || "once";
+  const type = event?.schedule?.scheduleType || event.type || "once";
   let endDate = new Date(EVENT_DEFAULTS.endDate.once);
   if (type == "once") {
     let scheduleRanges: any[] = event?.schedule?.scheduleRanges || [

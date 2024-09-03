@@ -20,8 +20,7 @@ import {
   Rule,
   Schedule,
   Tag,
-  Ticket,
-} from "../models";
+  Ticket, OpeningHours} from "../models";
 import {AddressRepository} from "./address.repository";
 import {EventRuleRepository} from "./event-rule.repository";
 import {ImageRepository} from "./image.repository";
@@ -33,6 +32,7 @@ import {ScheduleRepository} from "./schedule.repository";
 import {TagReferencesRepository} from "./tag-references.repository";
 import {TagRepository} from "./tag.repository";
 import {TicketRepository} from "./ticket.repository";
+import {OpeningHoursRepository} from './opening-hours.repository';
 
 export class EventRepository extends DefaultCrudRepository<
   Event,
@@ -77,6 +77,8 @@ export class EventRepository extends DefaultCrudRepository<
 
   public readonly tags: ReferencesManyAccessor<Tag, typeof Event.prototype.id>;
 
+  public readonly openingHours: HasManyRepositoryFactory<OpeningHours, typeof Event.prototype.id>;
+
   constructor(
     @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
     @repository.getter("ImageRepository")
@@ -100,9 +102,11 @@ export class EventRepository extends DefaultCrudRepository<
     @repository.getter("PlaylistRepository")
     protected playlistRepositoryGetter: Getter<PlaylistRepository>,
     @repository.getter("LineupRepository")
-    protected lineupRepositoryGetter: Getter<LineupRepository>
+    protected lineupRepositoryGetter: Getter<LineupRepository>, @repository.getter('OpeningHoursRepository') protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>,
   ) {
     super(Event, dataSource);
+    this.openingHours = this.createHasManyRepositoryFactoryFor('openingHours', openingHoursRepositoryGetter,);
+    this.registerInclusionResolver('openingHours', this.openingHours.inclusionResolver);
     this.tags = this.createReferencesManyAccessorFor(
       "tags",
       tagRepositoryGetter

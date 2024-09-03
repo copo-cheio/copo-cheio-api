@@ -2,10 +2,10 @@ import {IncludeAddressRelation} from "./shared/address.include";
 import {IncludeBalconysRelations} from "./shared/balcony.include";
 import {IncludeEventsRelation} from "./shared/event.include";
 import {IncludeCover} from './shared/image.include';
+import {IncludeOpeningHoursRelation} from './shared/openinghours.include';
 import {IncludePlaylistRelation} from "./shared/playlist.include";
 import {QueryFilterBaseBlueprint} from "./shared/query-filter.interface";
 import {IncludeRulesRelation} from "./shared/rule.include";
-import {IncludeScheduleRelation} from "./shared/schedule.include";
 import {IncludeTagsRelation} from "./shared/tag.include";
 
 export const PlaceQueryFull: any = {
@@ -29,10 +29,11 @@ export const PlaceQueryFull: any = {
     IncludeBalconysRelations,
     IncludeAddressRelation,
     IncludeTagsRelation,
-    IncludeScheduleRelation,
+    // IncludeScheduleRelation,
     IncludePlaylistRelation,
     IncludeEventsRelation,
     IncludeRulesRelation,
+    IncludeOpeningHoursRelation
   ],
 };
 
@@ -55,7 +56,8 @@ export const PlacesQuery: any = {
     {"relation":"cover"},
     IncludeAddressRelation,
     IncludeTagsRelation,
-    IncludeScheduleRelation,
+    // IncludeScheduleRelation,
+    IncludeOpeningHoursRelation,
   ],
 };
 

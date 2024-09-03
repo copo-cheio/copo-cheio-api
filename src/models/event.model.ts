@@ -12,6 +12,7 @@ import {Schedule} from './schedule.model';
 import {ScheduleTypes} from '../blueprints/shared/schedule.include';
 import {Tag} from './tag.model';
 import {Ticket} from './ticket.model';
+import {OpeningHours} from './opening-hours.model';
 
 @model()
 export class Event extends Base {
@@ -87,7 +88,10 @@ export class Event extends Base {
   @referencesMany(() => Tag)
   tagIds: string[];
 
+
   /* ********************************** */
+  @hasMany(() => OpeningHours)
+  openingHours: OpeningHours[];
   /*         Computed Properties        */
   /* ********************************** */
 
