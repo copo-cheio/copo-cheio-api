@@ -17,6 +17,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
 import {Balcony} from '../models';
 import {BalconyRepository} from '../repositories';
 
@@ -25,6 +26,26 @@ export class BalconyController {
     @repository(BalconyRepository)
     public balconyRepository : BalconyRepository,
   ) {}
+
+
+  @get("/balconies/{id}/full")
+  @response(200, {
+    description: "Balcony model instance with all dependencies",
+    content: {
+      "application/json": {
+        schema: getModelSchemaRef(Balcony, { includeRelations: true }),
+      },
+    },
+  })
+  async findByIdFull(
+    @param.path.string("id") id: string,
+    @param.filter(Balcony, { exclude: "where" })
+    filter?: FilterExcludingWhere<Balcony>
+  ): Promise<Balcony> {
+    console.log(JSON.stringify(filter),"filter",JSON.stringify(BalconyFullQuery))
+    return this.balconyRepository.findById(id, BalconyFullQuery);
+  }
+
 
   @post('/balconies')
   @response(200, {
