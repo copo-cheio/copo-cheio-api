@@ -86,3 +86,8 @@ export * from './activity-user.controller';
 export * from './activity-place.controller';
 export * from './activity-event.controller';
 export * from './product.controller';
+export * from './ingredient-image.controller';
+export * from './product-image.controller';
+export * from './product-ingredient-product.controller';
+export * from './product-ingredient-ingredient.controller';
+export * from './product-ingredient.controller';

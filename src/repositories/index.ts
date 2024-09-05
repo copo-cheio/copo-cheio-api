@@ -38,3 +38,5 @@ export * from './menu.repository';
 export * from './timeline.repository';
 export * from './opening-hours.repository';
 export * from './activity.repository';
+export * from './ingredient.repository';
+export * from './product-ingredient.repository';
