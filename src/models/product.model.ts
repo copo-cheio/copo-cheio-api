@@ -2,7 +2,6 @@ import {belongsTo,model,property,referencesMany, hasMany} from '@loopback/reposi
 import {Base} from './base.model';
 import {Image} from './image.model';
 import {Tag} from './tag.model';
-import {Ingredient} from './ingredient.model';
 import {ProductIngredient} from './product-ingredient.model';
 
 @model()
@@ -27,8 +26,10 @@ export class Product extends Base {
   @belongsTo(() => Image)
   thumbnailId: string;
 
-  @hasMany(() => Ingredient, {through: {model: () => ProductIngredient}})
-  ingredients: Ingredient[];
+  @hasMany(() => ProductIngredient)
+  ingredients: ProductIngredient[];
+  // @hasMany(() => Ingredient, {through: {model: () => ProductIngredient}})
+  // ingredients: Ingredient[];
 
   constructor(data?: Partial<Product>) {
     super(data);

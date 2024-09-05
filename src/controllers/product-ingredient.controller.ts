@@ -1,25 +1,6 @@
 import {
-  Count,
-  CountSchema,
-  Filter,
-  repository,
-  Where,
+  repository
 } from '@loopback/repository';
-  import {
-  del,
-  get,
-  getModelSchemaRef,
-  getWhereSchemaFor,
-  param,
-  patch,
-  post,
-  requestBody,
-} from '@loopback/rest';
-import {
-Product,
-ProductIngredient,
-Ingredient,
-} from '../models';
 import {ProductRepository} from '../repositories';
 
 export class ProductIngredientController {
@@ -27,6 +8,7 @@ export class ProductIngredientController {
     @repository(ProductRepository) protected productRepository: ProductRepository,
   ) { }
 
+  /*
   @get('/products/{id}/ingredients', {
     responses: {
       '200': {
@@ -107,4 +89,5 @@ export class ProductIngredientController {
   ): Promise<Count> {
     return this.productRepository.ingredients(id).delete(where);
   }
+  */
 }

@@ -99,3 +99,4 @@ export * from './menu-product-image.controller';
 export * from './menu.controller';
 export * from './ingredient.controller';
 export * from './balcony-menu.controller';
+export * from './product-product-ingredient.controller';
