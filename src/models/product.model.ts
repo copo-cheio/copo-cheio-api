@@ -1,5 +1,6 @@
-import {model,property} from '@loopback/repository';
+import {model,property, referencesMany} from '@loopback/repository';
 import {Base} from './base.model';
+import {Tag} from './tag.model';
 
 @model()
 export class Product extends Base {
@@ -10,6 +11,8 @@ export class Product extends Base {
   })
   name?: string;
 
+  @referencesMany(() => Tag)
+  tagIds: string[];
 
   constructor(data?: Partial<Product>) {
     super(data);

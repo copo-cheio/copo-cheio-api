@@ -81,3 +81,8 @@ export * from './user-shopping-cart.controller';
 export * from './opening-hours.controller';
 export * from './place-opening-hours.controller';
 export * from './event-opening-hours.controller';
+export * from './activity.controller';
+export * from './activity-user.controller';
+export * from './activity-place.controller';
+export * from './activity-event.controller';
+export * from './product.controller';

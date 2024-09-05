@@ -37,3 +37,4 @@ export * from './shopping-cart.repository';
 export * from './menu.repository';
 export * from './timeline.repository';
 export * from './opening-hours.repository';
+export * from './activity.repository';
