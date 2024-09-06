@@ -1,6 +1,15 @@
+import {authenticate,AuthenticationBindings} from "@loopback/authentication";
 import {inject} from "@loopback/core";
 import {repository} from "@loopback/repository";
-import {get,getModelSchemaRef,param,post,requestBody,response} from "@loopback/rest";
+import {
+  get,
+  getModelSchemaRef,
+  param,
+  post,
+  requestBody,
+  response,
+} from "@loopback/rest";
+import {UserProfile} from '@loopback/security';
 import {Activity} from "../models";
 import {ActivityRepository} from "../repositories";
 import {ActivityService} from "../services";
@@ -10,19 +19,14 @@ export class ActivityController {
     @repository(ActivityRepository)
     public activityRepository: ActivityRepository,
     @inject("services.ActivityService")
-    protected activityService: ActivityService
+    protected activityService: ActivityService,
+    @inject(AuthenticationBindings.CURRENT_USER, { optional: true })
+    private currentUser: UserProfile // Inject the current user profile
   ) {}
 
-  /*
-  {
 
-  "userId": "6e6fcbef-886c-486e-8e15-f4ac5e234b5c",
-  "placeId": "a813bc90-d422-4d60-aa48-1e7d6c69ae8e",
-  "eventId": "c4e47c95-7e36-4d37-8f6f-415148cecdca",
-"action":"check-in"
-}
-*/
-  @post("/check-in")
+@post("/check-in")
+@authenticate("firebase")
   @response(200, {
     description: "Activity model instance",
     content: {
@@ -40,41 +44,60 @@ export class ActivityController {
         },
       },
     })
-    activity: any//Omit<Activity, "id">
+    activity: any //Omit<Activity, "id">
   ): Promise<any> {
 
-    /**
-     * @TODO
-     */
-     const userId ="6e6fcbef-886c-486e-8e15-f4ac5e234b5c"
-    return this.activityService.checkIn(userId,activity.placeId);
+    return this.activityService.checkIn(this.currentUser.id, activity.placeId);
   }
 
-
-  @get('/check-in/{placeId}')
+  @get("/check-in/{placeId}")
+  @authenticate("firebase")
   @response(200, {
-    description: 'Activity model instance',
+    description: "Activity model instance",
     content: {
-      'application/json': {
-        schema: getModelSchemaRef(Activity, {includeRelations: true}),
+      "application/json": {
+        schema: getModelSchemaRef(Activity, { includeRelations: true }),
       },
     },
   })
   async checkInPlace(
-    @param.path.string('placeId') placeId: string,
+    @param.path.string("placeId") placeId: string
     // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
   ): Promise<any> {
-    const userId ="6e6fcbef-886c-486e-8e15-f4ac5e234b5c"
+
     // const res = await this.activityService.checkIn(userId,placeId);
-    return this.activityService.checkIn(userId,placeId);
+    return this.activityService.checkIn( this.currentUser.id, placeId);
     // return res
   }
-  // @post('/check-out')
-  // @response(200, {
-  //   description: 'Activity model instance',
-  //   content: {'application/json': {schema: getModelSchemaRef(Activity)}},
-  // })
-  // async checkOut(
+
+  @get("/check-out")
+  @authenticate("firebase")
+  @response(200, {
+    description: "Activity model instance",
+    content: {
+      "application/json": {
+        schema: getModelSchemaRef(Activity, { includeRelations: true }),
+      },
+    },
+  })
+  async checkOut(): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
+  Promise<any> {
+    const userId = "6e6fcbef-886c-486e-8e15-f4ac5e234b5c";
+    // const res = await this.activityService.checkIn(userId,placeId);
+    return this.activityService.checkOut(this.currentUser.id);
+    // return res
+  }
+
+  @get("/whoami")
+  @authenticate("firebase") // Make sure this route is protected by authentication
+  async whoAmI(): Promise<any> {
+    if (!this.currentUser) {
+      throw new Error("User not authenticated");
+    }
+    // Return the user id or any other information
+    return this.currentUser;
+  }
+
   //   @requestBody({
   //     content: {
   //       'application/json': {

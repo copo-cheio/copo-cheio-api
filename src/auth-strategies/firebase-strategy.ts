@@ -1,7 +1,9 @@
 import {AuthenticationStrategy} from '@loopback/authentication';
+import {repository} from '@loopback/repository';
 import {HttpErrors,Request} from '@loopback/rest';
 import {UserProfile,securityId} from '@loopback/security';
 import {admin} from '../firebase-config';
+import {UserRepository} from '../repositories';
 
 export const FirebaseAuthHelper =  (()=>{
   const extractCredentials = (request:Request)=>{
@@ -50,7 +52,10 @@ export const FirebaseAuthHelper =  (()=>{
 export class FirebaseAuthStrategy implements AuthenticationStrategy {
   name = 'firebase';
 
+  constructor(  @repository(UserRepository)
+  public UserRepository: UserRepository,){
 
+  }
 
   async authenticate(request: Request): Promise<UserProfile | undefined> {
     delete request.params.__auth__
@@ -61,13 +66,16 @@ export class FirebaseAuthStrategy implements AuthenticationStrategy {
 
     try {
       const decodedToken = await admin.auth().verifyIdToken(token);
+      const user:any= await this.UserRepository.findOne({where:{firebaseUserId:decodedToken.uid}})
+
       const userProfile: UserProfile = {
         [securityId]: decodedToken.uid,
         name: decodedToken.name,
         email: decodedToken.email,
-        id: decodedToken.uid,
+        id: user.id,
+        uid: decodedToken.uid,
       };
-      request.params.__auth__ = decodedToken.uid
+
       return userProfile;
     } catch (err) {
       console.log({err})

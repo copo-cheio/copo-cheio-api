@@ -39,21 +39,19 @@ export class ActivityService {
         //   placeId = event.place.id;
         //   console.log('event done')
         // // }
-        console.log('place start')
+
 
         place = await this.placeRepository.findById(placeId,PlaceQueryFull);
         event = await this.placeService.findCurrentEvent(placeId)
         let eventId =event.id
-        console.log('place done')
-        console.log('checkIn start',{userId,placeId,eventId,action:"check-in"})
+
         checkIn = await this.activityRepository.create({
           userId,
           placeId,
           eventId,
           action: "check-in"
         })
-        console.log('checkIn done')
-        console.log('balcony start')
+
         menu = await this.balconyRepository.findById(place.balconies[0].id,BalconyFullQuery)
         console.log('track stock')
 /*

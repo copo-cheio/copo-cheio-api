@@ -1,6 +1,7 @@
-import {model,property, belongsTo} from '@loopback/repository';
+import {model,property, belongsTo, referencesMany} from '@loopback/repository';
 import {Base} from './base.model';
 import {Image} from './image.model';
+import {Tag} from './tag.model';
 
 @model()
 export class Ingredient extends Base {
@@ -17,6 +18,9 @@ export class Ingredient extends Base {
 
   @belongsTo(() => Image)
   thumbnailId: string;
+
+  @referencesMany(() => Tag)
+  tagIds: string[];
 
   constructor(data?: Partial<Ingredient>) {
     super(data);

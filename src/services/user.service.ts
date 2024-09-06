@@ -1,4 +1,4 @@
-import {injectable, /* inject, */ BindingScope, Provider} from '@loopback/core';
+import { /* inject, */ BindingScope,injectable,Provider} from '@loopback/core';
 
 /*
  * Fix the service type. Possible options can be:

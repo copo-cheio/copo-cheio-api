@@ -4,13 +4,23 @@ import {RequestHandler} from "express-serve-static-core";
 import {Client} from "minio";
 import multer from "multer";
 import {v4 as uuidv4} from "uuid";
-import {EventRepository,ImageRepository,PlaceRepository} from "../repositories";
+import {
+  EventRepository,
+  ImageRepository,
+  IngredientRepository,
+  PlaceRepository,
+  ProductRepository,
+} from "../repositories";
 import minioClient,{minioClientSetup} from "../services/minio/client";
 
 export class FileUploadController {
   private minioClient: Client;
 
   constructor(
+    @repository(IngredientRepository)
+    public ingredientRepository: IngredientRepository,
+    @repository(ProductRepository)
+    public productRepository: ProductRepository,
     @repository(ImageRepository)
     public imageRepository: ImageRepository,
     @repository(PlaceRepository)
@@ -21,10 +31,58 @@ export class FileUploadController {
     this.minioClient = minioClient;
   }
 
-  COVER_MODELS:any = {
-    place:{repository:this.placeRepository},
-    event:{repository:this.eventRepository }
+  COVER_MODELS: any = {
+    place: { repository: this.placeRepository },
+    event: { repository: this.eventRepository },
+  };
+  THUMMBNAIL_MODELS: any = {
+    product: { repository: this.productRepository },
+    ingredient: { repository: this.ingredientRepository },
+  };
+
+  @post("/upload/thumbnail", {
+    responses: {
+      "200": {
+        description: "File uploaded successfully",
+        content: { "application/json": { schema: { type: "object" } } },
+      },
+    },
+  })
+  async thumbnailUpload(
+    @requestBody({
+      description: "multipart/form-data file to upload",
+      required: true,
+      content: {
+        "multipart/form-data": {
+          "x-parser": "stream",
+          schema: {
+            type: "object",
+            properties: {
+              file: {
+                type: "string",
+                format: "binary",
+              },
+              refId: {
+                type: "string",
+              },
+              model: {
+                type: "string",
+              },
+            },
+          },
+        },
+      },
+    })
+    request: Request
+  ): Promise<object> {
+
+    return this.fileUploadHelper(
+      request,
+      "thumbnail"
+
+    );
   }
+
   @post("/upload/cover", {
     responses: {
       "200": {
@@ -48,10 +106,10 @@ export class FileUploadController {
                 format: "binary",
               },
               refId: {
-                type: "string"
+                type: "string",
               },
               model: {
-                type: "string"
+                type: "string",
               },
             },
           },
@@ -77,32 +135,30 @@ export class FileUploadController {
     await this.minioClient.putObject(bucketName, fileName, file.buffer);
 
     // Update image payload
-    const imagePayload:any = {
-      url: minioClientSetup.bucketUrl+fileName,
-      type:"cover",
-      refId:request.body.refId || "0000000-0000-0000-0000-00000000000",
-
-    }
+    const imagePayload: any = {
+      url: minioClientSetup.bucketUrl + fileName,
+      type: "cover",
+      refId: request.body.refId || "0000000-0000-0000-0000-00000000000",
+    };
     const imageRecord = await this.imageRepository.create(imagePayload);
-    const {body,data}:any = request
+    const { body, data }: any = request;
 
-    if(request?.body?.refId && request?.body?.model){
-      let model:any = this.COVER_MODELS[request?.body?.model]
-      let repo:any = model?.repository
-      console.log(model,request.body.model)
-      if(repo && repo.findById && request.body.refId){
+    if (request?.body?.refId && request?.body?.model) {
+      let model: any = this.COVER_MODELS[request?.body?.model];
+      let repo: any = model?.repository;
+      console.log(model, request.body.model);
+      if (repo && repo.findById && request.body.refId) {
         // @ts-ignore
 
-        const record = await repo.findById(request.body.refId)
-        if(record){
-
-          record.coverId = imageRecord.id
-          await repo.updateById(record.id,record)
+        const record = await repo.findById(request.body.refId);
+        if (record) {
+          record.coverId = imageRecord.id;
+          await repo.updateById(record.id, record);
         }
       }
     }
 
-    return imageRecord
+    return imageRecord;
   }
 
   // Utility to promisify the middleware function
@@ -115,5 +171,66 @@ export class FileUploadController {
         });
       });
   }
-}
 
+  async fileUploadHelper(
+    request: Request,
+    type?: string ,
+
+  ): Promise<object> {
+    const upload = multer().single("file");
+    const handler = this.promisify(upload);
+    await handler(request);
+
+    const bucketName = "copo-cheio"; //minioClientSetup.bucketUrl// Replace with your bucket name
+    const file = (request as any).file;
+    let refId = request.body.refId || "0000000-0000-0000-0000-00000000000"
+    let table = request.body.model
+
+    type = type || "cover"
+    console.log({type,refId,table})
+    if (!file) {
+      throw new Error("File not found in request");
+    }
+
+    const fileName = uuidv4() + "-" + file.originalname;
+
+    // Upload file to MinIO
+    await this.minioClient.putObject(bucketName, fileName, file.buffer);
+
+    // Update image payload
+    const imagePayload: any = {
+      url: minioClientSetup.bucketUrl + fileName,
+      type,
+      refId,
+    };
+    const imageRecord = await this.imageRepository.create(imagePayload);
+    // const { body, data }: any = request;
+
+    if (refId && table) {
+      let model: any = this.COVER_MODELS[table];
+      if (type == "thumbnail") {
+        model = this.THUMMBNAIL_MODELS[table];
+      }
+      let repo: any = model?.repository;
+
+      if (repo && repo.findById && refId) {
+        // @ts-ignore
+
+        const record = await repo.findById(refId);
+        if (record) {
+          let fileKey = "coverId";
+          if (type == "thumbnail") {
+            fileKey = "thumbnailId";
+          }
+
+          record[fileKey] = imageRecord.id;
+
+          console.log({rid:record.id,  refId ,type,model})
+          await repo.updateById(record.id, record);
+        }
+      }
+    }
+
+    return imageRecord;
+  }
+}

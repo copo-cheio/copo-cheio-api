@@ -7,16 +7,17 @@ import {
   Where,
 } from '@loopback/repository';
 import {
-  post,
-  param,
+  del,
   get,
   getModelSchemaRef,
+  param,
   patch,
+  post,
   put,
-  del,
   requestBody,
   response,
 } from '@loopback/rest';
+import {IngredientFullQuery} from '../blueprints/ingredient.blueprint';
 import {Ingredient} from '../models';
 import {IngredientRepository} from '../repositories';
 
@@ -25,6 +26,41 @@ export class IngredientController {
     @repository(IngredientRepository)
     public ingredientRepository : IngredientRepository,
   ) {}
+
+  @get("/ingredients/{id}/full")
+  @response(200, {
+    description: "Ingredient model instance with all dependencies",
+    content: {
+      "application/json": {
+        schema: getModelSchemaRef(Ingredient, { includeRelations: true }),
+      },
+    },
+  })
+  async findByIdFull(
+    @param.path.string("id") id: string,
+    @param.filter(Ingredient, { exclude: "where" })
+    filter?: FilterExcludingWhere<Ingredient>
+  ): Promise<Ingredient> {
+    // console.log(JSON.stringify(filter),"filter",JSON.stringify(IngredientFullQuery))
+    return this.ingredientRepository.findById(id, IngredientFullQuery);
+  }
+  @get("/ingredients/full")
+  @response(200, {
+    description: "Ingredient model instance with all dependencies",
+    content: {
+      "application/json": {
+        schema: getModelSchemaRef(Ingredient, { includeRelations: true }),
+      },
+    },
+  })
+  async findFull(
+
+    @param.filter(Ingredient, { exclude: "where" })
+    filter?: FilterExcludingWhere<Ingredient>
+  ): Promise<Ingredient[]> {
+    // console.log(JSON.stringify(filter),"filter",JSON.stringify(IngredientFullQuery))
+    return this.ingredientRepository.find( IngredientFullQuery);
+  }
 
   @post('/ingredients')
   @response(200, {
