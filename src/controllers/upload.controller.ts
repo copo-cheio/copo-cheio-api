@@ -62,7 +62,7 @@ export class FileUploadController {
         },
         { refId },
         { type: "gallery" },
-      ]
+      ],
     });
   }
 
@@ -141,7 +141,53 @@ export class FileUploadController {
   ): Promise<object> {
     return this.fileUploadHelper(request, "thumbnail");
   }
+  /*
+=======
+  @post("/upload/thumbnail", {
+    responses: {
+      "200": {
+        description: "File uploaded successfully",
+        content: { "application/json": { schema: { type: "object" } } },
+      },
+    },
+  })
+  async thumbnailUpload(
+    @requestBody({
+      description: "multipart/form-data file to upload",
+      required: true,
+      content: {
+        "multipart/form-data": {
+          "x-parser": "stream",
+          schema: {
+            type: "object",
+            properties: {
+              file: {
+                type: "string",
+                format: "binary",
+              },
+              refId: {
+                type: "string",
+              },
+              model: {
+                type: "string",
+              },
+            },
+          },
+        },
+      },
+    })
+    request: Request
+  ): Promise<object> {
 
+    return this.fileUploadHelper(
+      request,
+      "thumbnail"
+
+    );
+  }
+
+>>>>>>> 3cac5f1bda9fd5f1ddf4ff8f843d3978cebc7b28
+*/
   @post("/upload/cover", {
     responses: {
       "200": {
