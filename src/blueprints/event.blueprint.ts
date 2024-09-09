@@ -38,7 +38,10 @@ export const EventsQuery: any = {
     IncludeAddressRelation,
     IncludeScheduleRelation,
     IncludePlaceRelation,
-    IncludeOpeningHoursRelation
+    IncludeOpeningHoursRelation,
+    {relation: 'instances'}, // Include event instances (occurrences)
+    {relation: 'recurringSchedules'}, // Include recurring schedules
+
   ],
 };
 
@@ -69,7 +72,9 @@ export const EventFullQuery: any = {
     IncludeTicketsRelation,
      IncludeLineupRelation,
     IncludeTagsRelation,
-    IncludeOpeningHoursRelation
+    IncludeOpeningHoursRelation,
+    {relation: 'instances'}, // Include event instances (occurrences)
+    {relation: 'recurringSchedules'}, // Include recurring schedules
   ],
 };
 

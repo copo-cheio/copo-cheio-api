@@ -5,8 +5,7 @@ import {
   HasManyRepositoryFactory,
   HasManyThroughRepositoryFactory,
   ReferencesManyAccessor,
-  repository,
-} from "@loopback/repository";
+  repository, HasOneRepositoryFactory} from "@loopback/repository";
 import {PostgresSqlDataSource} from "../datasources";
 import {
   Address,
@@ -20,7 +19,7 @@ import {
   Rule,
   Schedule,
   Tag,
-  Ticket, OpeningHours} from "../models";
+  Ticket, OpeningHours, EventInstance, RecurringSchedule} from "../models";
 import {AddressRepository} from "./address.repository";
 import {EventRuleRepository} from "./event-rule.repository";
 import {ImageRepository} from "./image.repository";
@@ -33,6 +32,8 @@ import {TagReferencesRepository} from "./tag-references.repository";
 import {TagRepository} from "./tag.repository";
 import {TicketRepository} from "./ticket.repository";
 import {OpeningHoursRepository} from './opening-hours.repository';
+import {EventInstanceRepository} from './event-instance.repository';
+import {RecurringScheduleRepository} from './recurring-schedule.repository';
 
 export class EventRepository extends DefaultCrudRepository<
   Event,
@@ -79,6 +80,12 @@ export class EventRepository extends DefaultCrudRepository<
 
   public readonly openingHours: HasManyRepositoryFactory<OpeningHours, typeof Event.prototype.id>;
 
+  public readonly gallery: HasManyRepositoryFactory<Image, typeof Event.prototype.id>;
+
+  public readonly instances: HasManyRepositoryFactory<EventInstance, typeof Event.prototype.id>;
+
+  public readonly recurringSchedule: HasOneRepositoryFactory<RecurringSchedule, typeof Event.prototype.id>;
+
   constructor(
     @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
     @repository.getter("ImageRepository")
@@ -102,9 +109,15 @@ export class EventRepository extends DefaultCrudRepository<
     @repository.getter("PlaylistRepository")
     protected playlistRepositoryGetter: Getter<PlaylistRepository>,
     @repository.getter("LineupRepository")
-    protected lineupRepositoryGetter: Getter<LineupRepository>, @repository.getter('OpeningHoursRepository') protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>,
+    protected lineupRepositoryGetter: Getter<LineupRepository>, @repository.getter('OpeningHoursRepository') protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>, @repository.getter('EventInstanceRepository') protected eventInstanceRepositoryGetter: Getter<EventInstanceRepository>, @repository.getter('RecurringScheduleRepository') protected recurringScheduleRepositoryGetter: Getter<RecurringScheduleRepository>,
   ) {
     super(Event, dataSource);
+    this.recurringSchedule = this.createHasOneRepositoryFactoryFor('recurringSchedule', recurringScheduleRepositoryGetter);
+    this.registerInclusionResolver('recurringSchedule', this.recurringSchedule.inclusionResolver);
+    this.instances = this.createHasManyRepositoryFactoryFor('instances', eventInstanceRepositoryGetter,);
+    this.registerInclusionResolver('instances', this.instances.inclusionResolver);
+    this.gallery = this.createHasManyRepositoryFactoryFor('gallery', imageRepositoryGetter,);
+    this.registerInclusionResolver('gallery', this.gallery.inclusionResolver);
     this.openingHours = this.createHasManyRepositoryFactoryFor('openingHours', openingHoursRepositoryGetter,);
     this.registerInclusionResolver('openingHours', this.openingHours.inclusionResolver);
     this.tags = this.createReferencesManyAccessorFor(

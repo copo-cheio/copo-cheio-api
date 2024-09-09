@@ -28,13 +28,15 @@ import {
   IncludeScheduleRangeRelation,
   ScheduleTypes,
 } from "../blueprints/shared/schedule.include";
-import {Event,Price} from "../models";
+import {Event,EventInstance,Price} from "../models";
 import {
   DateTimeRepository,
+  EventInstanceRepository,
   EventRepository,
   EventRuleRepository,
   PlaylistRepository,
   PriceRepository,
+  RecurringScheduleRepository,
   ScheduleRangeRepository,
   ScheduleRepository,
   TicketRepository,
@@ -61,15 +63,288 @@ export class EventController {
     @repository(DateTimeRepository)
     public datetimeRepository: DateTimeRepository,
     @inject("services.QrFactoryService")
-    protected qrFactoryService: QrFactoryService
+    protected qrFactoryService: QrFactoryService,
+    @inject("repositories.EventInstanceRepository")
+    public eventInstanceRepository: EventInstanceRepository,
+
+    @repository(RecurringScheduleRepository)
+    public recurringScheduleRepository: RecurringScheduleRepository
   ) {}
 
+
+
+/*
+   // 1. Create an event (one-time or recurring)
+   @post('/events', {
+    responses: {
+      '200': {
+        description: 'Event model instance',
+        content: {'application/json': {schema: getModelSchemaRef(Event)}},
+      },
+    },
+  })
+  async createEvent(@param.body() eventData: Event): Promise<Event> {
+    // Create the event
+    const event = await this.eventRepository.create(eventData);
+
+    // If the event is recurring, create the schedule
+    if (eventData.isRecurring) {
+      // You may receive schedule information in the body of the request
+      const scheduleData = eventData.recurringSchedule;
+      if (scheduleData) {
+        await this.eventRepository.schedule(event.id).create(scheduleData);
+      }
+    }
+
+    return event;
+  }
+
+  // 2. Find all events (with event instances and schedules included)
+  @get('/events', {
+    responses: {
+      '200': {
+        description: 'Array of Event model instances',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(Event)},
+          },
+        },
+      },
+    },
+  })
+  async findAllEvents(): Promise<Event[]> {
+    return this.eventRepository.find({
+      include: [
+        {relation: 'instances'}, // Include event instances (occurrences)
+        {relation: 'schedule'}, // Include recurring schedules
+      ],
+    });
+  }
+
+  // 3. Find nearest future events
+  @get('/events/upcoming', {
+    responses: {
+      '200': {
+        description: 'Array of upcoming EventInstances',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(EventInstance)},
+          },
+        },
+      },
+    },
+  })
+  async findUpcomingEvents(): Promise<EventInstance[]> {
+    const currentDateTime = new Date().toISOString(); // Get current time
+    return this.eventInstanceRepository.find({
+      where: {
+        startDate: {gt: currentDateTime}, // Events happening in the future
+      },
+      order: ['startDate ASC'], // Order by nearest future events
+      limit: 10, // Return nearest 10 events (optional)
+      include: [{relation: 'event'}], // Include event details
+    });
+  }
+
+  // 4. Find ongoing events
+  @get('/events/ongoing', {
+    responses: {
+      '200': {
+        description: 'Array of ongoing EventInstances',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(EventInstance)},
+          },
+        },
+      },
+    },
+  })
+  async findOngoingEvents(): Promise<EventInstance[]> {
+    const currentDateTime = new Date().toISOString();
+    return this.eventInstanceRepository.find({
+      where: {
+        and: [
+          {startDate: {lte: currentDateTime}},
+          {
+            or: [{endDate: {gte: currentDateTime}}, {endDate: null}],
+          },
+        ],
+      },
+      order: ['startDate ASC'],
+      include: [{relation: 'event'}],
+    });
+  }
+
+  // 5. Create a new event instance for an event (for recurring events)
+  @post('/events/{id}/instances', {
+    responses: {
+      '200': {
+        description: 'Create an instance of an event',
+        content: {'application/json': {schema: getModelSchemaRef(EventInstance)}},
+      },
+    },
+  })
+  async createEventInstance(
+    @param.path.string('id') eventId: string,
+    @param.body() eventInstanceData: EventInstance,
+  ): Promise<EventInstance> {
+    return this.eventRepository.instances(eventId).create(eventInstanceData);
+  }
+}
+
+  async upComingEvents() {
+    const currentDateTime = new Date().toISOString(); // Current date and time in ISO format
+
+    const upcomingEvents = await this.eventInstanceRepository.find({
+      where: {
+        startDate: { gt: currentDateTime }, // Find events where startDate is greater than now
+      },
+      order: ["startDate ASC"], // Order by the nearest start date
+      limit: 10, // Limit the result to the nearest 10 events (optional)
+      include: [{ relation: "event" }], // Include the related event details
+    });
+
+    return upcomingEvents;
+  }
+
+  async findOngoingEvents() {
+    const currentDateTime = new Date().toISOString();
+
+    const ongoingEvents = await this.eventInstanceRepository.find({
+      where: {
+        and: [
+          { startDate: { lte: currentDateTime } }, // Events that started before or at the current time
+          {
+            or: [
+              { endDate: { gte: currentDateTime } }, // Ongoing event with an end date
+              { endDate: null }, // Ongoing event with no end date (e.g., a single-day event)
+            ],
+          },
+        ],
+      },
+      order: ["startDate ASC"],
+      include: [{ relation: "event" }], // Include the related event details
+    });
+
+    return ongoingEvents;
+  }
+
+  async findOngoingAndUpcomingEvents() {
+    const currentDateTime = new Date().toISOString();
+
+    const events = await this.eventInstanceRepository.find({
+      where: {
+        or: [
+          {
+            and: [
+              { startDate: { lte: currentDateTime } },
+              {
+                or: [{ endDate: { gte: currentDateTime } }, { endDate: null }],
+              },
+            ],
+          },
+          { startDate: { gt: currentDateTime } },
+        ],
+      },
+      order: ["startDate ASC"],
+      include: [{ relation: "event" }], // Include the related event details
+    });
+
+    return events;
+  }
+*/
   // @get('/events/qr/check-in')
   // async createCheckInQr(
   //   @param.query.string("id") id:string
   // ){
   //   return this.generateCheckInQrCode(id)
   // }
+
+
+  // 3. Find nearest future events
+  @get('/events/upcoming', {
+    responses: {
+      '200': {
+        description: 'Array of upcoming EventInstances',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(EventInstance)},
+          },
+        },
+      },
+    },
+  })
+  async findUpcomingEvents(): Promise<EventInstance[]> {
+    const currentDateTime = new Date().toISOString(); // Get current time
+    return this.eventInstanceRepository.find({
+      where: {
+        startDate: {gt: currentDateTime}, // Events happening in the future
+      },
+      order: ['startDate ASC'], // Order by nearest future events
+      limit: 10, // Return nearest 10 events (optional)
+      include: [{relation: 'event'}], // Include event details
+    });
+  }
+
+  // 4. Find ongoing events
+  @get('/events/ongoing', {
+    responses: {
+      '200': {
+        description: 'Array of ongoing EventInstances',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(EventInstance)},
+          },
+        },
+      },
+    },
+  })
+  async findOngoingEvents(): Promise<EventInstance[]> {
+    const currentDateTime = new Date().toISOString();
+    return this.eventInstanceRepository.find({
+      where: {
+        and: [
+          {startDate: {lte: currentDateTime}},
+          {
+            //@ts-ignore
+            or: [{endDate: {gte: currentDateTime}}, {endDate: null}],
+          },
+        ],
+      },
+      order: ['startDate ASC'],
+      include: [{relation: 'event'}],
+    });
+  }
+
+  // 5. Create a new event instance for an event (for recurring events)
+  @post('/events/{id}/instances', {
+    responses: {
+      '200': {
+        description: 'Create an instance of an event',
+        content: {'application/json': {schema: getModelSchemaRef(EventInstance)}},
+      },
+    },
+  })
+  async createEventInstance(
+    @param.path.string('id') eventId: string,
+    @requestBody({
+      content: {
+        "application/json": {
+          exclude: ["id", "updated_at", "created_at"],
+          schema: getModelSchemaRef(EventInstance, {
+            title: "NewEvent",
+            exclude: ["updated_at", "created_at"],
+          }),
+        },
+      },
+    })
+     eventInstanceData: EventInstance,
+  ): Promise<EventInstance> {
+    return this.eventRepository.instances(eventId).create(eventInstanceData);
+  }
+
+
+
 
   @get("/events/nearby")
   async findNearbyPlaces(
@@ -164,7 +439,7 @@ export class EventController {
     const result = await transactionWrapper(
       this.eventRepository,
       async (transaction: any) => {
-        console.log(data)
+        console.log(data);
         const schedule = data?.schedule || { scheduleRange: [] };
         const payload = await EventCreateTransformer(data);
 
@@ -187,7 +462,7 @@ export class EventController {
           type: schedule?.type || "repeat",
         });
 
-        const schedules = schedule.scheduleRange || []
+        const schedules = schedule.scheduleRange || [];
         for (let sr of schedules) {
           let startKey = "start";
           let endKey = "end";
@@ -275,9 +550,6 @@ export class EventController {
             }
           }
         }
-
-
-
 
         entity = await this.updateScheduleData(entity);
         entity = await EventValidation(this.eventRepository, entity);

@@ -1,0 +1,6 @@
+{
+  "name": "Concert",
+  "description": "A live music concert",
+  "isRecurring": false,
+  "eventType": "concert"
+}

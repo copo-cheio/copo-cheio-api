@@ -1,0 +1,12 @@
+{
+  "name": "Weekly DJ Night",
+  "description": "Every Friday night DJ event",
+  "isRecurring": true,
+  "eventType": "party",
+  "recurringSchedule": {
+    "frequency": 1,
+    "frequencyUnit": "week",
+    "recurrenceStart": "2024-01-01T20:00:00Z",
+    "recurrenceEnd": "2024-12-31T23:59:59Z"
+  }
+}

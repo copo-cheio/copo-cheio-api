@@ -1,0 +1,20 @@
+[
+  {
+    "id": "instance1",
+    "startDate": "2024-10-01T20:00:00Z",
+    "eventId": "event1",
+    "event": {
+      "name": "Concert",
+      "description": "A live music concert"
+    }
+  },
+  {
+    "id": "instance2",
+    "startDate": "2024-10-08T20:00:00Z",
+    "eventId": "event2",
+    "event": {
+      "name": "Weekly DJ Night",
+      "description": "Every Friday night DJ event"
+    }
+  }
+]

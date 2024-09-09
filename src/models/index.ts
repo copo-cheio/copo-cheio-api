@@ -45,3 +45,5 @@ export * from './activity.model';
 export * from './product-ingredient.model';
 export * from './menu-product.model';
 export * from './menu.model';
+export * from './event-instance.model';
+export * from './recurring-schedule.model';

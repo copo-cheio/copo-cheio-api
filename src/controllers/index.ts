@@ -100,3 +100,7 @@ export * from './menu.controller';
 export * from './ingredient.controller';
 export * from './balcony-menu.controller';
 export * from './product-product-ingredient.controller';
+export * from './event-instance-event.controller';
+export * from './recurring-schedule-event.controller';
+export * from './event-event-instance.controller';
+export * from './event-recurring-schedule.controller';

@@ -1,4 +1,4 @@
-import {belongsTo,hasMany,model,property,referencesMany} from '@loopback/repository';
+import {belongsTo,hasMany,model,property,referencesMany, hasOne} from '@loopback/repository';
 import {Address} from './address.model';
 import {Base} from './base.model';
 import {EventRule} from './event-rule.model';
@@ -10,9 +10,11 @@ import {Rule} from './rule.model';
 import {Schedule} from './schedule.model';
 
 import {ScheduleTypes} from '../blueprints/shared/schedule.include';
+import {OpeningHours} from './opening-hours.model';
 import {Tag} from './tag.model';
 import {Ticket} from './ticket.model';
-import {OpeningHours} from './opening-hours.model';
+import {EventInstance} from './event-instance.model';
+import {RecurringSchedule} from './recurring-schedule.model';
 
 @model()
 export class Event extends Base {
@@ -45,6 +47,21 @@ export class Event extends Base {
     default: ScheduleTypes[1]
   })
   type?: string;
+
+
+
+  @property({
+    type: 'boolean',
+    default: false,
+  })
+  isRecurring: boolean; // True if recurring, false if one-time event
+
+
+  @property({
+    type: 'string',
+    // required: true,
+  })
+  eventType: string; // e.g. 'concert', 'festival', 'party', etc.
 
 
   @property({
@@ -92,6 +109,15 @@ export class Event extends Base {
   /* ********************************** */
   @hasMany(() => OpeningHours)
   openingHours: OpeningHours[];
+
+  @hasMany(() => Image, {keyTo: 'refId'})
+  gallery: Image[];
+
+  @hasMany(() => EventInstance)
+  instances: EventInstance[];
+
+  @hasOne(() => RecurringSchedule)
+  recurringSchedule: RecurringSchedule;
   /*         Computed Properties        */
   /* ********************************** */
 

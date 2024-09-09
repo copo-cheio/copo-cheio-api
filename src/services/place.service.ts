@@ -18,7 +18,7 @@ export class PlaceService {
     /**
      * @todo
      */
-    let eventId = "c4e47c95-7e36-4d37-8f6f-415148cecdca"
+    let eventId = "7b8ae7e3-37b0-4c19-b1ab-476426afc730"
     let event = await this.eventRepository.findById(eventId,EventFullQuery)
     return event
   }
