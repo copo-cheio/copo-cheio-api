@@ -8,7 +8,7 @@ export const ImageBelongsToTransformer = (record:any, type: 'cover' | "thumbnail
   let key = type+"Id"
   let value = record?.[key]
   let valid = typeof value == "string" && value.indexOf('-') >-1;
-  console.log({value,valid,record})
+
   if(!valid){
     record[key] = DefaultImage[type]
   }

@@ -5,7 +5,7 @@ import {
   HasManyRepositoryFactory,
   HasManyThroughRepositoryFactory,
   ReferencesManyAccessor,
-  repository
+  repository,
 } from "@loopback/repository";
 import {PostgresSqlDataSource} from "../datasources";
 import {
@@ -13,22 +13,25 @@ import {
   Balcony,
   Event,
   Image,
+  OpeningHours,
   Place,
   PlaceRelations,
   PlaceRule,
   Playlist,
   Rule,
-  Schedule,Tag, OpeningHours} from "../models";
+  Schedule,
+  Tag,
+} from "../models";
 import {AddressRepository} from "./address.repository";
 import {BalconyRepository} from "./balcony.repository";
 import {EventRepository} from "./event.repository";
 import {ImageRepository} from "./image.repository";
+import {OpeningHoursRepository} from "./opening-hours.repository";
 import {PlaceRuleRepository} from "./place-rule.repository";
 import {PlaylistRepository} from "./playlist.repository";
 import {RuleRepository} from "./rule.repository";
 import {ScheduleRepository} from "./schedule.repository";
-import {TagRepository} from './tag.repository';
-import {OpeningHoursRepository} from './opening-hours.repository';
+import {TagRepository} from "./tag.repository";
 
 /**
   {
@@ -79,9 +82,16 @@ export class PlaceRepository extends DefaultCrudRepository<
 
   public readonly tags: ReferencesManyAccessor<Tag, typeof Place.prototype.id>;
 
-  public readonly openingHours: HasManyRepositoryFactory<OpeningHours, typeof Place.prototype.id>;
-  // public readonly tags: ReferencesManyAccessor<Tag, typeof Artist.prototype.id>;
+  public readonly openingHours: HasManyRepositoryFactory<
+    OpeningHours,
+    typeof Place.prototype.id
+  >;
 
+  public readonly gallery: HasManyRepositoryFactory<
+    Image,
+    typeof Place.prototype.id
+  >;
+  // public readonly tags: ReferencesManyAccessor<Tag, typeof Artist.prototype.id>;
 
   constructor(
     @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
@@ -101,15 +111,45 @@ export class PlaceRepository extends DefaultCrudRepository<
     @repository.getter("PlaceRuleRepository")
     protected placeRuleRepositoryGetter: Getter<PlaceRuleRepository>,
     @repository.getter("RuleRepository")
-    protected ruleRepositoryGetter: Getter<RuleRepository>, @repository.getter('TagRepository') protected tagRepositoryGetter: Getter<TagRepository>, @repository.getter('OpeningHoursRepository') protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>,
-
-
+    protected ruleRepositoryGetter: Getter<RuleRepository>,
+    @repository.getter("TagRepository")
+    protected tagRepositoryGetter: Getter<TagRepository>,
+    @repository.getter("OpeningHoursRepository")
+    protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>
   ) {
     super(Place, dataSource);
-    this.openingHours = this.createHasManyRepositoryFactoryFor('openingHours', openingHoursRepositoryGetter,);
-    this.registerInclusionResolver('openingHours', this.openingHours.inclusionResolver);
-    this.tags = this.createReferencesManyAccessorFor('tags', tagRepositoryGetter,);
-    this.registerInclusionResolver('tags', this.tags.inclusionResolver);
+    this.gallery = this.createHasManyRepositoryFactoryFor(
+      "gallery",
+      imageRepositoryGetter
+    );
+
+    this.registerInclusionResolver('gallery', async (entities, inclusion, options) => {
+      const result = await this.gallery.inclusionResolver(entities, {
+        // @ts-ignore
+        ...inclusion,
+        scope: {
+          where: {
+            type: 'gallery',
+          },
+        },
+      }, options);
+      return result;
+    });
+
+    // this.registerInclusionResolver("gallery", this.gallery.inclusionResolver);
+    this.openingHours = this.createHasManyRepositoryFactoryFor(
+      "openingHours",
+      openingHoursRepositoryGetter
+    );
+    this.registerInclusionResolver(
+      "openingHours",
+      this.openingHours.inclusionResolver
+    );
+    this.tags = this.createReferencesManyAccessorFor(
+      "tags",
+      tagRepositoryGetter
+    );
+    this.registerInclusionResolver("tags", this.tags.inclusionResolver);
     this.rules = this.createHasManyThroughRepositoryFactoryFor(
       "rules",
       ruleRepositoryGetter,
@@ -171,4 +211,15 @@ export class PlaceRepository extends DefaultCrudRepository<
 
     return this.dataSource.execute(sql);
   }
+
+  public async findGalleryImages(productId: string, filter?: any): Promise<Image[]> {
+    return this.gallery(productId).find({
+      where: {
+        type: 'gallery',
+        ...filter?.where,
+      },
+      ...filter,
+    });
+  }
+
 }

@@ -41,3 +41,7 @@ export * from './menu.model';
 export * from './ingredient.model';
 export * from './timeline.model';
 export * from './opening-hours.model';
+export * from './activity.model';
+export * from './product-ingredient.model';
+export * from './menu-product.model';
+export * from './menu.model';

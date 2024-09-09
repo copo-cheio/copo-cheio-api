@@ -276,7 +276,7 @@ export class EventController {
           }
         }
 
-        console.log({ schedule, sr: JSON.stringify(schedule.scheduleRange) });
+
 
 
         entity = await this.updateScheduleData(entity);

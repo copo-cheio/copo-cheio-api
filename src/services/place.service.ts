@@ -1,11 +1,27 @@
 import {repository} from "@loopback/repository";
-import {PlaceRepository} from "../repositories";
+import {EventFullQuery} from '../blueprints/event.blueprint';
+import {EventRepository,PlaceRepository} from "../repositories";
 
-export class BarService {
+export class PlaceService {
   constructor(
     @repository(PlaceRepository)
-    public placeRepository: PlaceRepository
+    public placeRepository: PlaceRepository,
+    @repository(EventRepository)
+    public eventRepository: EventRepository,
   ) {}
+
+  /**
+   * @todo
+   * @param placeId
+   */
+  async findCurrentEvent(placeId:string) {
+    /**
+     * @todo
+     */
+    let eventId = "c4e47c95-7e36-4d37-8f6f-415148cecdca"
+    let event = await this.eventRepository.findById(eventId,EventFullQuery)
+    return event
+  }
   async findOpenPlaces(dayOfWeek: number, time: string) {
     const places = await this.placeRepository.find({
       include: [

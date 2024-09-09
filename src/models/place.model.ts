@@ -4,12 +4,12 @@ import {Balcony} from './balcony.model';
 import {Base} from './base.model';
 import {Event} from './event.model';
 import {Image} from './image.model';
+import {OpeningHours} from './opening-hours.model';
 import {PlaceRule} from './place-rule.model';
 import {Playlist} from './playlist.model';
 import {Rule} from './rule.model';
 import {Schedule} from './schedule.model';
 import {Tag} from './tag.model';
-import {OpeningHours} from './opening-hours.model';
 
 @model()
 export class Place extends Base {
@@ -78,6 +78,9 @@ export class Place extends Base {
 
   @hasMany(() => OpeningHours)
   openingHours: OpeningHours[];
+
+  @hasMany(() => Image, {keyTo: 'refId',})
+  gallery: Image[];
 
   constructor(data?: Partial<Place>) {
 

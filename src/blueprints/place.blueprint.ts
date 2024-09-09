@@ -1,7 +1,7 @@
 import {IncludeAddressRelation} from "./shared/address.include";
 import {IncludeBalconysRelations} from "./shared/balcony.include";
 import {IncludeEventsRelation} from "./shared/event.include";
-import {IncludeCover} from './shared/image.include';
+import {IncludeCover,IncludeGallery} from './shared/image.include';
 import {IncludeOpeningHoursRelation} from './shared/openinghours.include';
 import {IncludePlaylistRelation} from "./shared/playlist.include";
 import {QueryFilterBaseBlueprint} from "./shared/query-filter.interface";
@@ -33,7 +33,8 @@ export const PlaceQueryFull: any = {
     IncludePlaylistRelation,
     IncludeEventsRelation,
     IncludeRulesRelation,
-    IncludeOpeningHoursRelation
+    IncludeOpeningHoursRelation,
+    IncludeGallery
   ],
 };
 

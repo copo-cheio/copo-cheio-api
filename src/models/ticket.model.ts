@@ -20,9 +20,13 @@ export class Ticket extends Base {
   status?: number;
   @property({
     type: 'number',
-    jsonSchema:{
-      maximum:0
-    }
+    jsonSchema: {
+      minimum: 0, // Set minimum value to 0
+    },
+
+    postgresql: {
+          default: 0, // Default value of 0 in PostgreSQL
+    },
   })
   quantity?: number;
 
