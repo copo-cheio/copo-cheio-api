@@ -1,8 +1,9 @@
-import {belongsTo,model,property,referencesMany, hasMany} from '@loopback/repository';
+import {belongsTo,hasMany,model,property,referencesMany} from '@loopback/repository';
 import {Base} from './base.model';
 import {Image} from './image.model';
-import {Tag} from './tag.model';
 import {ProductIngredient} from './product-ingredient.model';
+import {Tag} from './tag.model';
+import {ProductOption} from './product-option.model';
 
 @model()
 export class Product extends Base {
@@ -18,6 +19,11 @@ export class Product extends Base {
   })
   description?: string;
 
+  @property({
+    type: 'boolean'
+  })
+  customizable?: boolean;
+
 
 
   @referencesMany(() => Tag)
@@ -28,6 +34,9 @@ export class Product extends Base {
 
   @hasMany(() => ProductIngredient)
   ingredients: ProductIngredient[];
+
+  @hasMany(() => ProductOption)
+  options: ProductOption[];
   // @hasMany(() => Ingredient, {through: {model: () => ProductIngredient}})
   // ingredients: Ingredient[];
 

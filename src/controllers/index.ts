@@ -104,3 +104,8 @@ export * from './event-instance-event.controller';
 export * from './recurring-schedule-event.controller';
 export * from './event-event-instance.controller';
 export * from './event-recurring-schedule.controller';
+export * from './product-option.controller';
+export * from './product-option-product.controller';
+export * from './product-option-ingredient.controller';
+export * from './product-option-price.controller';
+export * from './product-product-option.controller';

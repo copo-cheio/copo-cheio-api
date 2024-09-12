@@ -1,4 +1,4 @@
-import {model,property, belongsTo} from '@loopback/repository';
+import {belongsTo,model,property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Event} from './event.model';
 
@@ -14,6 +14,19 @@ export class EventInstance extends Base {
     type: 'date',
   })
   endDate?: string;
+
+
+  @property({
+    type: 'number',
+    // required: true,
+  })
+  latitude: number;  // Store the latitude of the event
+
+  @property({
+    type: 'number',
+    // required: true,
+  })
+  longitude: number;  // Store the longitude of the event
 
   @belongsTo(() => Event)
   eventId: string;

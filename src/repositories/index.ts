@@ -43,3 +43,4 @@ export * from './product-ingredient.repository';
 export * from './menu-product.repository';
 export * from './event-instance.repository';
 export * from './recurring-schedule.repository';
+export * from './product-option.repository';

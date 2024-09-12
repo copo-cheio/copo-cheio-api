@@ -1,4 +1,4 @@
-import sanitizeHtml from 'sanitize-html';
+import sanitizeHtml from "sanitize-html";
 import {AddressBelongsToTransformer} from "./address.blueprint";
 import {ImageBelongsToTransformer} from "./image.blueprint";
 import {PlaceBelongsToTransformer} from "./place.blueprint";
@@ -6,15 +6,15 @@ import {PlaylistBelongsToTransformer} from "./playlist.blueprint";
 import {ScheduleBelongsToTransformer} from "./schedule.blueprint";
 import {IncludeAddressRelation} from "./shared/address.include";
 import {IncludeCover} from "./shared/image.include";
-import {IncludeLineupRelation} from './shared/lineup.include';
-import {IncludeOpeningHoursRelation} from './shared/openinghours.include';
+import {IncludeLineupRelation} from "./shared/lineup.include";
+import {IncludeOpeningHoursRelation} from "./shared/openinghours.include";
 import {IncludePlaceRelation} from "./shared/place.include";
-import {IncludePlaylistRelation} from './shared/playlist.include';
+import {IncludePlaylistRelation} from "./shared/playlist.include";
 import {QueryFilterBaseBlueprint} from "./shared/query-filter.interface";
-import {IncludeRulesRelation} from './shared/rule.include';
+import {IncludeRulesRelation} from "./shared/rule.include";
 import {IncludeScheduleRelation} from "./shared/schedule.include";
-import {IncludeTagsRelation} from './shared/tag.include';
-import {IncludeTicketsRelation} from './shared/ticket.include';
+import {IncludeTagsRelation} from "./shared/tag.include";
+import {IncludeTicketsRelation} from "./shared/ticket.include";
 
 export const EventsQuery: any = {
   ...QueryFilterBaseBlueprint,
@@ -31,7 +31,13 @@ export const EventsQuery: any = {
     playlistId: true,
     placeId: true,
     endDate: true,
+    startDate:true,
     type: true,
+    tagIds: true,
+    recurrenceType: true,
+    recurrenceEndDate: true,
+    isRecurring: true, // True if recurring, false if one-time event
+    eventType: true,
   },
   include: [
     "cover",
@@ -39,9 +45,9 @@ export const EventsQuery: any = {
     IncludeScheduleRelation,
     IncludePlaceRelation,
     IncludeOpeningHoursRelation,
-    {relation: 'instances'}, // Include event instances (occurrences)
-    {relation: 'recurringSchedules'}, // Include recurring schedules
-
+    IncludeTagsRelation,
+    { relation: "instances" }, // Include event instances (occurrences)
+    { relation: "recurringSchedule" }, // Include recurring schedules
   ],
 };
 
@@ -54,13 +60,18 @@ export const EventFullQuery: any = {
     webpage: true,
     status: true,
     endDate: true,
+    startDate:true,
     type: true,
     coverId: true,
     addressId: true,
     scheduleId: true,
     playlistId: true,
     placeId: true,
-    tagIds:true
+    tagIds: true,
+    recurrenceType: true,
+    recurrenceEndDate: true,
+    isRecurring: true, // True if recurring, false if one-time event
+    eventType: true,
   },
   include: [
     IncludeCover,
@@ -70,11 +81,11 @@ export const EventFullQuery: any = {
     IncludePlaylistRelation,
     IncludeRulesRelation,
     IncludeTicketsRelation,
-     IncludeLineupRelation,
+    IncludeLineupRelation,
     IncludeTagsRelation,
     IncludeOpeningHoursRelation,
-    {relation: 'instances'}, // Include event instances (occurrences)
-    {relation: 'recurringSchedules'}, // Include recurring schedules
+    { relation: "instances" }, // Include event instances (occurrences)
+    { relation: "recurringSchedule" }, // Include recurring schedules
   ],
 };
 
@@ -107,8 +118,6 @@ export const EventCreateSchema = {
     scheduleId: {
       type: "string",
     },
-
-
 
     type: {
       type: "string",
@@ -156,8 +165,8 @@ export const getEventEndDate = async (event: any) => {
 };
 
 export const EventCreateTransformer = async (event: any) => {
-  event.name = sanitizeHtml(event.name || "")
-  event.description = sanitizeHtml(event.description || "")
+  event.name = sanitizeHtml(event.name || "");
+  event.description = sanitizeHtml(event.description || "");
   /* ************ Schedule ************ */
   event = await getEventEndDate(event);
   event = ScheduleBelongsToTransformer(event, event?.type || "once");
@@ -172,7 +181,7 @@ export const EventCreateTransformer = async (event: any) => {
   event = PlaceBelongsToTransformer(event, "place");
 
   /* ************** Tags ************** */
-  event.tagIds = Array.isArray(event.tagIds) ?event.tagIds : [];
+  event.tagIds = Array.isArray(event.tagIds) ? event.tagIds : [];
 
   /* ************ Playlist ************ */
   event = PlaylistBelongsToTransformer(event, "event");
@@ -184,7 +193,7 @@ export const EventCreateTransformer = async (event: any) => {
 };
 
 export const EventValidation = async (repository: any, data: any) => {
-  console.log({data:JSON.stringify(data)})
+  console.log({ data: JSON.stringify(data) });
   let isLive = () => {
     let isValid = true;
     const notDefaultBelongsTo = ["addressId", "scheduleId", "placeId"];

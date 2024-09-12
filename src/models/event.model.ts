@@ -1,4 +1,4 @@
-import {belongsTo,hasMany,model,property,referencesMany, hasOne} from '@loopback/repository';
+import {belongsTo,hasMany,hasOne,model,property,referencesMany} from '@loopback/repository';
 import {Address} from './address.model';
 import {Base} from './base.model';
 import {EventRule} from './event-rule.model';
@@ -10,11 +10,11 @@ import {Rule} from './rule.model';
 import {Schedule} from './schedule.model';
 
 import {ScheduleTypes} from '../blueprints/shared/schedule.include';
+import {EventInstance} from './event-instance.model';
 import {OpeningHours} from './opening-hours.model';
+import {RecurringSchedule} from './recurring-schedule.model';
 import {Tag} from './tag.model';
 import {Ticket} from './ticket.model';
-import {EventInstance} from './event-instance.model';
-import {RecurringSchedule} from './recurring-schedule.model';
 
 @model()
 export class Event extends Base {
@@ -49,6 +49,17 @@ export class Event extends Base {
   type?: string;
 
 
+  @property({
+    type: 'string',
+    // required: true,
+    default: "none"
+  })
+  recurrenceType: string; // e.g., 'none', 'daily', 'weekly', 'biweekly'
+
+  @property({
+    type: 'date',
+  })
+  recurrenceEndDate?: string; // Date when the recurrence ends, if applicable
 
   @property({
     type: 'boolean',
@@ -124,7 +135,15 @@ export class Event extends Base {
   @property({
     type: 'date',
   })
-  endDate: Date;
+  endDate?: Date;
+
+
+
+  @property({
+    type: 'date',
+    // required: true,
+  })
+  startDate: Date;
 
 
 

@@ -9,11 +9,12 @@ import {
   Image,
   Product,
   ProductRelations,
-  Tag, ProductIngredient} from "../models";
+  Tag, ProductIngredient, ProductOption} from "../models";
 import {ImageRepository} from "./image.repository";
 import {IngredientRepository} from "./ingredient.repository";
 import {ProductIngredientRepository} from "./product-ingredient.repository";
 import {TagRepository} from "./tag.repository";
+import {ProductOptionRepository} from './product-option.repository';
 
 export class ProductRepository extends DefaultCrudRepository<
   Product,
@@ -31,6 +32,8 @@ export class ProductRepository extends DefaultCrudRepository<
   >;
 
   public readonly ingredients: HasManyRepositoryFactory<ProductIngredient, typeof Product.prototype.name>;
+
+  public readonly options: HasManyRepositoryFactory<ProductOption, typeof Product.prototype.name>;
   // public readonly ingredients: HasManyThroughRepositoryFactory<
   //   Ingredient,
   //   typeof Ingredient.prototype.id,
@@ -49,9 +52,11 @@ export class ProductRepository extends DefaultCrudRepository<
       ProductIngredientRepository
     >,
     @repository.getter("IngredientRepository")
-    protected ingredientRepositoryGetter: Getter<IngredientRepository>
+    protected ingredientRepositoryGetter: Getter<IngredientRepository>, @repository.getter('ProductOptionRepository') protected productOptionRepositoryGetter: Getter<ProductOptionRepository>,
   ) {
     super(Product, dataSource);
+    this.options = this.createHasManyRepositoryFactoryFor('options', productOptionRepositoryGetter,);
+    this.registerInclusionResolver('options', this.options.inclusionResolver);
     this.ingredients = this.createHasManyRepositoryFactoryFor('ingredients', productIngredientRepositoryGetter,);
     this.registerInclusionResolver('ingredients', this.ingredients.inclusionResolver);
     // this.ingredients = this.createHasManyThroughRepositoryFactoryFor(

@@ -41,7 +41,7 @@ import {
   ScheduleRepository,
   TicketRepository,
 } from "../repositories";
-import {QrFactoryService} from "../services";
+import {EventService,QrFactoryService} from "../services";
 import {transactionWrapper} from "../shared/database";
 
 export class EventController {
@@ -64,6 +64,8 @@ export class EventController {
     public datetimeRepository: DateTimeRepository,
     @inject("services.QrFactoryService")
     protected qrFactoryService: QrFactoryService,
+    @inject("services.EventService")
+    protected eventService: EventService,
     @inject("repositories.EventInstanceRepository")
     public eventInstanceRepository: EventInstanceRepository,
 
@@ -71,9 +73,7 @@ export class EventController {
     public recurringScheduleRepository: RecurringScheduleRepository
   ) {}
 
-
-
-/*
+  /*
    // 1. Create an event (one-time or recurring)
    @post('/events', {
     responses: {
@@ -259,16 +259,72 @@ export class EventController {
   // ){
   //   return this.generateCheckInQrCode(id)
   // }
-
+  @post("/create/event")
+  @response(200, {
+    description: "Event model instance",
+    content: { "application/json": { schema: getModelSchemaRef(Event) } },
+  })
+  async createEvent(
+    @requestBody({
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              description: { type: "string" },
+              startDate: { type: "string" },
+              endDate: { type: "string" },
+              recurrenceType: { type: "string" },
+              recurrenceEndDate: { type: "string" },
+            },
+            required: ["name", "startDate", "recurrenceType"],
+          },
+        },
+      },
+    })
+    eventData: Partial<Event>
+  ): Promise<Event> {
+    return this.eventService.createEvent(eventData);
+  }
+  @patch("/update/event/{id}")
+  @response(200, {
+    description: "Event model instance",
+    content: { "application/json": { schema: getModelSchemaRef(Event) } },
+  })
+  async updateEvent(
+    @param.path.string("id") id: string,
+    @requestBody({
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              description: { type: "string" },
+              startDate: { type: "string" },
+              endDate: { type: "string" },
+              recurrenceType: { type: "string" },
+              recurrenceEndDate: { type: "string" },
+            },
+            // required: ['name', 'startDate', 'recurrenceType'],
+          },
+        },
+      },
+    })
+    eventData: Partial<Event>
+  ): Promise<Event> {
+    return this.eventService.edit(id, eventData);
+  }
 
   // 3. Find nearest future events
-  @get('/events/upcoming', {
+  @get("/events/upcoming", {
     responses: {
-      '200': {
-        description: 'Array of upcoming EventInstances',
+      "200": {
+        description: "Array of upcoming EventInstances",
         content: {
-          'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(EventInstance)},
+          "application/json": {
+            schema: { type: "array", items: getModelSchemaRef(EventInstance) },
           },
         },
       },
@@ -278,22 +334,22 @@ export class EventController {
     const currentDateTime = new Date().toISOString(); // Get current time
     return this.eventInstanceRepository.find({
       where: {
-        startDate: {gt: currentDateTime}, // Events happening in the future
+        startDate: { gt: currentDateTime }, // Events happening in the future
       },
-      order: ['startDate ASC'], // Order by nearest future events
+      order: ["startDate ASC"], // Order by nearest future events
       limit: 10, // Return nearest 10 events (optional)
-      include: [{relation: 'event'}], // Include event details
+      include: [{ relation: "event" }], // Include event details
     });
   }
 
   // 4. Find ongoing events
-  @get('/events/ongoing', {
+  @get("/events/ongoing", {
     responses: {
-      '200': {
-        description: 'Array of ongoing EventInstances',
+      "200": {
+        description: "Array of ongoing EventInstances",
         content: {
-          'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(EventInstance)},
+          "application/json": {
+            schema: { type: "array", items: getModelSchemaRef(EventInstance) },
           },
         },
       },
@@ -304,29 +360,48 @@ export class EventController {
     return this.eventInstanceRepository.find({
       where: {
         and: [
-          {startDate: {lte: currentDateTime}},
+          { startDate: { lte: currentDateTime } },
           {
             //@ts-ignore
-            or: [{endDate: {gte: currentDateTime}}, {endDate: null}],
+            or: [{ endDate: { gte: currentDateTime } }, { endDate: null }],
           },
         ],
       },
-      order: ['startDate ASC'],
-      include: [{relation: 'event'}],
+      order: ["startDate ASC"],
+      include: [{ relation: "event" }],
     });
   }
 
-  // 5. Create a new event instance for an event (for recurring events)
-  @post('/events/{id}/instances', {
+
+  @get("/events/upcoming/nearby", {
     responses: {
-      '200': {
-        description: 'Create an instance of an event',
-        content: {'application/json': {schema: getModelSchemaRef(EventInstance)}},
+      "200": {
+        description: "Array of ongoing EventInstances",
+        content: {
+          "application/json": {
+            schema: { type: "array", items: getModelSchemaRef(EventInstance) },
+          },
+        },
+      },
+    },
+  })
+  async findUpcomingNearbyEvents(): Promise<EventInstance[]> {
+    return this.eventService.findUpcomingNearbyEvents(38.642390,-9.195690,100000000000000000)
+  }
+
+  // 5. Create a new event instance for an event (for recurring events)
+  @post("/events/{id}/instances", {
+    responses: {
+      "200": {
+        description: "Create an instance of an event",
+        content: {
+          "application/json": { schema: getModelSchemaRef(EventInstance) },
+        },
       },
     },
   })
   async createEventInstance(
-    @param.path.string('id') eventId: string,
+    @param.path.string("id") eventId: string,
     @requestBody({
       content: {
         "application/json": {
@@ -338,13 +413,10 @@ export class EventController {
         },
       },
     })
-     eventInstanceData: EventInstance,
+    eventInstanceData: EventInstance
   ): Promise<EventInstance> {
     return this.eventRepository.instances(eventId).create(eventInstanceData);
   }
-
-
-
 
   @get("/events/nearby")
   async findNearbyPlaces(
@@ -379,7 +451,7 @@ export class EventController {
     @param.filter(Event, { exclude: "where" })
     filter?: FilterExcludingWhere<Event>
   ): Promise<Event> {
-    console.log(JSON.stringify(EventFullQuery));
+
     return this.eventRepository.findById(id, EventFullQuery);
   }
 

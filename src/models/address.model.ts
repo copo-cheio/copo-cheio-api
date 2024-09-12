@@ -25,20 +25,24 @@ export class Address extends Base {
   @property({
     type: "number",
     required: true,
-    dataType: 'numeric',
-    precision: 10,
-    scale:7,
-    default: 0,
+    postgresql: {
+      dataType: 'NUMERIC', // Explicitly specify NUMERIC
+      precision: 10, // Total number of digits
+      scale: 2, // Number of digits after the decimal point
+      default: 0, // Default value of 0 in PostgreSQL
+    },
   })
   latitude: number;
 
   @property({
     type: "number",
     required: true,
-    dataType: 'numeric',
-    precision: 10,
-    scale:7,
-    default:0
+    postgresql: {
+      dataType: 'NUMERIC', // Explicitly specify NUMERIC
+      precision: 10, // Total number of digits
+      scale: 2, // Number of digits after the decimal point
+      default: 0, // Default value of 0 in PostgreSQL
+    },
   })
   longitude: number;
 
