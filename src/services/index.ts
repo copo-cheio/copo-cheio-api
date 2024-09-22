@@ -5,3 +5,4 @@ export * from './shopping-cart-service.service';
 export * from './activity.service';
 export * from './event.service';
 export * from './address.service';
+export * from './push-notification.service';
