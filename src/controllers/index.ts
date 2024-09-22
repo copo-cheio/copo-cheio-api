@@ -109,3 +109,6 @@ export * from './product-option-product.controller';
 export * from './product-option-ingredient.controller';
 export * from './product-option-price.controller';
 export * from './product-product-option.controller';
+export * from './auth.controller';
+export * from './payment.controller';
+export * from './order-image.controller';

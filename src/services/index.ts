@@ -6,3 +6,5 @@ export * from './activity.service';
 export * from './event.service';
 export * from './address.service';
 export * from './push-notification.service';
+export * from './auth.service';
+export * from './stripe.service';

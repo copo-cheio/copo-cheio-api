@@ -44,7 +44,10 @@ export class NotificationController {
     };
 
     // Call Firebase service to send the push notification to a single device
-    await this.pushNotificationService.sendPushNotification(token, payload);
+    setTimeout(()=>{
+      this.pushNotificationService.sendPushNotification(token, payload);
+    },5000)
+    return await this.pushNotificationService.sendPushNotification(token, payload);
 
   }
 
@@ -64,7 +67,8 @@ export class NotificationController {
     // const {tokens, title, body} = body;
     const title = "test multicast notification";
     const body = "Body for the multicast notification";
-    const tokens = _tokens.replace(/[()]/g, '').split(',')
+    const tokens = _tokens.replace(/[\[\]']+/g,"").split(',')
+    console.log({tokens,isArray: Array.isArray(tokens),body})
     // Define notification payload
     const payload:any = { //} admin.messaging.MessagingPayload = {
       notification: {
@@ -74,6 +78,9 @@ export class NotificationController {
     };
 
     // Call Firebase service to send push notifications to multiple devices
-    await this.pushNotificationService.sendPushNotifications(tokens, payload);
+    setTimeout(()=>{
+      this.pushNotificationService.sendPushNotifications(Array.isArray(tokens) ? tokens:[tokens], payload);
+    },5000)
+    return await this.pushNotificationService.sendPushNotifications(Array.isArray(tokens) ? tokens:[tokens], payload);
   }
 }

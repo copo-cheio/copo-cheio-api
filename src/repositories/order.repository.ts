@@ -1,10 +1,11 @@
 import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, HasManyRepositoryFactory, BelongsToAccessor} from '@loopback/repository';
+import {DefaultCrudRepository, repository, HasManyRepositoryFactory, BelongsToAccessor, HasOneRepositoryFactory} from '@loopback/repository';
 import {PostgresSqlDataSource} from '../datasources';
-import {Order,OrderRelations, CartItem, User, Place} from '../models';
+import {Order,OrderRelations, CartItem, User, Place, Image} from '../models';
 import {CartItemRepository} from './cart-item.repository';
 import {UserRepository} from './user.repository';
 import {PlaceRepository} from './place.repository';
+import {ImageRepository} from './image.repository';
 
 export class OrderRepository extends DefaultCrudRepository<
   Order,
@@ -18,10 +19,14 @@ export class OrderRepository extends DefaultCrudRepository<
 
   public readonly place: BelongsToAccessor<Place, typeof Order.prototype.id>;
 
+  public readonly qr: HasOneRepositoryFactory<Image, typeof Order.prototype.id>;
+
   constructor(
-    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource, @repository.getter('CartItemRepository') protected cartItemRepositoryGetter: Getter<CartItemRepository>, @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>, @repository.getter('PlaceRepository') protected placeRepositoryGetter: Getter<PlaceRepository>,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource, @repository.getter('CartItemRepository') protected cartItemRepositoryGetter: Getter<CartItemRepository>, @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>, @repository.getter('PlaceRepository') protected placeRepositoryGetter: Getter<PlaceRepository>, @repository.getter('ImageRepository') protected imageRepositoryGetter: Getter<ImageRepository>,
   ) {
     super(Order, dataSource);
+    this.qr = this.createHasOneRepositoryFactoryFor('qr', imageRepositoryGetter);
+    this.registerInclusionResolver('qr', this.qr.inclusionResolver);
     this.place = this.createBelongsToAccessorFor('place', placeRepositoryGetter,);
     this.registerInclusionResolver('place', this.place.inclusionResolver);
     this.user = this.createBelongsToAccessorFor('user', userRepositoryGetter,);
