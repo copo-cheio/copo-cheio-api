@@ -6,3 +6,10 @@ export const IncludeBalconysRelations: any = {
     include: [IncludeCover],
   },
 };
+
+export const IncludeBalconyRelation: any = {
+  relation: "balcony",
+  scope: {
+    include: [IncludeCover],
+  },
+};

@@ -4,6 +4,10 @@ import {CartItem} from './cart-item.model';
 import {Image} from './image.model';
 import {Place} from './place.model';
 import {User} from './user.model';
+import {Event} from './event.model';
+import {Balcony} from './balcony.model';
+import {OrderItem} from './order-item.model';
+import {Price} from './price.model';
 
 @model()
 export class Order extends Base {
@@ -70,6 +74,18 @@ export class Order extends Base {
 
   @hasOne(() => Image)
   qr: Image;
+
+  @belongsTo(() => Event)
+  eventId: string;
+
+  @belongsTo(() => Balcony)
+  balconyId: string;
+
+  @hasMany(() => OrderItem)
+  orderItems: OrderItem[];
+
+  @belongsTo(() => Price)
+  priceId: string;
 
   constructor(data?: Partial<Order>) {
     super(data);

@@ -18,6 +18,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import {OrderSingleFull} from '../blueprints/shared/order.include';
 import {Order} from '../models';
 import {OrderRepository} from '../repositories';
 import {PushNotificationService} from '../services';
@@ -112,7 +113,7 @@ export class OrderController {
     @param.path.string('id') id: string,
     @param.filter(Order, {exclude: 'where'}) filter?: FilterExcludingWhere<Order>
   ): Promise<Order> {
-    return this.orderRepository.findById(id, filter);
+    return this.orderRepository.findById(id, OrderSingleFull);
   }
 // /update-order-status/"+orderId,
 

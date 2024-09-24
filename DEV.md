@@ -5,3 +5,7 @@
 00000000-0000-0000-0000-000000111111 - ingredient
 00000000-0000-0000-0000-000001111111 - price
 
+
+
+Place -> Balcony[] -> Menu -> MenuProduct[]->Product->Options
+                   -> Order -> OrderItem[]->MenuProduct-> Product-> Options

@@ -1,0 +1,51 @@
+{
+  "include": [
+    {
+      "relation": "orderItems",
+      "scope": {
+        "include": [
+          {
+            "relation": "productOptions",
+            "scope": {
+              "include": [
+                {
+                  "relation": "price"
+                },
+                {
+                  "relation": "ingredient"
+                }
+              ]
+            }
+          },
+          {
+            "relation": "menuProduct",
+            "scope": {
+              "include": [
+                {
+                  "relation": "price",
+                  "scope": {
+                    "include": [
+                      {
+                        "relation": "currency"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "relation": "product",
+                  "scope": {
+                    "include": [
+                      {
+                        "relation": "thumbnail"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

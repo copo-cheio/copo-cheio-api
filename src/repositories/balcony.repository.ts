@@ -2,13 +2,13 @@ import {Getter,inject} from "@loopback/core";
 import {
   BelongsToAccessor,
   DefaultCrudRepository,
-  repository,
-} from "@loopback/repository";
+  repository, HasManyRepositoryFactory} from "@loopback/repository";
 import {PostgresSqlDataSource} from '../datasources';
-import {Balcony,BalconyRelations,Image,Place, Menu} from "../models";
+import {Balcony,BalconyRelations,Image,Place, Menu, Order} from "../models";
 import {ImageRepository} from "./image.repository";
 import {PlaceRepository} from "./place.repository";
 import {MenuRepository} from './menu.repository';
+import {OrderRepository} from './order.repository';
 
 export class BalconyRepository extends DefaultCrudRepository<
   Balcony,
@@ -21,14 +21,18 @@ export class BalconyRepository extends DefaultCrudRepository<
 
   public readonly menu: BelongsToAccessor<Menu, typeof Balcony.prototype.id>;
 
+  public readonly orders: HasManyRepositoryFactory<Order, typeof Balcony.prototype.id>;
+
   constructor(
     @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
     @repository.getter("PlaceRepository")
     protected placeRepositoryGetter: Getter<PlaceRepository>,
     @repository.getter("ImageRepository")
-    protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('MenuRepository') protected menuRepositoryGetter: Getter<MenuRepository>,
+    protected imageRepositoryGetter: Getter<ImageRepository>, @repository.getter('MenuRepository') protected menuRepositoryGetter: Getter<MenuRepository>, @repository.getter('OrderRepository') protected orderRepositoryGetter: Getter<OrderRepository>,
   ) {
     super(Balcony, dataSource);
+    this.orders = this.createHasManyRepositoryFactoryFor('orders', orderRepositoryGetter,);
+    this.registerInclusionResolver('orders', this.orders.inclusionResolver);
     this.menu = this.createBelongsToAccessorFor('menu', menuRepositoryGetter,);
     this.registerInclusionResolver('menu', this.menu.inclusionResolver);
     this.cover = this.createBelongsToAccessorFor(
