@@ -48,3 +48,5 @@ export * from './menu.model';
 export * from './event-instance.model';
 export * from './recurring-schedule.model';
 export * from './product-option.model';
+export * from './credential.model';
+export * from './order-timeline.model';

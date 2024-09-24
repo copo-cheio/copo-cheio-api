@@ -1,35 +1,73 @@
 // Uncomment these imports to begin using these cool features!
 
-
 // import {inject} from '@loopback/core';
 
-import {get,param,response} from '@loopback/rest';
+import {
+  get,
+  getModelSchemaRef,
+  param,
+  post,
+  requestBody,
+  response,
+} from "@loopback/rest";
 // import {get} from 'http';
 
-import {inject} from '@loopback/core';
-import {PushNotificationService} from '../services/push-notification.service';
+import {authenticate,AuthenticationBindings} from "@loopback/authentication";
+import {inject} from "@loopback/core";
+import {repository} from "@loopback/repository";
+import {UserProfile} from "@loopback/security";
+import {Credential} from "../models";
+import {CredentialRepository} from "../repositories";
+import {PushNotificationService} from "../services/push-notification.service";
 
 // import {inject} from '@loopback/core';
 
 export class NotificationController {
   constructor(
-    @inject('services.PushNotificationService')
+    @inject("services.PushNotificationService")
     private pushNotificationService: PushNotificationService,
+    @repository(CredentialRepository)
+    public credentialRepository: CredentialRepository,
+    @inject(AuthenticationBindings.CURRENT_USER, { optional: true })
+    private currentUser: UserProfile // Inject the current user profile
   ) {}
 
-
-  @get('/test/single-notification/{token}')
+  @post("/push-notification/register-token")
+  @authenticate("firebase")
   @response(200, {
-    description: 'testing single token messaing',
+    description: "Menu model instance",
+    content: {},
+  })
+  async create(
+    @requestBody({
+      content: {
+        "application/json": {
+          schema: getModelSchemaRef(Credential, {
+            title: "Register tokden",
+            exclude: ["id","userId","key"],
+          }),
+        },
+      },
+    })
+    data: any
+  ): Promise<void> {
+    return this.pushNotificationService.registerToken(
+      this.currentUser.id,
+      data.value
+    );
+  }
+
+  @get("/test/single-notification/{token}")
+  @response(200, {
+    description: "testing single token messaing",
     content: {
-      'application/json': {
-        schema: {}
+      "application/json": {
+        schema: {},
       },
     },
   })
   async testNotification(
-    @param.path.string('token') token: string,
-
+    @param.path.string("token") token: string
   ): Promise<any> {
     // const {token, title, body} = body;
     const title = "test single notification";
@@ -44,33 +82,36 @@ export class NotificationController {
     };
 
     // Call Firebase service to send the push notification to a single device
-    setTimeout(()=>{
+    setTimeout(() => {
       this.pushNotificationService.sendPushNotification(token, payload);
-    },5000)
-    return await this.pushNotificationService.sendPushNotification(token, payload);
-
+    }, 5000);
+    return await this.pushNotificationService.sendPushNotification(
+      token,
+      payload
+    );
   }
 
-
   // Send push notifications to multiple devices
-  @get('/test/multicast-notification/{tokens}')
+  @get("/test/multicast-notification/{tokens}")
   @response(200, {
-    description: 'testing single token messaing',
+    description: "testing single token messaing",
     content: {
-      'application/json': {
-        schema: {}
+      "application/json": {
+        schema: {},
       },
-    }})
+    },
+  })
   async sendMulticastNotification(
-    @param.path.string('tokens') _tokens: string,
+    @param.path.string("tokens") _tokens: string
   ): Promise<void> {
     // const {tokens, title, body} = body;
     const title = "test multicast notification";
     const body = "Body for the multicast notification";
-    const tokens = _tokens.replace(/[\[\]']+/g,"").split(',')
-    console.log({tokens,isArray: Array.isArray(tokens),body})
+    const tokens = _tokens.replace(/[\[\]']+/g, "").split(",");
+    console.log({ tokens, isArray: Array.isArray(tokens), body });
     // Define notification payload
-    const payload:any = { //} admin.messaging.MessagingPayload = {
+    const payload: any = {
+      //} admin.messaging.MessagingPayload = {
       notification: {
         title: title,
         body: body,
@@ -78,9 +119,15 @@ export class NotificationController {
     };
 
     // Call Firebase service to send push notifications to multiple devices
-    setTimeout(()=>{
-      this.pushNotificationService.sendPushNotifications(Array.isArray(tokens) ? tokens:[tokens], payload);
-    },5000)
-    return await this.pushNotificationService.sendPushNotifications(Array.isArray(tokens) ? tokens:[tokens], payload);
+    setTimeout(() => {
+      this.pushNotificationService.sendPushNotifications(
+        Array.isArray(tokens) ? tokens : [tokens],
+        payload
+      );
+    }, 5000);
+    return await this.pushNotificationService.sendPushNotifications(
+      Array.isArray(tokens) ? tokens : [tokens],
+      payload
+    );
   }
 }

@@ -119,3 +119,4 @@ export * from './order-order-item.controller';
 export * from './order-item-menu-product.controller';
 export * from './order-price.controller';
 export * from './balcony-order.controller';
+export * from './credential-user.controller';

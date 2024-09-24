@@ -1,29 +1,44 @@
 import {injectable} from '@loopback/core';
+import {repository} from '@loopback/repository';
 import {admin} from '../firebase-config';
+import {CredentialRepository,UserRepository} from '../repositories';
 
-// @injectable({scope: BindingScope.TRANSIENT})
-// export class PushNotificationService {
-//   constructor(/* Add @inject to inject parameters */) {}
-
-//   /*
-//    * Add service methods here
-//    */
-// }
-
-// // import * as admin from '..firebase-admin';
 
 
 @injectable()
 export class PushNotificationService {
-  constructor() {
-    // Initialize Firebase Admin SDK
-    // const serviceAccountPath = path.resolve(__dirname, '../../serviceAccountKey.json');
+  constructor(
+    @repository(UserRepository)
+    public userRepository: UserRepository,
+    @repository(CredentialRepository)
+    public credentialRepository: CredentialRepository,) {
+  }
 
-    // if (admin.apps.length === 0) {
-    //   admin.initializeApp({
-    //     credential: admin.credential.cert(serviceAccountPath),
-    //   });
-    // }
+
+
+  async registerToken(userId:string,token:string):Promise<void>{
+    const payload:any = {
+      key:"fcmPushNotificationToken",
+      userId:userId,
+      value:token
+    }
+    const credential = await this.credentialRepository.findOne({where:payload})
+    if(!credential){
+      this.credentialRepository.create(payload)
+    }
+  }
+
+  async notifyUser(userId:string, payload:any){
+    const devices = await this.credentialRepository.find({where:{userId,key:"fcmPushNotificationToken"}}) || [];
+    // const tokens = devices?.map((device:any)=> device.value);
+    for(let device of devices){
+      try{
+        const token = device.value;
+        await this.sendPushNotification(token,payload)
+      }catch(ex){
+        await this.credentialRepository.deleteById
+      }
+    }
   }
 
   // Method to send a push notification

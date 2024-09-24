@@ -1,3 +1,4 @@
+import {authenticate,AuthenticationBindings} from '@loopback/authentication';
 import {inject} from "@loopback/core";
 import {
   Count,
@@ -12,6 +13,7 @@ import {
   del,
   get,
   getModelSchemaRef,
+  HttpErrors,
   param,
   patch,
   post,
@@ -19,10 +21,12 @@ import {
   requestBody,
   response,
 } from "@loopback/rest";
+import {UserProfile} from '@loopback/security';
 import {v4} from 'uuid';
 import {OrderSingleFull} from "../blueprints/shared/order.include";
 import {Order} from "../models";
 import {
+  CredentialRepository,
   OrderItemRepository,
   OrderRepository,
   PriceRepository
@@ -39,10 +43,15 @@ export class OrderController {
     @repository(OrderItemRepository)
     public orderItemRepository: OrderItemRepository,
     @inject("services.PushNotificationService")
-    private pushNotificationService: PushNotificationService
+    private pushNotificationService: PushNotificationService,
+    @repository(CredentialRepository)
+    public credentialRepository: CredentialRepository,
+    @inject(AuthenticationBindings.CURRENT_USER, { optional: true })
+    private currentUser: UserProfile // Inject the current user profile
   ) {}
 
   @post("/orders")
+  @authenticate('firebase')
   @response(200, {
     description: "Order model instance",
     content: { "application/json": { schema: getModelSchemaRef(Order) } },
@@ -50,12 +59,7 @@ export class OrderController {
   async create(
     @requestBody({
       content: {
-        // "application/json": {
-        //   schema: getModelSchemaRef(Order, {
-        //     title: "NewOrder",
-        //     exclude: ["id"],
-        //   }),
-        // },
+
       },
     })
     order: any
@@ -64,7 +68,7 @@ export class OrderController {
       IsolationLevel.SERIALIZABLE
     );
     try {
-      const userId = "6e6fcbef-886c-486e-8e15-f4ac5e234b5c";
+      const userId = this.currentUser.id;
       const status = "WAITING_PAYMENT";
       const fees = "0";
       const { menuId, placeId, balconyId, totalPrice, itemCount } = order;
@@ -102,6 +106,7 @@ export class OrderController {
       await transaction.rollback();
       console.log(e); // Error: Transaction is rolled back due to timeout
       console.log(e.code); // TRANSACTION_TIMEOUT
+      throw new HttpErrors.UnprocessableEntity()
 
     }
     // Lower-leve
@@ -115,6 +120,26 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
      */
     const record = await this.orderRepository.create(order);
   }
+
+
+
+  @get("/checked-in/{balconyId}/orders")
+  @authenticate('firebase')
+  @response(200, {
+    description: "Order model instance",
+    content: {
+      "application/json": {
+        schema: getModelSchemaRef(Order, { includeRelations: true }),
+      },
+    },
+  })
+  async findCheckInOrders(
+    @param.path.string("balconyId") balconyId: string,
+
+  ): Promise<any> {
+    return this.orderRepository.find({...OrderSingleFull,where:{balconyId,userId:this.currentUser.id}} );
+  }
+  // /u
 
   @get("/orders/count")
   @response(200, {
@@ -139,6 +164,22 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
   })
   async find(@param.filter(Order) filter?: Filter<Order>): Promise<Order[]> {
     return this.orderRepository.find(OrderSingleFull);
+  }
+  @get("/user/orders")
+  @authenticate('firebase')
+  @response(200, {
+    description: "Array of Order model instances",
+    content: {
+      "application/json": {
+        schema: {
+          type: "array",
+          items: getModelSchemaRef(Order, { includeRelations: true }),
+        },
+      },
+    },
+  })
+  async findUserOrders(@param.filter(Order) filter?: Filter<Order>): Promise<Order[]> {
+    return this.orderRepository.find({where:{userId:this.currentUser.id},...OrderSingleFull});
   }
 
   @patch("/orders")
@@ -186,26 +227,22 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
     @param.path.string("id") id: string,
     @requestBody({
       content: {
-        "application/json": {
-          schema: getModelSchemaRef(Order, { partial: true }),
-        },
+        // "application/json": {
+        //   schema: getModelSchemaRef(Order, { partial: true }),
+        // },
       },
     })
     data: any
   ): Promise<void> {
     await this.orderRepository.updateById(id, {status:data.status});
-
+    const order = await this.orderRepository.findById(id);
     const payload: any = {
       notification: {
         title: "Order updated",
-        body: "Your order is now :" + data.status,
+        body: "Your order status is now: " + data.status,
       },
     };
-
-    return await this.pushNotificationService.sendPushNotification(
-      data.pushNotificationToken,
-      payload
-    );
+    this.pushNotificationService.notifyUser(order.userId,payload);
   }
   @patch("/orders/{id}")
   @response(204, {

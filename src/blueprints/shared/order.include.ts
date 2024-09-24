@@ -22,6 +22,7 @@ export const OrderSingleFull: any = {
     created_at:true
   },
   include: [
+    {"relation":"qr"},
     IncludePlaceRelation,
     IncludePriceRelation,
     IncludeBalconyRelation,

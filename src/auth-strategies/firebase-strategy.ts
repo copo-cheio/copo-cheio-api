@@ -78,7 +78,9 @@ export class FirebaseAuthStrategy implements AuthenticationStrategy {
 
       return userProfile;
     } catch (err) {
-      console.log({err})
+      // console.log({err})
+
+      console.log(err.errorInfo)
       throw new HttpErrors.Unauthorized('Error verifying token.');
     }
   }

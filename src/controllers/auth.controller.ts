@@ -37,7 +37,21 @@ export class AuthController {
 
       // Handle user authentication here (e.g., create or retrieve a user in your DB)
       console.log("Authenticated user:", decodedToken);
-
+      try {
+        const user = await this.userRepository.findOne({
+          where: { email: decodedToken.uid, firebaseUserId: decodedToken.uid },
+        });
+        if (!user) {
+          await this.userRepository.create({
+            email: decodedToken.uid,
+            firebaseUserId: decodedToken.uid,
+            avatar: decodedToken.picture,
+            name: "",
+          });
+        }
+      } catch (ex) {
+        console.warn(ex)
+      }
       // Example: return user information
       return {
         message: "User authenticated",
