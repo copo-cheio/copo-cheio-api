@@ -1,9 +1,9 @@
-import {belongsTo,hasMany,model,property, hasOne} from '@loopback/repository';
+import {belongsTo,hasMany,hasOne,model,property} from '@loopback/repository';
 import {Base} from './base.model';
 import {CartItem} from './cart-item.model';
+import {Image} from './image.model';
 import {Place} from './place.model';
 import {User} from './user.model';
-import {Image} from './image.model';
 
 @model()
 export class Order extends Base {
@@ -51,6 +51,11 @@ export class Order extends Base {
     type: 'string',
   })
   paymentId: string;
+  @property({
+    type: 'string',
+    default: "WAITING_PAYMENT" // FAILED ONHOLD ONGOING READY COMPLETE
+  })
+  status?: string;
 
 
 
