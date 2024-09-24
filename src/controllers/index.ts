@@ -112,3 +112,4 @@ export * from './product-product-option.controller';
 export * from './auth.controller';
 export * from './payment.controller';
 export * from './order-image.controller';
+export * from './order.controller';
