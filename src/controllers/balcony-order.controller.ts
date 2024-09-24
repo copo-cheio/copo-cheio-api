@@ -15,6 +15,7 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
+import {OrderSingleFull} from '../blueprints/shared/order.include';
 import {
   Balcony,
   Order,
@@ -42,7 +43,7 @@ export class BalconyOrderController {
     @param.path.string('id') id: string,
     @param.query.object('filter') filter?: Filter<Order>,
   ): Promise<Order[]> {
-    return this.balconyRepository.orders(id).find(filter);
+    return this.balconyRepository.orders(id).find(OrderSingleFull);
   }
 
   @post('/balconies/{id}/orders', {

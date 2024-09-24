@@ -3,6 +3,7 @@ import {IncludePlaceRelation} from "./place.include";
 import {IncludePriceRelation} from "./price.include";
 import {QueryFilterBaseBlueprint} from "./query-filter.interface";
 
+
 export const OrderSingleFull: any = {
   ...QueryFilterBaseBlueprint,
   fields: {

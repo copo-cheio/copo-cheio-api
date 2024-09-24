@@ -78,7 +78,7 @@ export class OrderController {
   async find(
     @param.filter(Order) filter?: Filter<Order>,
   ): Promise<Order[]> {
-    return this.orderRepository.find(filter);
+    return this.orderRepository.find(OrderSingleFull);
   }
 
   @patch('/orders')
