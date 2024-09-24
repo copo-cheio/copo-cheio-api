@@ -14,6 +14,19 @@ export const BalconyFullQuery: any = {
     coverId:true,
     menuId:true,
   },
+  include: [IncludeCover,IncludePlaceRelation, IncludeMenuRelation],
+};
+
+export const BalconySingleQuery: any = {
+  ...QueryFilterBaseBlueprint,
+
+  fields: {
+    id: true,
+    name: true,
+    placeId:true,
+    coverId:true,
+    menuId:true,
+  },
   include: [IncludeCover,IncludePlaceRelation, IncludeMenuRelation, IncludeOrders],
 };
 

@@ -19,6 +19,7 @@ export const OrderSingleFull: any = {
     balconyId: true,
     priceId: true,
     eventId: true,
+    created_at:true
   },
   include: [
     IncludePlaceRelation,
