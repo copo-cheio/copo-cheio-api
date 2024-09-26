@@ -30,6 +30,7 @@ export class AuthService {
   async verifyIdToken(idToken: string): Promise<admin.auth.DecodedIdToken> {
     try {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
+      console.log({decodedToken})
       return decodedToken;
     } catch (error) {
       console.error('Error verifying ID token:', error);

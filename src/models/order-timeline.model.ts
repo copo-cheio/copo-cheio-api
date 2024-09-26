@@ -1,5 +1,7 @@
-import {model,property} from '@loopback/repository';
+import {belongsTo,model,property} from '@loopback/repository';
 import {Base} from './base.model';
+import {Order} from './order.model';
+import {User} from './user.model';
 
 @model()
 export class OrderTimeline extends Base {
@@ -8,10 +10,28 @@ export class OrderTimeline extends Base {
     super(data);
   }
 
+
+
+
+  @belongsTo(() => Order)
+  orderId: string;
+
   @property({
-    type:"string"
+    type: "string"
   })
-  action:string;
+  action: string;
+  @property({
+    type: "string"
+  })
+  title: string;
+
+  @belongsTo(() => User)
+  staffId: string;
+  @property({
+    type: "string"
+  })
+  timelineKey: string;
+
 }
 
 export interface OrderTimelineRelations {

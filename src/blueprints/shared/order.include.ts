@@ -3,7 +3,6 @@ import {IncludePlaceRelation} from "./place.include";
 import {IncludePriceRelation} from "./price.include";
 import {QueryFilterBaseBlueprint} from "./query-filter.interface";
 
-
 export const OrderSingleFull: any = {
   ...QueryFilterBaseBlueprint,
   fields: {
@@ -19,13 +18,21 @@ export const OrderSingleFull: any = {
     balconyId: true,
     priceId: true,
     eventId: true,
-    created_at:true
+    created_at: true,
   },
   include: [
-    {"relation":"qr"},
+    { relation: "qr" },
     IncludePlaceRelation,
     IncludePriceRelation,
     IncludeBalconyRelation,
+    {
+      relation: "orderTimelines",
+      scope: {
+         include: [{
+           relation: "staff",
+         }],
+       },
+    },
     {
       relation: "orderItems",
       scope: {

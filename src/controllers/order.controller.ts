@@ -1,4 +1,4 @@
-import {authenticate,AuthenticationBindings} from '@loopback/authentication';
+import {authenticate,AuthenticationBindings} from "@loopback/authentication";
 import {inject} from "@loopback/core";
 import {
   Count,
@@ -21,15 +21,16 @@ import {
   requestBody,
   response,
 } from "@loopback/rest";
-import {UserProfile} from '@loopback/security';
-import {v4} from 'uuid';
+import {UserProfile} from "@loopback/security";
+import {v4} from "uuid";
 import {OrderSingleFull} from "../blueprints/shared/order.include";
 import {Order} from "../models";
 import {
   CredentialRepository,
   OrderItemRepository,
   OrderRepository,
-  PriceRepository
+  OrderTimelineRepository,
+  PriceRepository,
 } from "../repositories";
 import {PushNotificationService} from "../services";
 
@@ -37,6 +38,8 @@ export class OrderController {
   constructor(
     @repository(OrderRepository)
     public orderRepository: OrderRepository,
+    @repository(OrderTimelineRepository)
+    public orderTimelineRepository: OrderTimelineRepository,
     @repository(PriceRepository)
     public priceRepository: PriceRepository,
 
@@ -51,16 +54,14 @@ export class OrderController {
   ) {}
 
   @post("/orders")
-  @authenticate('firebase')
+  @authenticate("firebase")
   @response(200, {
     description: "Order model instance",
     content: { "application/json": { schema: getModelSchemaRef(Order) } },
   })
   async create(
     @requestBody({
-      content: {
-
-      },
+      content: {},
     })
     order: any
   ): Promise<any> {
@@ -80,9 +81,9 @@ export class OrderController {
         balconyId,
         totalPrice,
         itemCount,
-        code: v4()
+        code: v4(),
       });
-      for (let orderItem of order.orderItems ) {
+      for (let orderItem of order.orderItems) {
         await this.orderItemRepository.create({
           orderId: record.id,
           count: orderItem.count,
@@ -93,21 +94,28 @@ export class OrderController {
         });
       }
       const price = await this.priceRepository.create({
-        price:Number(totalPrice),
-        currencyId:"bc6635ea-7273-4518-b18a-c066fb300b1f"
-      })
-      await this.orderRepository.updateById(record.id,{
+        price: Number(totalPrice),
+        currencyId: "bc6635ea-7273-4518-b18a-c066fb300b1f",
+      });
+      await this.orderRepository.updateById(record.id, {
         priceId: price.id,
+      });
+      await this.orderTimelineRepository.create({
+        orderId: record.id,
+        staffId: this.currentUser.id,
 
-      })
+        timelineKey: "RECEIVED",
+        // staffId: this.currentUser.id,
+        action: "RECEIVED",
+        title: "RECEIVED",
+      });
       await transaction.commit();
-      return this.orderRepository.findById(record.id, OrderSingleFull)
+      return this.orderRepository.findById(record.id, OrderSingleFull);
     } catch (e) {
       await transaction.rollback();
       console.log(e); // Error: Transaction is rolled back due to timeout
       console.log(e.code); // TRANSACTION_TIMEOUT
-      throw new HttpErrors.UnprocessableEntity()
-
+      throw new HttpErrors.UnprocessableEntity();
     }
     // Lower-leve
     /**
@@ -121,10 +129,8 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
     const record = await this.orderRepository.create(order);
   }
 
-
-
   @get("/checked-in/{balconyId}/orders")
-  @authenticate('firebase')
+  @authenticate("firebase")
   @response(200, {
     description: "Order model instance",
     content: {
@@ -134,10 +140,12 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
     },
   })
   async findCheckInOrders(
-    @param.path.string("balconyId") balconyId: string,
-
+    @param.path.string("balconyId") balconyId: string
   ): Promise<any> {
-    return this.orderRepository.find({...OrderSingleFull,where:{balconyId,userId:this.currentUser.id}} );
+    return this.orderRepository.find({
+      ...OrderSingleFull,
+      where: { balconyId, userId: this.currentUser.id },
+    });
   }
   // /u
 
@@ -166,7 +174,7 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
     return this.orderRepository.find(OrderSingleFull);
   }
   @get("/user/orders")
-  @authenticate('firebase')
+  @authenticate("firebase")
   @response(200, {
     description: "Array of Order model instances",
     content: {
@@ -178,8 +186,13 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
       },
     },
   })
-  async findUserOrders(@param.filter(Order) filter?: Filter<Order>): Promise<Order[]> {
-    return this.orderRepository.find({where:{userId:this.currentUser.id},...OrderSingleFull});
+  async findUserOrders(
+    @param.filter(Order) filter?: Filter<Order>
+  ): Promise<Order[]> {
+    return this.orderRepository.find({
+      where: { userId: this.currentUser.id },
+      ...OrderSingleFull,
+    });
   }
 
   @patch("/orders")
@@ -220,6 +233,7 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
   // /update-order-status/"+orderId,
 
   @patch("/update-order-status/{id}")
+  @authenticate("firebase")
   @response(204, {
     description: "Order PATCH success",
   })
@@ -234,15 +248,32 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
     })
     data: any
   ): Promise<void> {
-    await this.orderRepository.updateById(id, {status:data.status});
-    const order = await this.orderRepository.findById(id);
-    const payload: any = {
-      notification: {
-        title: "Order updated",
-        body: "Your order status is now: " + data.status,
-      },
-    };
-    this.pushNotificationService.notifyUser(order.userId,payload);
+    const transaction = await this.orderRepository.dataSource.beginTransaction(
+      IsolationLevel.SERIALIZABLE
+    );
+    try {
+      await this.orderTimelineRepository.create({
+        orderId: id,
+        timelineKey: data.status,
+        staffId: this.currentUser.id,
+        action: data.status,
+        title: data.status,
+      });
+      await this.orderRepository.updateById(id, { status: data.status });
+      const order = await this.orderRepository.findById(id);
+      await transaction.commit();
+      const payload: any = {
+        notification: {
+          title: "Order updated",
+          body: "Your order status is now: " + data.status,
+        },
+      };
+      this.pushNotificationService.notifyUser(order.userId, payload);
+    } catch (ex) {
+      await transaction.rollback();
+      console.warn(ex);
+      throw new HttpErrors.UnprocessableEntity();
+    }
   }
   @patch("/orders/{id}")
   @response(204, {

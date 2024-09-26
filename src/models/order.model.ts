@@ -8,6 +8,7 @@ import {Event} from './event.model';
 import {Balcony} from './balcony.model';
 import {OrderItem} from './order-item.model';
 import {Price} from './price.model';
+import {OrderTimeline} from './order-timeline.model';
 
 @model()
 export class Order extends Base {
@@ -86,6 +87,9 @@ export class Order extends Base {
 
   @belongsTo(() => Price)
   priceId: string;
+
+  @hasMany(() => OrderTimeline)
+  orderTimelines: OrderTimeline[];
 
   constructor(data?: Partial<Order>) {
     super(data);

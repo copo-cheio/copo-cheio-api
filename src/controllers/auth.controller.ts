@@ -39,14 +39,14 @@ export class AuthController {
       console.log("Authenticated user:", decodedToken);
       try {
         const user = await this.userRepository.findOne({
-          where: { email: decodedToken.uid, firebaseUserId: decodedToken.uid },
+          where: { email: decodedToken.email, firebaseUserId: decodedToken.uid },
         });
         if (!user) {
           await this.userRepository.create({
-            email: decodedToken.uid,
+            email: decodedToken.email,
             firebaseUserId: decodedToken.uid,
             avatar: decodedToken.picture,
-            name: "",
+            name: decodedToken.name,
           });
         }
       } catch (ex) {
