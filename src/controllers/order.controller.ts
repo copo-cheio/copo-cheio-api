@@ -82,7 +82,7 @@ export class OrderController {
         itemCount,
         code: v4()
       });
-      for (let orderItem of order.orderItems || []) {
+      for (let orderItem of order.orderItems ) {
         await this.orderItemRepository.create({
           orderId: record.id,
           count: orderItem.count,
