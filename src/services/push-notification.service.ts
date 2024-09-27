@@ -36,7 +36,7 @@ export class PushNotificationService {
         const token = device.value;
         await this.sendPushNotification(token,payload)
       }catch(ex){
-        await this.credentialRepository.deleteById
+        await this.credentialRepository.deleteById(device.id)
       }
     }
   }
@@ -50,8 +50,8 @@ export class PushNotificationService {
       });
       console.log('Successfully sent message.');
     } catch (error) {
-      console.error('Error sending message:', error);
-      throw error;
+      // console.error('Error sending message:', error);
+      // throw error;
     }
   }
 

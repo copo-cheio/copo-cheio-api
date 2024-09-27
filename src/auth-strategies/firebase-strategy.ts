@@ -29,6 +29,7 @@ export const FirebaseAuthHelper =  (()=>{
       }
 
       try {
+
         const decodedToken = await admin.auth().verifyIdToken(token);
         const userProfile: UserProfile = {
           [securityId]: decodedToken.uid,
@@ -40,8 +41,8 @@ export const FirebaseAuthHelper =  (()=>{
         return userProfile.id;
       } catch (err) {
         console.log({err})
-        return undefined
-        // throw new HttpErrors.Unauthorized('Error verifying token.');
+        //return undefined
+        throw new HttpErrors.Unauthorized('Error verifying token.');
       }
     }catch(ex){
       return undefined

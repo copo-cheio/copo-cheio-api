@@ -252,6 +252,8 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
       IsolationLevel.SERIALIZABLE
     );
     try {
+
+      await this.orderRepository.updateById(id, { status: data.status });
       await this.orderTimelineRepository.create({
         orderId: id,
         timelineKey: data.status,
@@ -259,8 +261,9 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
         action: data.status,
         title: data.status,
       });
-      await this.orderRepository.updateById(id, { status: data.status });
+
       const order = await this.orderRepository.findById(id);
+
       await transaction.commit();
       const payload: any = {
         notification: {
@@ -268,7 +271,7 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
           body: "Your order status is now: " + data.status,
         },
       };
-      this.pushNotificationService.notifyUser(order.userId, payload);
+      return this.pushNotificationService.notifyUser(order.userId, payload);
     } catch (ex) {
       await transaction.rollback();
       console.warn(ex);

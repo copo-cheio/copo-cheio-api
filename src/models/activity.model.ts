@@ -1,8 +1,8 @@
-import {model,property, belongsTo} from '@loopback/repository';
+import {belongsTo,model,property} from '@loopback/repository';
 import {Base} from './base.model';
-import {User} from './user.model';
-import {Place} from './place.model';
 import {Event} from './event.model';
+import {Place} from './place.model';
+import {User} from './user.model';
 
 @model()
 export class Activity extends Base {
@@ -11,6 +11,12 @@ export class Activity extends Base {
     required: true,
   })
   action: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  role: string;
 
   @belongsTo(() => User)
   userId: string;
