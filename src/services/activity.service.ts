@@ -1,13 +1,19 @@
-import { /* inject, */ BindingScope,inject,injectable} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
-import {PlaceQueryFull} from '../blueprints/place.blueprint';
-import {ActivityRepository,BalconyRepository,EventRepository,PlaceRepository} from '../repositories';
-import {PlaceService} from './place.service';
+import { /* inject, */ BindingScope,inject,injectable} from "@loopback/core";
+import {repository} from "@loopback/repository";
+import {BalconyFullQuery} from "../blueprints/balcony.blueprint";
+import {PlaceQueryFull} from "../blueprints/place.blueprint";
+import {
+  ActivityRepository,
+  BalconyRepository,
+  EventRepository,
+  PlaceRepository,
+} from "../repositories";
+import {PlaceService} from "./place.service";
 
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({ scope: BindingScope.TRANSIENT })
 export class ActivityService {
-  constructor(/* Add @inject to inject parameters */
+  constructor(
+    /* Add @inject to inject parameters */
 
     @repository(PlaceRepository)
     public placeRepository: PlaceRepository,
@@ -24,68 +30,69 @@ export class ActivityService {
   /*
    * Add service methods here
    */
-  async checkIn(userId:string,placeId:string){
-    try{
-
+  async checkIn(
+    userId: string,
+    placeId: string,
+    role: string,
+    config: any = {}
+  ) {
+    try {
       // let {userId,placeId,eventId } = params;
-      let place:any;
-      let event:any;
-      let checkIn:any;
-      let shoppingCart:any;
-      let menu:any;
+      let place: any;
+      let event: any;
+      let checkIn: any;
+      let shoppingCart: any;
+      let menu: any;
 
-      // if(eventId){
-        //   event = await this.eventRepository.findById(eventId,EventFullQuery)
-        //   placeId = event.place.id;
-        //   console.log('event done')
-        // // }
+      place = await this.placeRepository.findById(placeId, PlaceQueryFull);
+      event = await this.placeService.findCurrentEvent(placeId);
+      let eventId = event.id;
 
-
-        place = await this.placeRepository.findById(placeId,PlaceQueryFull);
-        event = await this.placeService.findCurrentEvent(placeId)
-        let eventId =event.id
-
-        checkIn = await this.activityRepository.create({
-          userId,
-          placeId,
-          eventId,
-          action: "check-in"
-        })
-
-        menu = await this.balconyRepository.findById(place.balconies[0].id,BalconyFullQuery)
-        console.log('track stock')
-/*
-        menu.menu.ingredients = [];
-        for(let product of menu.menuProducts) {
-          for(let ingredient of product.ingredients) {
-            if(menu.menu.ingredients.indexOf(ingredient.id)==-1){
-              menu.menu.ingredients.push(ingredient.id)
-            }
-          }
-        }
-
-        menu.menu.ingredients = menu.menu.ingredients.map((id:string)=>{
-           return {
-            id,
-            quantity:100
-           }
-        })
-        */
-        console.log('balcony done')
-
-        return {
-          place,
-          event,
-          refId: checkIn.id,
-          menu:menu.menu
-        }
-      }catch(ex){
-        throw ex
+      const payload: any = {
+        // type: "on",
+        userId,
+        placeId,
+        eventId,
+        action: "check-in",
+        complete: false,
+        job: config?.job,
+        role: role || "user",
+      };
+      if (config?.balconyId) {
+        payload.balconyId = config.balconyId;
       }
+      if (config?.job) {
+        payload.job = config.job;
+      }
+
+      checkIn = await this.activityRepository.findOne({ where: payload });
+      if (checkIn) {
+        await this.activityRepository.updateById(checkIn.id, {
+          complete: true,
+        });
+      }
+
+      checkIn = await this.activityRepository.create(payload);
+
+      menu = await this.balconyRepository.findById(
+        place.balconies[0].id,
+        BalconyFullQuery
+      );
+
+      return {
+        checkIn,
+        place,
+        event,
+        refId: checkIn.id,
+        balcony:menu,
+        menu: menu.menu,
+      };
+    } catch (ex) {
+      throw ex;
+    }
   }
 
-  async checkOut(params:any={}){
-    return {}
+  async checkOut(params: any = {}) {
+    return {};
   }
 }
-

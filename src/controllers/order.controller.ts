@@ -24,15 +24,16 @@ import {
 import {UserProfile} from "@loopback/security";
 import {v4} from "uuid";
 import {OrderSingleFull} from "../blueprints/shared/order.include";
-import {Order} from "../models";
+import {Order,ORDER_COMPLETE_STATUS,ORDER_READY_STATUS,ORDER_STATUS} from "../models";
 import {
   CredentialRepository,
+  ImageRepository,
   OrderItemRepository,
   OrderRepository,
   OrderTimelineRepository,
   PriceRepository,
 } from "../repositories";
-import {PushNotificationService} from "../services";
+import {PushNotificationService,QrFactoryService} from "../services";
 
 export class OrderController {
   constructor(
@@ -42,16 +43,142 @@ export class OrderController {
     public orderTimelineRepository: OrderTimelineRepository,
     @repository(PriceRepository)
     public priceRepository: PriceRepository,
-
+    @repository(ImageRepository)
+    public imageRepository: ImageRepository,
     @repository(OrderItemRepository)
     public orderItemRepository: OrderItemRepository,
     @inject("services.PushNotificationService")
     private pushNotificationService: PushNotificationService,
+    @inject("services.QrFactoryService")
+    protected qrFactoryService: QrFactoryService,
     @repository(CredentialRepository)
     public credentialRepository: CredentialRepository,
     @inject(AuthenticationBindings.CURRENT_USER, { optional: true })
     private currentUser: UserProfile // Inject the current user profile
   ) {}
+
+  @post("/validate/order")
+  @authenticate("firebase")
+  @response(200, {
+    description: "Order model instance",
+    content: { "application/json": { schema: getModelSchemaRef(Order) } },
+  })
+  async validateOrder(
+    @requestBody({
+      content: {},
+    })
+    qr: any
+  ): Promise<any> {
+    const transaction = await this.orderRepository.dataSource.beginTransaction(
+      IsolationLevel.SERIALIZABLE
+    );
+    const code = qr.code;
+    const type = "qr";
+    const refId = qr.refId;
+    try {
+
+      const image = await this.imageRepository.findOne({
+        where: {
+          type,
+          refId,
+        },
+      });
+
+      if (image) {
+        const order = await this.orderRepository.findOne({
+          where: {
+            id: refId,
+            code,
+          },
+        });
+        if(!order){
+          throw new Error("ORDER_NOT_FOUND")
+        }
+
+        console.log('      ')
+        console.log('      ')
+        console.log(order.status)
+        console.log('      ')
+        console.log('      ')
+        console.log(JSON.stringify(order))
+        if (order?.status !== ORDER_READY_STATUS) {
+          const index = ORDER_STATUS.indexOf(order?.status || "");
+          throw new Error(
+            index > (ORDER_STATUS.indexOf(ORDER_READY_STATUS) - 1)
+              ? "QR_USED"
+              : "QR_INVALID"
+          );
+        }else {
+          await this.orderRepository.updateById(refId, {
+            status: ORDER_COMPLETE_STATUS
+          });
+          await this.orderTimelineRepository.create({
+            orderId: refId,
+            staffId: this.currentUser.id,
+
+            timelineKey: ORDER_COMPLETE_STATUS,
+            // staffId: this.currentUser.id,
+            action: ORDER_COMPLETE_STATUS,
+            title: ORDER_COMPLETE_STATUS,
+          });
+          // await transaction.commit();
+
+          // const order: any = await this.orderRepository.findOne({
+          //   ...OrderSingleFull,
+          //   where: { id: refId },
+          // });
+
+          await transaction.commit();
+          const order = await this.notifyOrderStatusUpdate(refId);
+
+          return {
+            success:true,
+            order
+          }
+        }
+      } else {
+        throw new Error("QR_NOT_FOUND");
+      }
+    } catch (e) {
+      await transaction.rollback();
+      console.log(e); // Error: Transaction is rolled back due to timeout
+      console.log(e.code); // TRANSACTION_TIMEOUT
+
+
+      let order:any = await this.orderRepository.findById(refId,OrderSingleFull);
+      order = order? order.toJSON(): {}
+      if (e.message == "QR_NOT_FOUND") {
+        throw new HttpErrors.NotFound();
+      } else if (e.message == "QR_USED") {
+         // throw new HttpErrors.UpgradeRequired();
+         return {
+           success:false,
+           reason: "CODE_USED_BEFORE",
+           order: order
+         }
+        // throw new HttpErrors.NotAcceptable();
+      } else if (e.message == "QR_INVALID") {
+
+
+        // throw new HttpErrors.UpgradeRequired();
+        const order = await this.orderRepository.findById(refId,OrderSingleFull);
+        return {
+          success:false,
+          reason: "CODE_NOT_READY",
+          order: order
+        }
+      } else {
+        // throw new HttpErrors.UnprocessableEntity();
+          // throw new HttpErrors.UpgradeRequired();
+          const order = await this.orderRepository.findById(refId,OrderSingleFull);
+          return {
+            success:false,
+            reason: "ORDER_NOT_FOUND",
+            order: order
+          }
+      }
+    }
+  }
 
   @post("/orders")
   @authenticate("firebase")
@@ -70,7 +197,7 @@ export class OrderController {
     );
     try {
       const userId = this.currentUser.id;
-      const status = "WAITING_PAYMENT";
+      const status = ORDER_STATUS[0];
       const fees = "0";
       const { menuId, placeId, balconyId, totalPrice, itemCount } = order;
       const record = await this.orderRepository.create({
@@ -110,23 +237,18 @@ export class OrderController {
         title: "RECEIVED",
       });
       await transaction.commit();
-      return this.orderRepository.findById(record.id, OrderSingleFull);
+      // return this.orderRepository.findById(record.id, OrderSingleFull);
+
+      return this.orderRepository.findOne({
+        ...OrderSingleFull,
+        where: { id: record.id },
+      });
     } catch (e) {
       await transaction.rollback();
       console.log(e); // Error: Transaction is rolled back due to timeout
       console.log(e.code); // TRANSACTION_TIMEOUT
       throw new HttpErrors.UnprocessableEntity();
     }
-    // Lower-leve
-    /**
-     * balconyId:string,
-itemCount:number,
-orderItems: [{
-menuProduct,
-count,curentPrice,currentTotalPrice,productOptionIds:[]}]
-
-     */
-    const record = await this.orderRepository.create(order);
   }
 
   @get("/checked-in/{balconyId}/orders")
@@ -252,7 +374,41 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
       IsolationLevel.SERIALIZABLE
     );
     try {
-
+      let orderPayload: any = {
+        status: data.status,
+      };
+      if (data.status == ORDER_READY_STATUS) {
+        let record = await this.orderRepository.findById(id);
+        let image = await this.imageRepository.findOne({
+          where: {
+            refId: id,
+            type: "qr",
+          },
+        });
+        if (!image) {
+          const qrRecord = await this.qrFactoryService.generateAndUploadQrCode(
+            {
+              action: "VALIDATE_ORDER",
+              type: "order",
+              code: record.code,
+              refId: id,
+            },
+            id,
+            "order"
+          );
+          image = await this.imageRepository.findOne({
+            where: {
+              refId: id,
+              type: "qr",
+            },
+          });
+        }
+        if (image) {
+          await this.imageRepository.updateById(image?.id, {
+            orderId: id,
+          });
+        }
+      }
       await this.orderRepository.updateById(id, { status: data.status });
       await this.orderTimelineRepository.create({
         orderId: id,
@@ -262,16 +418,16 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
         title: data.status,
       });
 
-      const order = await this.orderRepository.findById(id);
+      // const order: any = await this.orderRepository.findOne({
+      //   ...OrderSingleFull,
+      //   where: { id: id },
+      // });
 
       await transaction.commit();
-      const payload: any = {
-        notification: {
-          title: "Order updated",
-          body: "Your order status is now: " + data.status,
-        },
-      };
-      return this.pushNotificationService.notifyUser(order.userId, payload);
+
+
+      const _order = await this.notifyOrderStatusUpdate(id)
+      return _order;
     } catch (ex) {
       await transaction.rollback();
       console.warn(ex);
@@ -313,5 +469,44 @@ count,curentPrice,currentTotalPrice,productOptionIds:[]}]
   })
   async deleteById(@param.path.string("id") id: string): Promise<void> {
     await this.orderRepository.deleteById(id);
+  }
+
+
+  /* ********************************** */
+  /*            SERVICE STUFF           */
+  /* ********************************** */
+  async notifyOrderStatusUpdate(id:string){
+    const order: any = await this.orderRepository.findOne({
+      ...OrderSingleFull,
+      where: { id: id },
+    });
+
+    const notification = {
+      title: "Order updated",
+      body: "Your order status is now: " + order.status
+    };
+    let _order = order.toJSON();
+    const payload = {
+      id: _order.id,
+      qr: _order?.qr?.url,
+      place: _order.placeId,
+      balcony: _order.balconyId,
+    };
+
+    let action = order?.status == ORDER_READY_STATUS ? "ORDER_READY":
+      order?.status == ORDER_COMPLETE_STATUS ? "ORDER_COMPLETE":
+      "OPEN_ORDER"
+    const notificationData = {
+      action:action,
+      payload: payload,
+    };
+
+    await this.pushNotificationService.notifyUser(
+      order.userId,
+      notification,
+      notificationData
+    );
+
+    return order;
   }
 }

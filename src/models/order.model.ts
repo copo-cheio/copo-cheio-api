@@ -1,14 +1,25 @@
 import {belongsTo,hasMany,hasOne,model,property} from '@loopback/repository';
+import {Balcony} from './balcony.model';
 import {Base} from './base.model';
 import {CartItem} from './cart-item.model';
-import {Image} from './image.model';
-import {Place} from './place.model';
-import {User} from './user.model';
 import {Event} from './event.model';
-import {Balcony} from './balcony.model';
+import {Image} from './image.model';
 import {OrderItem} from './order-item.model';
-import {Price} from './price.model';
 import {OrderTimeline} from './order-timeline.model';
+import {Place} from './place.model';
+import {Price} from './price.model';
+import {User} from './user.model';
+
+export const ORDER_READY_STATUS = "READY"
+export const ORDER_COMPLETE_STATUS = "COMPLETE"
+export const ORDER_STATUS = ["WAITING_PAYMENT",
+  "FAILED",
+  "PENDING",
+  "ONHOLD",
+  "ONGOING",
+  ORDER_READY_STATUS,
+  ORDER_COMPLETE_STATUS]
+
 
 @model()
 export class Order extends Base {

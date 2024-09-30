@@ -4,10 +4,9 @@ import {repository} from "@loopback/repository";
 import {
   get,
   getModelSchemaRef,
-  param,
   post,
   requestBody,
-  response,
+  response
 } from "@loopback/rest";
 import {UserProfile} from '@loopback/security';
 import {Activity} from "../models";
@@ -36,39 +35,39 @@ export class ActivityController {
   async checkIn(
     @requestBody({
       content: {
-        "application/json": {
-          schema: getModelSchemaRef(Activity, {
-            title: "NewActivity",
-            exclude: ["id"],
-          }),
-        },
+        // "application/json": {
+        //   schema: getModelSchemaRef(Activity, {
+        //     title: "NewActivity",
+        //     exclude: ["id"],
+        //   }),
+        // },
       },
     })
     activity: any //Omit<Activity, "id">
   ): Promise<any> {
 
-    return this.activityService.checkIn(this.currentUser.id, activity.placeId);
+    return this.activityService.checkIn(this.currentUser.id, activity.placeId, activity.role, activity);
   }
 
-  @get("/check-in/{placeId}")
-  @authenticate("firebase")
-  @response(200, {
-    description: "Activity model instance",
-    content: {
-      "application/json": {
-        schema: getModelSchemaRef(Activity, { includeRelations: true }),
-      },
-    },
-  })
-  async checkInPlace(
-    @param.path.string("placeId") placeId: string
-    // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
-  ): Promise<any> {
+  // @get("/check-in/{placeId}")
+  // @authenticate("firebase")
+  // @response(200, {
+  //   description: "Activity model instance",
+  //   content: {
+  //     "application/json": {
+  //       schema: getModelSchemaRef(Activity, { includeRelations: true }),
+  //     },
+  //   },
+  // })
+  // async checkInPlace(
+  //   @param.path.string("placeId") placeId: string
+  //   // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
+  // ): Promise<any> {
 
-    // const res = await this.activityService.checkIn(userId,placeId);
-    return this.activityService.checkIn( this.currentUser.id, placeId);
-    // return res
-  }
+  //   // const res = await this.activityService.checkIn(userId,placeId);
+  //   return this.activityService.checkIn( this.currentUser.id, placeId);
+  //   // return res
+  // }
 
   @get("/check-out")
   @authenticate("firebase")

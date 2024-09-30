@@ -1,3 +1,4 @@
+import {inject} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -19,11 +20,14 @@ import {
 } from "@loopback/rest";
 import {Image} from "../models";
 import {ImageRepository} from "../repositories";
+import {QrFactoryService} from '../services';
 
 export class ImageController {
   constructor(
     @repository(ImageRepository)
-    public imageRepository: ImageRepository
+    public imageRepository: ImageRepository,
+    @inject("services.QrFactoryService")
+    protected qrFactoryService: QrFactoryService,
   ) {}
 
   @post("/images")
@@ -145,5 +149,55 @@ export class ImageController {
   })
   async deleteById(@param.path.string("id") id: string): Promise<void> {
     await this.imageRepository.deleteById(id);
+  }
+
+
+  @post("/create/qr")
+  // @authenticate("firebase")
+  @response(200, {
+    description: "Order model instance",
+    content: { }
+  })
+  async createQr(
+    @requestBody({
+      content: {},
+    })
+    qr: any
+  ): Promise<any> {
+
+    const id = qr.refId;
+    const type = qr.type;
+    const action = qr.action; // CHECK_IN for instance
+    let image = await this.imageRepository.findOne({
+      where: {
+        refId: id,
+        type: "qr",
+        description:action
+      },
+    });
+    if (!image) {
+      const qrRecord = await this.qrFactoryService.generateAndUploadQrCode(
+        {
+          action: action,
+          type: type,
+          refId: id,
+        },
+        id,
+        type
+      );
+      image = await this.imageRepository.findOne({
+        where: {
+          refId: id,
+          type: "qr",
+          description: action
+        },
+      });
+    }
+    if (image) {
+      await this.imageRepository.updateById(image?.id, {
+        orderId: id,
+      });
+    }
+
   }
 }
