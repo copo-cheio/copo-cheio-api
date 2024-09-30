@@ -1,8 +1,25 @@
 import {injectable} from "@loopback/core";
 import {repository} from "@loopback/repository";
 import {admin} from "../firebase-config";
+import {Credential} from "../models/credential.model";
 import {CredentialRepository,UserRepository} from "../repositories";
 
+export const PUSH_NOTIFICATION_SUBSCRIPTIONS: any = {
+  checkIn: {
+    user: [
+      (placeId: string, eventId: string, balconyId: string) =>
+        "STOCK_UPDATES__" + balconyId,
+    ],
+    staff: [
+      (placeId: string, eventId: string, balconyId: string) =>
+        "ORDER_UPDATES__" + balconyId,
+      (placeId: string, eventId: string, balconyId: string) =>
+        "NEW_ORDER__" + balconyId,
+      (placeId: string, eventId: string, balconyId: string) =>
+        "STOCK_UPDATES__" + balconyId,
+    ],
+  },
+};
 @injectable()
 export class PushNotificationService {
   constructor(
@@ -50,6 +67,27 @@ export class PushNotificationService {
     }
   }
 
+  async sendTopicNotification(
+    topic: string, // admin.messaging.Message,
+    data: any = {}
+  ): Promise<void> {
+    try {
+      // @ts-ignore
+      data = this.parseData(data);
+      await admin.messaging().send({
+        topic: topic,
+
+        data: data,
+      });
+
+      // });
+      console.log("Successfully sent TOPIC message.",topic);
+    } catch (error) {
+      // console.warn(error);
+       console.error('Error sending TOPIC MESSAGE:', topic,error);
+      // throw error;
+    }
+  }
   // Method to send a push notification
   async sendPushNotification(
     token: string,
@@ -64,16 +102,7 @@ export class PushNotificationService {
         notification,
         data: data,
       });
-      // await admin.messaging().send({
-      //   token: token,
-      //   notification: {
-      //     title: "Portugal vs. Denmark",
-      //     body: "great match!",
-      //   },
-      //   data: {
-      //     Nick: "Mario",
-      //     Room: "PortugalVSDenmark",
-      //   },
+
       // });
       console.log("Successfully sent message.");
     } catch (error) {
@@ -90,7 +119,7 @@ export class PushNotificationService {
     data: any = {}
   ): Promise<void> {
     try {
-      data = this.parseData(data)
+      data = this.parseData(data);
       const response = await admin.messaging().sendEach(
         tokens.map((token) => {
           return {
@@ -113,6 +142,47 @@ export class PushNotificationService {
       console.error("Error sending multicast message:", error);
       throw error;
     }
+  }
+
+  /**
+   * Subscribe staff to balcony events so they can be aware of changes in the oders
+   * Subscribe users to stock rupture events so they can no longer order some item
+   * @param token
+   * @param topic
+   */
+  async subscribeToTopic(userId: string, topic: string) {
+    try {
+      const tokens: string[] | any = await this.getDevices(userId, true);
+      const response = await admin.messaging().subscribeToTopic(tokens, topic);
+      console.log("Successfully subscribed to topic:", response);
+    } catch (ex) {
+      console.log("Error subscribing to topic:", ex);
+    }
+  }
+
+  async unSubscribeFromTopic(userId: string, topic: string) {
+    try {
+      const tokens: string[] | any = await this.getDevices(userId, true);
+      const response = await admin
+        .messaging()
+        .unsubscribeFromTopic(tokens, topic);
+      console.log("Successfully unsubscribed from topic:", response);
+    } catch (ex) {
+      console.log("Error unsubscribing from topic:", ex);
+    }
+  }
+
+  private async getDevices(userId: string, tokenOnly: boolean = false) {
+    let devices: string[] | Credential[] = await this.credentialRepository.find(
+      {
+        where: { userId, key: "fcmPushNotificationToken" },
+      }
+    );
+    devices = devices || [];
+    if (tokenOnly) {
+      devices = devices.map((device: any) => device.toJSON().value);
+    }
+    return devices;
   }
 
   private parseData(data: any = {}) {

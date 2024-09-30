@@ -6,9 +6,9 @@ import {
   getModelSchemaRef,
   post,
   requestBody,
-  response
+  response,
 } from "@loopback/rest";
-import {UserProfile} from '@loopback/security';
+import {UserProfile} from "@loopback/security";
 import {Activity} from "../models";
 import {ActivityRepository} from "../repositories";
 import {ActivityService} from "../services";
@@ -24,8 +24,18 @@ export class ActivityController {
   ) {}
 
 
-@post("/check-in")
-@authenticate("firebase")
+
+  /**
+   * Check in a user on a place/event.
+   * Search for previous check ins and close them as he can only do one thing at the time.
+   * Define it's role on this activity and if staff, he's job ( bar, door ,and so on)
+   *
+   * @param {*} activity
+   * @return {*}  {Promise<any>}
+   * @memberof ActivityController
+   */
+  @post("/check-in")
+  @authenticate("firebase")
   @response(200, {
     description: "Activity model instance",
     content: {
@@ -45,30 +55,32 @@ export class ActivityController {
     })
     activity: any //Omit<Activity, "id">
   ): Promise<any> {
+    console.log({
+      content: {
+        "application/json": {
+          schema: getModelSchemaRef(Activity, {
+            title: "NewActivity",
+            exclude: ["id"],
+          }),
+        },
+      },
+    });
 
-    return this.activityService.checkIn(this.currentUser.id, activity.placeId, activity.role, activity);
+    return this.activityService.checkIn(
+      this.currentUser.id,
+      activity.placeId,
+      activity.role,
+      activity
+    );
   }
 
-  // @get("/check-in/{placeId}")
-  // @authenticate("firebase")
-  // @response(200, {
-  //   description: "Activity model instance",
-  //   content: {
-  //     "application/json": {
-  //       schema: getModelSchemaRef(Activity, { includeRelations: true }),
-  //     },
-  //   },
-  // })
-  // async checkInPlace(
-  //   @param.path.string("placeId") placeId: string
-  //   // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
-  // ): Promise<any> {
-
-  //   // const res = await this.activityService.checkIn(userId,placeId);
-  //   return this.activityService.checkIn( this.currentUser.id, placeId);
-  //   // return res
-  // }
-
+    /**
+   * Checks a user out
+   * Will check a user out of current activity
+   * @param {*} activity
+   * @return {*}  {Promise<any>}
+   * @memberof ActivityController
+   */
   @get("/check-out")
   @authenticate("firebase")
   @response(200, {
@@ -81,10 +93,7 @@ export class ActivityController {
   })
   async checkOut(): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
   Promise<any> {
-    const userId = "6e6fcbef-886c-486e-8e15-f4ac5e234b5c";
-    // const res = await this.activityService.checkIn(userId,placeId);
     return this.activityService.checkOut(this.currentUser.id);
-    // return res
   }
 
   @get("/whoami")
@@ -96,6 +105,11 @@ export class ActivityController {
     // Return the user id or any other information
     return this.currentUser;
   }
+
+}
+
+
+
 
   //   @requestBody({
   //     content: {
@@ -214,4 +228,4 @@ export class ActivityController {
     await this.activityRepository.deleteById(id);
   }
     */
-}
+

@@ -43,7 +43,9 @@ export class BalconyOrderController {
     @param.path.string('id') id: string,
     @param.query.object('filter') filter?: Filter<Order>,
   ): Promise<Order[]> {
-    return this.balconyRepository.orders(id).find(OrderSingleFull);
+    let dbQuery = OrderSingleFull
+    dbQuery.order = 'created_at DESC'
+    return this.balconyRepository.orders(id).find(dbQuery);
   }
 
   @post('/balconies/{id}/orders', {

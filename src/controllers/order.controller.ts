@@ -33,7 +33,7 @@ import {
   OrderTimelineRepository,
   PriceRepository,
 } from "../repositories";
-import {PushNotificationService,QrFactoryService} from "../services";
+import {PUSH_NOTIFICATION_SUBSCRIPTIONS,PushNotificationService,QrFactoryService} from "../services";
 
 export class OrderController {
   constructor(
@@ -238,7 +238,12 @@ export class OrderController {
       });
       await transaction.commit();
       // return this.orderRepository.findById(record.id, OrderSingleFull);
-
+      await this.pushNotificationService.sendTopicNotification(PUSH_NOTIFICATION_SUBSCRIPTIONS.checkIn.staff[1](placeId,"",balconyId), {
+        action: "NEW_ORDER",
+        payload: {
+          id: record.id
+        }
+      })
       return this.orderRepository.findOne({
         ...OrderSingleFull,
         where: { id: record.id },
@@ -266,7 +271,7 @@ export class OrderController {
   ): Promise<any> {
     return this.orderRepository.find({
       ...OrderSingleFull,
-      where: { balconyId, userId: this.currentUser.id },
+      where: { balconyId, userId: this.currentUser.id },order:'created_at DESC',
     });
   }
   // /u
@@ -423,10 +428,11 @@ export class OrderController {
       //   where: { id: id },
       // });
 
+
+      const _order = await this.notifyOrderStatusUpdate(id)
       await transaction.commit();
 
 
-      const _order = await this.notifyOrderStatusUpdate(id)
       return _order;
     } catch (ex) {
       await transaction.rollback();
@@ -506,6 +512,18 @@ export class OrderController {
       notification,
       notificationData
     );
+
+    if(ORDER_STATUS.indexOf(order.status) > ORDER_STATUS.indexOf("ONHOLD")){
+
+      await this.pushNotificationService.sendTopicNotification(PUSH_NOTIFICATION_SUBSCRIPTIONS.checkIn.staff[0](_order.placeId,"",_order.balconyId), {
+        action: "ORDER_UPDATED",
+        payload: {
+          id: id,
+          status: order.status
+        }
+      })
+    }
+
 
     return order;
   }
