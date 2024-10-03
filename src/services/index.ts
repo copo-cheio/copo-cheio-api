@@ -10,3 +10,4 @@ export * from './qr-factory.service';
 export * from './shopping-cart-service.service';
 export * from './stripe.service';
 
+export * from './email.service';

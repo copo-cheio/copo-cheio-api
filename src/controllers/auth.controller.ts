@@ -1,6 +1,6 @@
 import {inject} from "@loopback/core";
 import {repository} from "@loopback/repository";
-import {post,requestBody} from "@loopback/rest";
+import {get,post,requestBody} from "@loopback/rest";
 import {UserRepository} from "../repositories";
 import {AuthService} from "../services";
 
@@ -12,6 +12,24 @@ export class AuthController {
     private authService: AuthService
   ) {}
 
+
+  @get('/__/auth/handler',{
+    responses: {
+      '200': {
+        description: 'Image belonging to Balcony',
+        content: {
+
+        },
+      },
+    }
+  })
+
+
+  async test(
+
+  ) {
+   console.log(this)
+  }
   @post("/auth/google")
   async googleAuth(
     @requestBody({
