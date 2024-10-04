@@ -21,6 +21,7 @@ import {
 import {Image} from "../models";
 import {ImageRepository} from "../repositories";
 import {QrFactoryService} from '../services';
+import {storageService} from '../services/minio/service';
 
 export class ImageController {
   constructor(
@@ -198,6 +199,23 @@ export class ImageController {
         orderId: id,
       });
     }
+
+  }
+
+  @post("/upload/image")
+  // @authenticate("firebase")
+  @response(200, {
+    description: "Order model instance",
+    content: { }
+  })
+  async uploadImage(
+    @requestBody({
+      content: {},
+    })
+    file: any
+  ): Promise<any> {
+
+    return storageService().image(file)
 
   }
 }

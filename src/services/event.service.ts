@@ -138,14 +138,15 @@ export class EventService {
     return event;
   }
   async edit(id: string, eventData: Partial<any>): Promise<Event> {
-    if (!eventData.addressId) {
+
+    if (!eventData.addressId && eventData?.address && eventData?.coordinates) {
       const address = await this.addressService.findOrCreate(
         eventData.address,
         eventData.coordinates
       );
       eventData.addressId = address.id;
     }
-    if (!eventData.placeId) {
+    if (!eventData.placeId && eventData?.addressId) {
       const place = await this.placeRepository.findOne({
         where: { addressId: eventData.addressId },
       });
@@ -155,7 +156,15 @@ export class EventService {
     //  let event:any = await this.eventRepository.findById(id)
     delete eventData.address;
     delete eventData.coordinates;
-    let event: any = await this.eventRepository.updateById(id, eventData);
+
+    // console.log({eventData,id})
+    // let event = await this.eventRepository.findById(id)
+    // console.log({event})
+    // console.log({...event,...eventData})
+    await this.eventRepository.updateById(id, eventData);
+    let event = await this.eventRepository.findById(id)
+    // const event = await this.eventRepository.findById(id)
+    console.log({event})
 
 
     return event;

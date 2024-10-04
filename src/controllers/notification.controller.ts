@@ -56,6 +56,28 @@ export class NotificationController {
       data.value
     );
   }
+  @post("/test/single-notification-with-payload")
+  @authenticate("firebase")
+  @response(200, {
+    description: "Menu model instance",
+    content: {},
+  })
+  async singleNotificationWithPayload(
+    @requestBody({
+      content: {},
+    })
+    data: any
+  ): Promise<void> {
+    const token = data.token;
+    delete data.token;
+    if(data.notification){
+
+      return this.pushNotificationService.sendPushNotification(token, data.notification,data.data || {});
+    }else{
+      return this.pushNotificationService.sendDataNotification(token, data.data);
+
+    }
+  }
 
   @get("/test/single-notification/{token}")
   @response(200, {
@@ -94,7 +116,7 @@ export class NotificationController {
           id: "a813bc90-d422-4d60-aa48-1e7d6c69ae8e",
           name: "Test place",
         },
-      }
+      },
     };
     // };
 
@@ -133,7 +155,6 @@ export class NotificationController {
     }); //_tokens.replace(/[\[\]']+/g, "").split(",");
     const tokens = devices.map((device: any) => device.toJSON().value);
 
-
     // Define notification payload
     // const payload: any = {
     //} admin.messaging.MessagingPayload = {
@@ -146,7 +167,7 @@ export class NotificationController {
       payload: {
         orderId: "xxx",
         status: "READY",
-        order: {}
+        order: {},
       },
     };
 
@@ -240,7 +261,7 @@ export class NotificationController {
     const { notification, data } = JSON.parse(payload);
     return await this.pushNotificationService.sendPushNotification(
       token,
-      notification || {title,body},
+      notification || { title, body },
       data || {}
     );
   }

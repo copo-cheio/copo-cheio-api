@@ -8,7 +8,7 @@ const Multer = require('multer')
 
 export const storageService = () => {
 
-    const image = async (req: any, ref_id: string, type: string) => {
+    const image = async (req: any, ref_id?: string, type?: string) => {
         const img: any = await storageService().minioFileUpload(req);
         console.log(img)
         // await Image.destroy({

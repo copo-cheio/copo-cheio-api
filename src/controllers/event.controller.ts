@@ -277,6 +277,8 @@ export class EventController {
               endDate: { type: "string" },
               recurrenceType: { type: "string" },
               recurrenceEndDate: { type: "string" },
+              coverId:{type:"string"},
+              tagIds:{type:"array"}
             },
             required: ["name", "startDate", "recurrenceType"],
           },
@@ -304,6 +306,8 @@ export class EventController {
               description: { type: "string" },
               startDate: { type: "string" },
               endDate: { type: "string" },
+              coverId:{type:"string"},
+              tagIds:{type:"array"},
               recurrenceType: { type: "string" },
               recurrenceEndDate: { type: "string" },
             },
@@ -314,6 +318,7 @@ export class EventController {
     })
     eventData: Partial<Event>
   ): Promise<Event> {
+    console.log({eventData,id})
     return this.eventService.edit(id, eventData);
   }
 
@@ -643,20 +648,20 @@ export class EventController {
       description: "Required input for login",
       required: true,
       content: {
-        "application/json": {
-          schema: {
-            type: "object",
-            required: ["name", "placeId"],
-            properties: {
-              name: {
-                type: "string",
-              },
-              placeId: {
-                type: "string",
-              },
-            },
-          },
-        },
+        // "application/json": {
+        //   schema: {
+        //     type: "object",
+
+        //     properties: {
+        //       name: {
+        //         type: "string",
+        //       },
+        //       placeId: {
+        //         type: "string",
+        //       },
+        //     },
+        //   },
+        // },
       },
     })
     data: any

@@ -67,6 +67,22 @@ export class PushNotificationService {
     }
   }
 
+  async sendDataNotification(token:string,data:any = {}){
+    try {
+      data = this.parseData(data);
+
+      await admin.messaging().send({
+        token: token,
+
+        data: data,
+      });
+
+    } catch (error) {
+      console.error("Error sending data message:", error);
+      throw error;
+    }
+  }
+
   async sendTopicNotification(
     topic: string, // admin.messaging.Message,
     data: any = {}
@@ -76,7 +92,6 @@ export class PushNotificationService {
       data = this.parseData(data);
       await admin.messaging().send({
         topic: topic,
-
         data: data,
       });
 
