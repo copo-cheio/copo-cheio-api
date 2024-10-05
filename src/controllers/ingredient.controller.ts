@@ -109,7 +109,7 @@ export class IngredientController {
   async find(
     @param.filter(Ingredient) filter?: Filter<Ingredient>,
   ): Promise<Ingredient[]> {
-    return this.ingredientRepository.find(filter);
+    return this.ingredientRepository.find(IngredientFullQuery);
   }
 
   @patch('/ingredients')
