@@ -13,6 +13,7 @@ export const BalconyFullQuery: any = {
     placeId:true,
     coverId:true,
     menuId:true,
+    description:true
   },
   include: [IncludeCover,IncludePlaceRelation, IncludeMenuRelation],
 };
@@ -26,6 +27,7 @@ export const BalconySingleQuery: any = {
     placeId:true,
     coverId:true,
     menuId:true,
+    description:true
   },
   include: [IncludeCover,IncludePlaceRelation, IncludeMenuRelation, IncludeOrders],
 };
