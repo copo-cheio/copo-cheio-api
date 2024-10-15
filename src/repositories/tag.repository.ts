@@ -10,7 +10,7 @@ import {
   TagRelations,
   Translation
 } from "../models";
-import {TagReferencesRepository} from "./tag-references.repository";
+// import {TagReferencesRepository} from "./tag-references.repository";
 import {TranslationRepository} from "./translation.repository";
 
 export class TagRepository extends DefaultCrudRepository<
@@ -28,8 +28,8 @@ export class TagRepository extends DefaultCrudRepository<
     @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
     @repository.getter("TranslationRepository")
     protected translationRepositoryGetter: Getter<TranslationRepository>,
-    @repository.getter("TagReferencesRepository")
-    protected tagReferencesRepositoryGetter: Getter<TagReferencesRepository>,
+    // @repository.getter("TagReferencesRepository")
+    // protected tagReferencesRepositoryGetter: Getter<TagReferencesRepository>,
 
 
   ) //  @repository.getter('ArtistRepository') protected artistRepositoryGetter: Getter<ArtistRepository>,

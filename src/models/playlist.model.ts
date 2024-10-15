@@ -1,8 +1,7 @@
-import {hasMany,model,property, referencesMany} from '@loopback/repository';
+import {hasMany,model,property,referencesMany} from '@loopback/repository';
 import {Base} from './base.model';
 import {PlaylistSong} from './playlist-song.model';
 import {Song} from './song.model';
-import {TagReferences} from './tag-references.model';
 import {Tag} from './tag.model';
 
 @model()
@@ -27,8 +26,8 @@ export class Playlist extends Base {
   })
   songs: Song[];
 
-  @hasMany(() => Tag, {through: {model: () => TagReferences, keyFrom: 'refId'}})
-  tags: Tag[];
+  // @hasMany(() => Tag, {through: {model: () => TagReferences, keyFrom: 'refId'}})
+  // tags: Tag[];
 
   @referencesMany(() => Tag)
   tagIds: string[];

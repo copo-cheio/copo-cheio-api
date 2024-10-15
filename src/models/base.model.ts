@@ -1,6 +1,7 @@
 import {Entity,model,property} from '@loopback/repository';
 @model()
-export class Base extends Entity {
+export class Base extends   Entity  {
+// export class Base extends Entity {
   @property({
     type: 'string',
     id: true,
@@ -35,6 +36,15 @@ export class Base extends Entity {
   })
   updated_at ? : Date;
 
+
+
+  // isDeleted: boolean
+
+  @property({
+    type: 'boolean',
+    default: false,
+  })
+  isDeleted?: boolean;
 
 
   constructor(data?: Partial<Base>) {

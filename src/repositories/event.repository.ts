@@ -4,22 +4,28 @@ import {
   DefaultCrudRepository,
   HasManyRepositoryFactory,
   HasManyThroughRepositoryFactory,
+  HasOneRepositoryFactory,
   ReferencesManyAccessor,
-  repository, HasOneRepositoryFactory} from "@loopback/repository";
+  repository
+} from "@loopback/repository";
 import {PostgresSqlDataSource} from "../datasources";
 import {
   Address,
   Event,
+  EventInstance,
   EventRelations,
   EventRule,
   Image,
   Lineup,
+  OpeningHours,
   Place,
   Playlist,
+  RecurringSchedule,
   Rule,
   Schedule,
   Tag,
-  Ticket, OpeningHours, EventInstance, RecurringSchedule} from "../models";
+  Ticket
+} from "../models";
 import {AddressRepository} from "./address.repository";
 import {EventRuleRepository} from "./event-rule.repository";
 import {ImageRepository} from "./image.repository";
@@ -28,12 +34,12 @@ import {PlaceRepository} from "./place.repository";
 import {PlaylistRepository} from "./playlist.repository";
 import {RuleRepository} from "./rule.repository";
 import {ScheduleRepository} from "./schedule.repository";
-import {TagReferencesRepository} from "./tag-references.repository";
+// import {TagReferencesRepository} from "./tag-references.repository";
+import {EventInstanceRepository} from './event-instance.repository';
+import {OpeningHoursRepository} from './opening-hours.repository';
+import {RecurringScheduleRepository} from './recurring-schedule.repository';
 import {TagRepository} from "./tag.repository";
 import {TicketRepository} from "./ticket.repository";
-import {OpeningHoursRepository} from './opening-hours.repository';
-import {EventInstanceRepository} from './event-instance.repository';
-import {RecurringScheduleRepository} from './recurring-schedule.repository';
 
 export class EventRepository extends DefaultCrudRepository<
   Event,
@@ -90,8 +96,8 @@ export class EventRepository extends DefaultCrudRepository<
     @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
     @repository.getter("ImageRepository")
     protected imageRepositoryGetter: Getter<ImageRepository>,
-    @repository.getter("TagReferencesRepository")
-    protected tagRelationsRepositoryGetter: Getter<TagReferencesRepository>,
+    // @repository.getter("TagReferencesRepository")
+    // protected tagRelationsRepositoryGetter: Getter<TagReferencesRepository>,
     @repository.getter("TagRepository")
     protected tagRepositoryGetter: Getter<TagRepository>,
     @repository.getter("AddressRepository")
