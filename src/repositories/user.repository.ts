@@ -1,10 +1,11 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, HasOneRepositoryFactory} from '@loopback/repository';
+import {Getter,inject} from '@loopback/core';
+import {HasOneRepositoryFactory,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
-import {User,UserRelations, ShoppingCart} from '../models';
+import {ShoppingCart,User,UserRelations} from '../models';
 import {ShoppingCartRepository} from './shopping-cart.repository';
 
-export class UserRepository extends DefaultCrudRepository<
+export class UserRepository extends SoftCrudRepository<
   User,
   typeof User.prototype.id,
   UserRelations
@@ -15,8 +16,25 @@ export class UserRepository extends DefaultCrudRepository<
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource, @repository.getter('ShoppingCartRepository') protected shoppingCartRepositoryGetter: Getter<ShoppingCartRepository>,
   ) {
+
+
     super(User, dataSource);
     this.shoppingCart = this.createHasOneRepositoryFactoryFor('shoppingCart', shoppingCartRepositoryGetter);
     this.registerInclusionResolver('shoppingCart', this.shoppingCart.inclusionResolver);
   }
 }
+
+
+/*
+    "deleted": false,
+    "deletedOn": null,
+    "deletedBy": null,
+    "name": "Filipe",
+    "avatar": "https://lh3.googleusercontent.com/a/ACg8ocI-GCGkmacL9DIKSmik1s-asg3Tib0F62HU4s0VfbmmgFwA9g=s96-c",
+    "email": "pihh.backup@gmail.com",
+    "firebaseUserId": "IrU8vmqxK8R9qcp1EP2Yl4Ddvx92",
+    "id": "e5ed35ae-f951-4a70-a129-e298a92c07cc",
+    "created_at": "2024-09-30T04:30:23.982Z",
+    "updated_at": "2024-09-30T04:30:23.982Z",
+    "isDeleted": false
+    */

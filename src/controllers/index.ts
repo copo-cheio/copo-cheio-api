@@ -126,3 +126,4 @@ export * from './order-timeline-user.controller';
 export * from './activity-balcony.controller';
 export * from './web-socket.controller';
 export * from './email.controller';
+export * from './user.controller';
