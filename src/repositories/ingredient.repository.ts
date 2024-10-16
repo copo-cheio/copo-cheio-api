@@ -1,11 +1,12 @@
 import {Getter,inject} from '@loopback/core';
-import {BelongsToAccessor,DefaultCrudRepository,repository, ReferencesManyAccessor} from '@loopback/repository';
+import {BelongsToAccessor,ReferencesManyAccessor,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
-import {Image,Ingredient,IngredientRelations, Tag} from '../models';
+import {Image,Ingredient,IngredientRelations,Tag} from '../models';
 import {ImageRepository} from './image.repository';
 import {TagRepository} from './tag.repository';
 
-export class IngredientRepository extends DefaultCrudRepository<
+export class IngredientRepository extends SoftCrudRepository<
   Ingredient,
   typeof Ingredient.prototype.id,
   IngredientRelations

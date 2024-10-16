@@ -9,7 +9,7 @@
 //   T extends Entity,
 //   ID,
 //   Relations extends object = {}
-// > extends DefaultCrudRepository<T, ID, Relations> {
+// > extends SoftCrudRepository<T, ID, Relations> {
 //   // put the shared code here
 //   constructor(
 //     entityClass: typeof Entity & {prototype: T},

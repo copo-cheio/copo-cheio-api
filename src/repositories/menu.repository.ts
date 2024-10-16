@@ -1,10 +1,11 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, HasManyRepositoryFactory} from '@loopback/repository';
+import {Getter,inject} from '@loopback/core';
+import {HasManyRepositoryFactory,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
-import {Menu,MenuRelations, MenuProduct} from '../models';
+import {Menu,MenuProduct,MenuRelations} from '../models';
 import {MenuProductRepository} from './menu-product.repository';
 
-export class MenuRepository extends DefaultCrudRepository<
+export class MenuRepository extends SoftCrudRepository<
   Menu,
   typeof Menu.prototype.id,
   MenuRelations

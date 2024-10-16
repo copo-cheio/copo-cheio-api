@@ -1,9 +1,9 @@
 import {inject} from '@loopback/core';
-import {DefaultCrudRepository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {Image,ImageRelations} from '../models';
 
-export class ImageRepository extends DefaultCrudRepository<
+export class ImageRepository extends SoftCrudRepository<
   Image,
   typeof Image.prototype.id,
   ImageRelations

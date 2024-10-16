@@ -1,18 +1,19 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, HasManyRepositoryFactory, BelongsToAccessor, HasOneRepositoryFactory} from '@loopback/repository';
+import {Getter,inject} from '@loopback/core';
+import {BelongsToAccessor,HasManyRepositoryFactory,HasOneRepositoryFactory,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
-import {Order,OrderRelations, CartItem, User, Place, Image, Event, Balcony, OrderItem, Price, OrderTimeline} from '../models';
-import {CartItemRepository} from './cart-item.repository';
-import {UserRepository} from './user.repository';
-import {PlaceRepository} from './place.repository';
-import {ImageRepository} from './image.repository';
-import {EventRepository} from './event.repository';
+import {Balcony,CartItem,Event,Image,Order,OrderItem,OrderRelations,OrderTimeline,Place,Price,User} from '../models';
 import {BalconyRepository} from './balcony.repository';
+import {CartItemRepository} from './cart-item.repository';
+import {EventRepository} from './event.repository';
+import {ImageRepository} from './image.repository';
 import {OrderItemRepository} from './order-item.repository';
-import {PriceRepository} from './price.repository';
 import {OrderTimelineRepository} from './order-timeline.repository';
+import {PlaceRepository} from './place.repository';
+import {PriceRepository} from './price.repository';
+import {UserRepository} from './user.repository';
 
-export class OrderRepository extends DefaultCrudRepository<
+export class OrderRepository extends SoftCrudRepository<
   Order,
   typeof Order.prototype.id,
   OrderRelations

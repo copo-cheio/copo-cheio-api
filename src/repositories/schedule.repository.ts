@@ -1,11 +1,12 @@
 import {Getter,inject} from '@loopback/core';
-import {DefaultCrudRepository,HasManyRepositoryFactory,repository} from '@loopback/repository';
+import {HasManyRepositoryFactory,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {DateTime,Schedule,ScheduleRange,ScheduleRelations} from '../models';
 import {DateTimeRepository} from './date-time.repository';
 import {ScheduleRangeRepository} from './schedule-range.repository';
 
-export class ScheduleRepository extends DefaultCrudRepository<
+export class ScheduleRepository extends SoftCrudRepository<
   Schedule,
   typeof Schedule.prototype.id,
   ScheduleRelations

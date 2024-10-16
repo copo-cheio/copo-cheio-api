@@ -1,10 +1,11 @@
 import {Getter,inject} from '@loopback/core';
-import {BelongsToAccessor,DefaultCrudRepository,repository} from '@loopback/repository';
+import {BelongsToAccessor,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {Price,Ticket,TicketRelations} from '../models';
 import {PriceRepository} from './price.repository';
 
-export class TicketRepository extends DefaultCrudRepository<
+export class TicketRepository extends SoftCrudRepository<
   Ticket,
   typeof Ticket.prototype.id,
   TicketRelations

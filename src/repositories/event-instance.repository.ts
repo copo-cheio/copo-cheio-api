@@ -1,10 +1,11 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, BelongsToAccessor} from '@loopback/repository';
+import {Getter,inject} from '@loopback/core';
+import {BelongsToAccessor,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
-import {EventInstance,EventInstanceRelations, Event} from '../models';
+import {Event,EventInstance,EventInstanceRelations} from '../models';
 import {EventRepository} from './event.repository';
 
-export class EventInstanceRepository extends DefaultCrudRepository<
+export class EventInstanceRepository extends SoftCrudRepository<
   EventInstance,
   typeof EventInstance.prototype.id,
   EventInstanceRelations

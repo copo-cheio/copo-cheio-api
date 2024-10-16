@@ -1,22 +1,26 @@
 import {Getter,inject} from "@loopback/core";
 import {
   BelongsToAccessor,
-  DefaultCrudRepository,
+  HasManyRepositoryFactory,
   ReferencesManyAccessor,
-  repository, HasManyRepositoryFactory} from "@loopback/repository";
+  repository
+} from "@loopback/repository";
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from "../datasources";
 import {
   Image,
   Product,
+  ProductIngredient,ProductOption,
   ProductRelations,
-  Tag, ProductIngredient, ProductOption} from "../models";
+  Tag
+} from "../models";
 import {ImageRepository} from "./image.repository";
 import {IngredientRepository} from "./ingredient.repository";
 import {ProductIngredientRepository} from "./product-ingredient.repository";
-import {TagRepository} from "./tag.repository";
 import {ProductOptionRepository} from './product-option.repository';
+import {TagRepository} from "./tag.repository";
 
-export class ProductRepository extends DefaultCrudRepository<
+export class ProductRepository extends SoftCrudRepository<
   Product,
   typeof Product.prototype.name,
   ProductRelations

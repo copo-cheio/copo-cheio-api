@@ -1,10 +1,11 @@
 import {Getter,inject} from '@loopback/core';
-import {BelongsToAccessor,DefaultCrudRepository,repository} from '@loopback/repository';
+import {BelongsToAccessor,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {Country,Region,RegionRelations} from '../models';
 import {CountryRepository} from './country.repository';
 
-export class RegionRepository extends DefaultCrudRepository<
+export class RegionRepository extends SoftCrudRepository<
   Region,
   typeof Region.prototype.id,
   RegionRelations

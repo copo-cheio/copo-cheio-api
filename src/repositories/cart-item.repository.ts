@@ -1,9 +1,9 @@
 import {inject} from '@loopback/core';
-import {DefaultCrudRepository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {CartItem,CartItemRelations} from '../models';
 
-export class CartItemRepository extends DefaultCrudRepository<
+export class CartItemRepository extends SoftCrudRepository<
   CartItem,
   typeof CartItem.prototype.id,
   CartItemRelations

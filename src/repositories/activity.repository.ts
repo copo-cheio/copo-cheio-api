@@ -1,13 +1,14 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, BelongsToAccessor} from '@loopback/repository';
+import {Getter,inject} from '@loopback/core';
+import {BelongsToAccessor,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
-import {Activity,ActivityRelations, User, Place, Event, Balcony} from '../models';
-import {UserRepository} from './user.repository';
-import {PlaceRepository} from './place.repository';
-import {EventRepository} from './event.repository';
+import {Activity,ActivityRelations,Balcony,Event,Place,User} from '../models';
 import {BalconyRepository} from './balcony.repository';
+import {EventRepository} from './event.repository';
+import {PlaceRepository} from './place.repository';
+import {UserRepository} from './user.repository';
 
-export class ActivityRepository extends DefaultCrudRepository<
+export class ActivityRepository extends SoftCrudRepository<
   Activity,
   typeof Activity.prototype.id,
   ActivityRelations

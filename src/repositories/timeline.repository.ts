@@ -1,9 +1,9 @@
 import {inject} from '@loopback/core';
-import {DefaultCrudRepository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {Timeline,TimelineRelations} from '../models';
 
-export class TimelineRepository extends DefaultCrudRepository<
+export class TimelineRepository extends SoftCrudRepository<
   Timeline,
   typeof Timeline.prototype.id,
   TimelineRelations

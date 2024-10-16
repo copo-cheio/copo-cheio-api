@@ -1,9 +1,9 @@
 import {inject} from '@loopback/core';
-import {DefaultCrudRepository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {Currency,CurrencyRelations} from '../models';
 
-export class CurrencyRepository extends DefaultCrudRepository<
+export class CurrencyRepository extends SoftCrudRepository<
   Currency,
   typeof Currency.prototype.id,
   CurrencyRelations

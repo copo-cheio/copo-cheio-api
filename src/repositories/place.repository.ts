@@ -1,12 +1,12 @@
 import {Getter,inject} from "@loopback/core";
 import {
   BelongsToAccessor,
-  DefaultCrudRepository,
   HasManyRepositoryFactory,
   HasManyThroughRepositoryFactory,
   ReferencesManyAccessor,
-  repository,
+  repository
 } from "@loopback/repository";
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from "../datasources";
 import {
   Address,
@@ -42,7 +42,7 @@ import {TagRepository} from "./tag.repository";
     "addressId": "addressid"
   }
 */
-export class PlaceRepository extends DefaultCrudRepository<
+export class PlaceRepository extends SoftCrudRepository<
   Place,
   typeof Place.prototype.id,
   PlaceRelations

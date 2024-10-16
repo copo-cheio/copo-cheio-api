@@ -1,16 +1,18 @@
 import {Getter,inject} from "@loopback/core";
 import {
   BelongsToAccessor,
-  DefaultCrudRepository,
-  repository, HasManyRepositoryFactory} from "@loopback/repository";
+  HasManyRepositoryFactory,
+  repository
+} from "@loopback/repository";
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
-import {Balcony,BalconyRelations,Image,Place, Menu, Order} from "../models";
+import {Balcony,BalconyRelations,Image,Menu,Order,Place} from "../models";
 import {ImageRepository} from "./image.repository";
-import {PlaceRepository} from "./place.repository";
 import {MenuRepository} from './menu.repository';
 import {OrderRepository} from './order.repository';
+import {PlaceRepository} from "./place.repository";
 
-export class BalconyRepository extends DefaultCrudRepository<
+export class BalconyRepository extends SoftCrudRepository<
   Balcony,
   typeof Balcony.prototype.id,
   BalconyRelations

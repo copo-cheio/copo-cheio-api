@@ -1,10 +1,11 @@
 import {Getter,inject} from '@loopback/core';
-import {BelongsToAccessor,DefaultCrudRepository,repository} from '@loopback/repository';
+import {BelongsToAccessor,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {Rule,RuleRelations,Translation} from '../models';
 import {TranslationRepository} from './translation.repository';
 
-export class RuleRepository extends DefaultCrudRepository<
+export class RuleRepository extends SoftCrudRepository<
   Rule,
   typeof Rule.prototype.id,
   RuleRelations

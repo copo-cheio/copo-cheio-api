@@ -1,11 +1,12 @@
 import {Getter,inject} from '@loopback/core';
-import {BelongsToAccessor,DefaultCrudRepository,repository} from '@loopback/repository';
+import {BelongsToAccessor,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {Playlist,PlaylistSong,PlaylistSongRelations,Song} from '../models';
 import {PlaylistRepository} from './playlist.repository';
 import {SongRepository} from './song.repository';
 
-export class PlaylistSongRepository extends DefaultCrudRepository<
+export class PlaylistSongRepository extends SoftCrudRepository<
   PlaylistSong,
   typeof PlaylistSong.prototype.id,
   PlaylistSongRelations

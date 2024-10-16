@@ -1,9 +1,9 @@
 import {inject} from '@loopback/core';
-import {DefaultCrudRepository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {TagReferences,TagReferencesRelations} from '../models';
 
-export class TagReferencesRepository extends DefaultCrudRepository<
+export class TagReferencesRepository extends SoftCrudRepository<
   TagReferences,
   typeof TagReferences.prototype.id,
   TagReferencesRelations

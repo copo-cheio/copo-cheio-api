@@ -1,12 +1,13 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, BelongsToAccessor} from '@loopback/repository';
+import {Getter,inject} from '@loopback/core';
+import {BelongsToAccessor,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
-import {ProductOption,ProductOptionRelations, Product, Ingredient, Price} from '../models';
-import {ProductRepository} from './product.repository';
+import {Ingredient,Price,Product,ProductOption,ProductOptionRelations} from '../models';
 import {IngredientRepository} from './ingredient.repository';
 import {PriceRepository} from './price.repository';
+import {ProductRepository} from './product.repository';
 
-export class ProductOptionRepository extends DefaultCrudRepository<
+export class ProductOptionRepository extends SoftCrudRepository<
   ProductOption,
   typeof ProductOption.prototype.id,
   ProductOptionRelations

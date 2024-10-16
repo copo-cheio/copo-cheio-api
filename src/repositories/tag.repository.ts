@@ -1,7 +1,6 @@
 import {Getter,inject} from "@loopback/core";
 import {
   BelongsToAccessor,
-  DefaultCrudRepository,
   repository
 } from "@loopback/repository";
 import {PostgresSqlDataSource} from "../datasources";
@@ -11,9 +10,10 @@ import {
   Translation
 } from "../models";
 // import {TagReferencesRepository} from "./tag-references.repository";
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {TranslationRepository} from "./translation.repository";
 
-export class TagRepository extends DefaultCrudRepository<
+export class TagRepository extends SoftCrudRepository<
   Tag,
   typeof Tag.prototype.id,
   TagRelations

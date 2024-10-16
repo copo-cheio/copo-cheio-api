@@ -1,12 +1,13 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, BelongsToAccessor} from '@loopback/repository';
+import {Getter,inject} from '@loopback/core';
+import {BelongsToAccessor,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
-import {LineUpArtist, LineUpArtistRelations, Lineup, Artist, Schedule} from '../models';
-import {LineupRepository} from './lineup.repository';
+import {Artist,LineUpArtist,LineUpArtistRelations,Lineup,Schedule} from '../models';
 import {ArtistRepository} from './artist.repository';
+import {LineupRepository} from './lineup.repository';
 import {ScheduleRepository} from './schedule.repository';
 
-export class LineUpArtistRepository extends DefaultCrudRepository<
+export class LineUpArtistRepository extends SoftCrudRepository<
   LineUpArtist,
   typeof LineUpArtist.prototype.id,
   LineUpArtistRelations

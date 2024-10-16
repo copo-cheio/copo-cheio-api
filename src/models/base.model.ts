@@ -1,6 +1,7 @@
-import {Entity,model,property} from '@loopback/repository';
+import {model,property} from '@loopback/repository';
+import {SoftDeleteEntity} from 'loopback4-soft-delete';
 @model()
-export class Base extends   Entity  {
+export class Base extends   SoftDeleteEntity  {
 // export class Base extends Entity {
   @property({
     type: 'string',
@@ -22,7 +23,10 @@ export class Base extends   Entity  {
     jsonSchema: {
       format: 'date-time',
     },
-    defaultFn: 'now',
+    // defaultFn: 'now',
+
+    // type: 'date',
+    default: () => new Date()
   })
   created_at ? : Date;
 
@@ -32,19 +36,24 @@ export class Base extends   Entity  {
     jsonSchema: {
       format: 'date-time',
     },
-    defaultFn: 'now',
+    // type: 'date',
+    default: () => new Date()
+    // defaultFn: 'now',
   })
   updated_at ? : Date;
 
 
 
   // isDeleted: boolean
+  // @property({
+  //   type: 'boolean',
+  //   default: false,
+  // })
+  // isDeleted?: boolean;
 
-  @property({
-    type: 'boolean',
-    default: false,
-  })
-  isDeleted?: boolean;
+  getIdentifier() {
+    return this.id;
+  }
 
 
   constructor(data?: Partial<Base>) {

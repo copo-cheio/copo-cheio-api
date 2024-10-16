@@ -14,7 +14,7 @@
 //   T extends Base,
 //   ID,
 //   Relations extends object = {}
-// > extends DefaultCrudRepository<T, ID, Relations> {
+// > extends SoftCrudRepository<T, ID, Relations> {
 //   constructor(
 //     entityClass: typeof Base & {
 //       prototype: T;

@@ -1,9 +1,9 @@
 import {inject} from '@loopback/core';
-import {DefaultCrudRepository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {Config,ConfigRelations} from '../models';
 
-export class ConfigRepository extends DefaultCrudRepository<
+export class ConfigRepository extends SoftCrudRepository<
   Config,
   typeof Config.prototype.id,
   ConfigRelations

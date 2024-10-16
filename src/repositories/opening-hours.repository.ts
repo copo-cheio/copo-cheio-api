@@ -1,9 +1,9 @@
 import {inject} from '@loopback/core';
-import {DefaultCrudRepository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {OpeningHours,OpeningHoursRelations} from '../models';
 
-export class OpeningHoursRepository extends DefaultCrudRepository<
+export class OpeningHoursRepository extends SoftCrudRepository<
   OpeningHours,
   typeof OpeningHours.prototype.id,
   OpeningHoursRelations

@@ -1,10 +1,11 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, BelongsToAccessor} from '@loopback/repository';
+import {Getter,inject} from '@loopback/core';
+import {BelongsToAccessor,repository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
-import {RecurringSchedule,RecurringScheduleRelations, Event} from '../models';
+import {Event,RecurringSchedule,RecurringScheduleRelations} from '../models';
 import {EventRepository} from './event.repository';
 
-export class RecurringScheduleRepository extends DefaultCrudRepository<
+export class RecurringScheduleRepository extends SoftCrudRepository<
   RecurringSchedule,
   typeof RecurringSchedule.prototype.id,
   RecurringScheduleRelations

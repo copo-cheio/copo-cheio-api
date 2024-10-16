@@ -1,9 +1,9 @@
 import {inject} from '@loopback/core';
-import {DefaultCrudRepository} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from "../datasources";
 import {DeviceToken,DeviceTokenRelations} from '../models';
 
-export class DeviceTokenRepository extends DefaultCrudRepository<
+export class DeviceTokenRepository extends SoftCrudRepository<
   DeviceToken,
   typeof DeviceToken.prototype.id,
   DeviceTokenRelations

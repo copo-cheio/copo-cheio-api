@@ -1,7 +1,6 @@
 import {Getter,inject} from "@loopback/core";
 import {
   BelongsToAccessor,
-  DefaultCrudRepository,
   HasManyRepositoryFactory,
   HasManyThroughRepositoryFactory,
   HasOneRepositoryFactory,
@@ -35,13 +34,14 @@ import {PlaylistRepository} from "./playlist.repository";
 import {RuleRepository} from "./rule.repository";
 import {ScheduleRepository} from "./schedule.repository";
 // import {TagReferencesRepository} from "./tag-references.repository";
+import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {EventInstanceRepository} from './event-instance.repository';
 import {OpeningHoursRepository} from './opening-hours.repository';
 import {RecurringScheduleRepository} from './recurring-schedule.repository';
 import {TagRepository} from "./tag.repository";
 import {TicketRepository} from "./ticket.repository";
 
-export class EventRepository extends DefaultCrudRepository<
+export class EventRepository extends SoftCrudRepository<
   Event,
   typeof Event.prototype.id,
   EventRelations

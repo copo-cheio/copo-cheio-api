@@ -2,17 +2,18 @@ import {belongsTo,hasMany,model,property,referencesMany} from '@loopback/reposit
 import {Base} from './base.model';
 import {Image} from './image.model';
 import {ProductIngredient} from './product-ingredient.model';
-import {Tag} from './tag.model';
 import {ProductOption} from './product-option.model';
+import {Tag} from './tag.model';
 
 @model()
 export class Product extends Base {
   @property({
     type: 'string',
-    id: true,
-    generated: true,
+    // id: true,
+    // generated: true,
+    required:true
   })
-  name?: string;
+  name: string;
 
   @property({
     type: 'string'
