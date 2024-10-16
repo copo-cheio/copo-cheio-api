@@ -31,6 +31,11 @@ export class OpeningHours extends Base {
   })
   eventId?: string;
 
+  // @property({
+  //   type: 'boolean'
+  // })
+  // active?: boolean
+
   constructor(data?: Partial<OpeningHours>) {
     super(data);
   }

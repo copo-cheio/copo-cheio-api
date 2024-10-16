@@ -16,8 +16,8 @@ import {
   requestBody,
 } from '@loopback/rest';
 import {
-  Place,
   OpeningHours,
+  Place,
 } from '../models';
 import {PlaceRepository} from '../repositories';
 
