@@ -50,6 +50,21 @@ export class EventInstanceEventController {
   async getEventInstances(
 
   ): Promise<EventInstance[]> {
-    return this.eventInstanceRepository.findAll();
+    return this.eventInstanceRepository.findAll({
+      offset:0,
+      limit:100,
+      skip:0,
+      fields: {
+        id: true,
+        startDate: true,
+        endDate:true,
+        eventId:true,
+        latitude:true,
+        longitude:true
+      },
+      include: [{relation:"event"}],
+      // order: "DESC"
+    }
+    );
   }
 }
