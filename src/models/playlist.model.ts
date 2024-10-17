@@ -16,6 +16,10 @@ export class Playlist extends Base {
     type: 'string',
   })
   description?: string;
+  @property({
+    type: 'string',
+  })
+  url?: string;
 
   @hasMany(() => Song, {
     through: {
