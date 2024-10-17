@@ -2,13 +2,13 @@ import {
   repository,
 } from '@loopback/repository';
 import {
-  param,
   get,
   getModelSchemaRef,
+  param,
 } from '@loopback/rest';
 import {
-  EventInstance,
   Event,
+  EventInstance,
 } from '../models';
 import {EventInstanceRepository} from '../repositories';
 
@@ -34,5 +34,22 @@ export class EventInstanceEventController {
     @param.path.string('id') id: typeof EventInstance.prototype.id,
   ): Promise<Event> {
     return this.eventInstanceRepository.event(id);
+  }
+  @get('/event-instances', {
+    responses: {
+      '200': {
+        description: 'Event belonging to EventInstance',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(Event),
+          },
+        },
+      },
+    },
+  })
+  async getEventInstances(
+
+  ): Promise<EventInstance[]> {
+    return this.eventInstanceRepository.findAll();
   }
 }
