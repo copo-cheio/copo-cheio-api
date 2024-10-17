@@ -46,6 +46,7 @@ export const EventsQuery: any = {
     IncludePlaceRelation,
     IncludeOpeningHoursRelation,
     IncludeTagsRelation,
+    IncludePlaylistRelation,
     { relation: "instances" }, // Include event instances (occurrences)
     { relation: "recurringSchedule" }, // Include recurring schedules
   ],
