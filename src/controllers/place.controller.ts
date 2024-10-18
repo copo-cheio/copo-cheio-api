@@ -1,3 +1,4 @@
+import {inject} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -21,8 +22,11 @@ import {PlaceQueryFull,PlacesQuery} from "../blueprints/place.blueprint";
 import {FilterByTags} from '../blueprints/shared/tag.include';
 import {Place} from "../models";
 import {PlaceRepository} from "../repositories";
+import {PlaceService} from '../services/place.service';
 export class PlaceController {
   constructor(
+    @inject("services.PlaceService")
+    protected placeService: PlaceService,
     @repository(PlaceRepository)
     public placeRepository: PlaceRepository
   ) {}
@@ -68,7 +72,9 @@ export class PlaceController {
     })
     place: Place
   ): Promise<Place> {
-    return this.placeRepository.create(place);
+    const record:any = await this.placeRepository.create(place);
+    await this.placeService.findOrCreateCheckInQrCode(record.id)
+    return record
   }
 
   @get("/places/count")
@@ -168,7 +174,10 @@ export class PlaceController {
     })
     place: Place
   ): Promise<void> {
-    await this.placeRepository.updateById(id, place);
+    const record:any = await this.placeRepository.updateById(id, place);
+    // const record:any = await this.placeRepository.create(place);
+    await this.placeService.findOrCreateCheckInQrCode(id)
+    return record
   }
 
   @put("/places/{id}")
