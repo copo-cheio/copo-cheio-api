@@ -11,6 +11,9 @@ export class AddressService {
     public regionRepository: RegionRepository
   ) {}
 
+  async findById(id:string){
+    return this.addressRepository.findById(id)
+  }
   async findOrCreate(
     addressString: string,
     coordinates: any = { lat: 0, lon: 0 }

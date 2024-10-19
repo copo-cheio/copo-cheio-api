@@ -5,6 +5,7 @@ import {PlaceBelongsToTransformer} from "./place.blueprint";
 import {PlaylistBelongsToTransformer} from "./playlist.blueprint";
 import {ScheduleBelongsToTransformer} from "./schedule.blueprint";
 import {IncludeAddressRelation} from "./shared/address.include";
+import {IncludeEventInstanceRelation} from './shared/eventinstance.include';
 import {IncludeCover} from "./shared/image.include";
 import {IncludeLineupRelation} from "./shared/lineup.include";
 import {IncludeOpeningHoursRelation} from "./shared/openinghours.include";
@@ -47,7 +48,8 @@ export const EventsQuery: any = {
     IncludeOpeningHoursRelation,
     IncludeTagsRelation,
     IncludePlaylistRelation,
-    { relation: "instances" }, // Include event instances (occurrences)
+    IncludeEventInstanceRelation,
+    // { relation: "instances" }, // Include event instances (occurrences)
     { relation: "recurringSchedule" }, // Include recurring schedules
   ],
 };
@@ -85,7 +87,7 @@ export const EventFullQuery: any = {
     IncludeLineupRelation,
     IncludeTagsRelation,
     IncludeOpeningHoursRelation,
-    { relation: "instances" }, // Include event instances (occurrences)
+    IncludeEventInstanceRelation, // Include event instances (occurrences)
     { relation: "recurringSchedule" }, // Include recurring schedules
   ],
 };

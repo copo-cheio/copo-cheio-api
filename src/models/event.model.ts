@@ -135,7 +135,7 @@ export class Event extends Base {
   @property({
     type: 'date',
   })
-  endDate?: Date;
+  endDate: Date;
 
 
 
