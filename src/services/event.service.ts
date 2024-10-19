@@ -235,13 +235,13 @@ ORDER BY startDate;`;
     currentEndDate.setMilliseconds(0);
     recurrenceEnd.setSeconds(0);
     recurrenceEnd.setMilliseconds(0);
-    recurrenceEnd.setDate(recurrenceEnd.getDate()+1);;
+    recurrenceEnd.setDate(recurrenceEnd.getDate() + 1);
 
-    const place = await this.placeRepository.findById(event.placeId)
+    const place = await this.placeRepository.findById(event.placeId);
     const address = await this.addressService.findById(place.addressId);
     const coordinates = {
-      latitude: address.latitude,
-      longitude: address.longitude,
+      latitude: parseFloat("" + address.latitude),
+      longitude: parseFloat("" + address.longitude),
     };
 
     return {
@@ -321,7 +321,7 @@ ORDER BY startDate;`;
     recurrenceType: string,
     recurrenceEndDate: string | undefined
   ) {
-    console.log('a')
+    // console.log("a");
     const eventInstances = [];
     const {
       coordinates,
@@ -334,7 +334,7 @@ ORDER BY startDate;`;
       recurrenceType,
       recurrenceEndDate
     );
-    console.log('b')
+    // console.log("b");
     // const eventInstances = [];
     // const startDate = new Date(event.startDate);
     // const endDate = new Date(event.endDate);
@@ -368,49 +368,50 @@ ORDER BY startDate;`;
 
     const eventInstanceRecords = [];
     for (let eventInstance of eventInstances) {
-      console.log('xxx',event.id,eventInstance.startDate,eventInstance.endDate)
+      console.log(
+        "xxx",
+        event.id,
+        eventInstance.startDate,
+        eventInstance.endDate
+      );
       let instance = await this.eventInstanceRepository.findOne({
         where: {
           eventId: event.id,
           startDate: eventInstance.startDate,
           endDate: eventInstance.endDate,
-        }
+        },
       });
-      console.log('yyy')
+      // console.log("yyy");
       if (!instance) {
-        console.log('zzz')
+        // console.log("zzz");
         instance = await this.eventInstanceRepository.create(eventInstance);
       }
       eventInstanceRecords.push(instance);
     }
 
-    console.log(111)
+    // console.log(111);
     const currentInstanceRecordIds = eventInstanceRecords.map((e) => e.id);
-    console.log(222)
+    // console.log(222);
     const prevEventInstances: any = await this.eventInstanceRepository.findAll({
       where: { eventId: event.id },
     });
-    console.log(222)
+    // console.log(222);
     const toDeleteEventInstances: any = prevEventInstances.filter(
       (prevEventInstance: any) =>
         currentInstanceRecordIds.indexOf(prevEventInstance.id) == -1
     );
-    console.log(333,toDeleteEventInstances)
 
-    // const currentEventInstancesIds = currentEventInstances.map(e => e.id);
 
-    // for(let currentEventInstancesId of currentEventInstancesIds){
-    //   if(eventInstanceRecordIds.indexOf(currentEventInstancesId) ==-1){
-    //     await this.eventInstanceRepository.deleteById(currentEventInstancesId)
-    //   }
-    // }
-    // // Save all event instances in bulk
-    // await this.eventInstanceRepository.createAll(eventInstances);
 
-    console.log('chegamos aqui', toDeleteEventInstances)
-    if(toDeleteEventInstances.length > 0){
 
-      await this.eventInstanceRepository.deleteAll(toDeleteEventInstances);
+    if (toDeleteEventInstances.length > 0) {
+      // await this.eventInstanceRepository.deleteAll(toDeleteEventInstances);
+      // {"or":[{"id":1},{"id":2}]
+      await this.eventInstanceRepository.deleteAll({
+        id: {inq: toDeleteEventInstances.map((tdei: any) => tdei.id)}
+        //  id:tdei.id
+        //  }
+      });
     }
   }
 
@@ -517,10 +518,15 @@ ORDER BY startDate;`;
     // console.log({...event,...eventData})
     await this.eventRepository.updateById(id, eventData);
     let event = await this.eventRepository.findById(id);
-    console.log('aqui 1 ',event.id,event.recurrenceType,event.recurrenceEndDate)
+    console.log(
+      "aqui 1 ",
+      event.id,
+      event.recurrenceType,
+      event.recurrenceEndDate
+    );
     await this.createOrUpdateRecurringInstances(
       event,
-      event.recurrenceType ,
+      event.recurrenceType,
       event.recurrenceEndDate
     );
 

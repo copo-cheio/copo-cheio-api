@@ -64,12 +64,15 @@ export class PaymentController {
      data: any
     ): Promise<any> {
 
-     return  this.stripeService.createPaymentIntent(
+     let paymentIntent:any =  this.stripeService.createPaymentIntent(
        data.amount,
        data.currency
            // You can also add additional parameters here, such as a customer ID or payment method ID
     // metadata: { integration_check: 'accept_a_payment' },,
      );
+     // Create order payment intent to do later
+     return paymentIntent
+
     //  return paymentIntent;
 
    }
