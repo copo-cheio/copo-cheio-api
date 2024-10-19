@@ -1,11 +1,10 @@
 import {Getter,inject} from '@loopback/core';
-import {BelongsToAccessor,repository} from '@loopback/repository';
-import {SoftCrudRepository} from 'loopback4-soft-delete';
+import {BelongsToAccessor,DefaultCrudRepository,repository} from '@loopback/repository';
 import {PostgresSqlDataSource} from '../datasources';
 import {Credential,CredentialRelations,User} from '../models';
 import {UserRepository} from './user.repository';
 
-export class CredentialRepository extends SoftCrudRepository<
+export class CredentialRepository extends DefaultCrudRepository<
   Credential,
   typeof Credential.prototype.id,
   CredentialRelations
