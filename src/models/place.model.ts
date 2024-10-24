@@ -1,4 +1,4 @@
-import {belongsTo,hasMany,model,property,referencesMany} from '@loopback/repository';
+import {belongsTo,hasMany,model,property,referencesMany, hasOne} from '@loopback/repository';
 import {Address} from './address.model';
 import {Balcony} from './balcony.model';
 import {Base} from './base.model';
@@ -10,6 +10,7 @@ import {Playlist} from './playlist.model';
 import {Rule} from './rule.model';
 import {Schedule} from './schedule.model';
 import {Tag} from './tag.model';
+import {Contacts} from './contacts.model';
 
 @model()
 export class Place extends Base {
@@ -81,6 +82,9 @@ export class Place extends Base {
 
   @hasMany(() => Image, {keyTo: 'refId',})
   gallery: Image[];
+
+  @hasOne(() => Contacts, {keyTo: 'refId'})
+  contacts: Contacts;
 
   constructor(data?: Partial<Place>) {
 

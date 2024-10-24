@@ -5,6 +5,7 @@ import {PlaceBelongsToTransformer} from "./place.blueprint";
 import {PlaylistBelongsToTransformer} from "./playlist.blueprint";
 import {ScheduleBelongsToTransformer} from "./schedule.blueprint";
 import {IncludeAddressRelation} from "./shared/address.include";
+import {IncludeContactsRelation} from './shared/contacts.include';
 import {IncludeEventInstanceRelation} from './shared/eventinstance.include';
 import {IncludeCover} from "./shared/image.include";
 import {IncludeLineupRelation} from "./shared/lineup.include";
@@ -49,6 +50,7 @@ export const EventsQuery: any = {
     IncludeTagsRelation,
     IncludePlaylistRelation,
     IncludeEventInstanceRelation,
+    IncludeContactsRelation,
     // { relation: "instances" }, // Include event instances (occurrences)
     { relation: "recurringSchedule" }, // Include recurring schedules
   ],

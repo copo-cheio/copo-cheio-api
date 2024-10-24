@@ -1,5 +1,6 @@
 import {IncludeAddressRelation} from "./shared/address.include";
 import {IncludeBalconysRelations} from "./shared/balcony.include";
+import {IncludeContactsRelation} from './shared/contacts.include';
 import {IncludeEventsRelation} from "./shared/event.include";
 import {IncludeCover,IncludeGallery} from './shared/image.include';
 import {IncludeOpeningHoursRelation} from './shared/openinghours.include';
@@ -37,7 +38,8 @@ export const PlaceQueryFull: any = {
     IncludeEventsRelation,
     IncludeRulesRelation,
     IncludeOpeningHoursRelation,
-    IncludeGallery
+    IncludeGallery,
+    IncludeContactsRelation
   ],
 };
 

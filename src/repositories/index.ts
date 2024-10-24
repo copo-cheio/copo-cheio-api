@@ -48,3 +48,6 @@ export * from './shopping-cart.repository';
 export * from './timeline.repository';
 export * from './user.repository';
 
+export * from './company.repository';
+export * from './staff.repository';
+export * from './contacts.repository';

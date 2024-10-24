@@ -50,3 +50,6 @@ export * from './recurring-schedule.model';
 export * from './product-option.model';
 export * from './credential.model';
 export * from './order-timeline.model';
+export * from './company.model';
+export * from './staff.model';
+export * from './contacts.model';

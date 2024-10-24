@@ -1,6 +1,10 @@
 import {model,property} from '@loopback/repository';
 import {SoftDeleteEntity} from 'loopback4-soft-delete';
-@model()
+@model({
+  settings:{
+    hiddenProperties: ['deleted',"deleted_on","deleted_by"]
+  }
+})
 export class Base extends   SoftDeleteEntity  {
 // export class Base extends Entity {
   @property({

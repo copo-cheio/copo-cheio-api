@@ -4,8 +4,7 @@ import {
   HasManyRepositoryFactory,
   HasManyThroughRepositoryFactory,
   ReferencesManyAccessor,
-  repository
-} from "@loopback/repository";
+  repository, HasOneRepositoryFactory} from "@loopback/repository";
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from "../datasources";
 import {
@@ -20,8 +19,7 @@ import {
   Playlist,
   Rule,
   Schedule,
-  Tag,
-} from "../models";
+  Tag, Contacts} from "../models";
 import {AddressRepository} from "./address.repository";
 import {BalconyRepository} from "./balcony.repository";
 import {EventRepository} from "./event.repository";
@@ -32,6 +30,7 @@ import {PlaylistRepository} from "./playlist.repository";
 import {RuleRepository} from "./rule.repository";
 import {ScheduleRepository} from "./schedule.repository";
 import {TagRepository} from "./tag.repository";
+import {ContactsRepository} from './contacts.repository';
 
 /**
   {
@@ -91,6 +90,8 @@ export class PlaceRepository extends SoftCrudRepository<
     Image,
     typeof Place.prototype.id
   >;
+
+  public readonly contacts: HasOneRepositoryFactory<Contacts, typeof Place.prototype.id>;
   // public readonly tags: ReferencesManyAccessor<Tag, typeof Artist.prototype.id>;
 
   constructor(
@@ -115,9 +116,11 @@ export class PlaceRepository extends SoftCrudRepository<
     @repository.getter("TagRepository")
     protected tagRepositoryGetter: Getter<TagRepository>,
     @repository.getter("OpeningHoursRepository")
-    protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>
+    protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>, @repository.getter('ContactsRepository') protected contactsRepositoryGetter: Getter<ContactsRepository>,
   ) {
     super(Place, dataSource);
+    this.contacts = this.createHasOneRepositoryFactoryFor('contacts', contactsRepositoryGetter);
+    this.registerInclusionResolver('contacts', this.contacts.inclusionResolver);
     this.gallery = this.createHasManyRepositoryFactoryFor(
       "gallery",
       imageRepositoryGetter

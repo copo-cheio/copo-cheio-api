@@ -39,6 +39,12 @@ export class EventInstance extends Base {
   })
   longitude: number;
 
+  @property({
+    type: 'object',
+    default: {}
+  })
+  configuration: any;
+
   @belongsTo(() => Event)
   eventId: string;
 

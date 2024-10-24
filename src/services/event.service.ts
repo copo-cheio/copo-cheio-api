@@ -3,11 +3,13 @@ import {repository} from "@loopback/repository";
 import {EventsQuery} from "../blueprints/event.blueprint";
 import {Event,EventInstance} from "../models";
 import {
+  ContactsRepository,
   EventInstanceRepository,
   EventRepository,
   PlaceRepository,
   PlaylistRepository,
 } from "../repositories";
+import {transactionWrapper} from "../shared/database";
 import {getDistanceFromLatLonInKm} from "../utils/query";
 import {AddressService} from "./address.service";
 
@@ -15,6 +17,7 @@ import {AddressService} from "./address.service";
 export class EventService {
   constructor(
     @repository(EventRepository) public eventRepository: EventRepository,
+    @repository(ContactsRepository) public contactRepository: ContactsRepository,
     @repository(PlaylistRepository)
     public playlistRepository: PlaylistRepository,
     @repository(EventInstanceRepository)
@@ -401,14 +404,11 @@ ORDER BY startDate;`;
         currentInstanceRecordIds.indexOf(prevEventInstance.id) == -1
     );
 
-
-
-
     if (toDeleteEventInstances.length > 0) {
       // await this.eventInstanceRepository.deleteAll(toDeleteEventInstances);
       // {"or":[{"id":1},{"id":2}]
       await this.eventInstanceRepository.deleteAll({
-        id: {inq: toDeleteEventInstances.map((tdei: any) => tdei.id)}
+        id: { inq: toDeleteEventInstances.map((tdei: any) => tdei.id) },
         //  id:tdei.id
         //  }
       });
@@ -416,71 +416,69 @@ ORDER BY startDate;`;
   }
 
   async createEvent(eventData: Partial<any>): Promise<Event> {
-    let place: any;
-    let address: any;
-    let playlist: any;
+    return transactionWrapper(
+      this.eventRepository,
+      async (transaction: any) => {
+        let place: any;
+        let address: any;
+        let playlist: any;
+        let contacts:any = eventData?.contacts || {}
 
-    if (eventData.placeId) {
-      place = await this.placeRepository.findById(eventData.placeId);
-      address = await this.addressService.findById(place.addressId);
-    } else {
-      address = await this.addressService.findOrCreate(
-        eventData.address,
-        eventData.coordinates
-      );
-      place = await this.placeRepository.findOne({
-        where: { addressId: address.id },
-      });
-    }
-    if (!eventData.playlistId) {
-      playlist = await this.playlistRepository.create({
-        name: "Playlist",
-        description: "",
-        url: "",
-        tagIds: [],
-      });
+        if (eventData.placeId) {
+          place = await this.placeRepository.findById(eventData.placeId);
+          address = await this.addressService.findById(place.addressId);
+        } else {
+          address = await this.addressService.findOrCreate(
+            eventData.address,
+            eventData.coordinates
+          );
+          place = await this.placeRepository.findOne({
+            where: { addressId: address.id },
+          });
+        }
+        if (!eventData.playlistId) {
+          playlist = await this.playlistRepository.create({
+            name: "Playlist",
+            description: "",
+            url: "",
+            tagIds: [],
+          });
 
-      eventData.playlistId = playlist.id;
-    }
+          eventData.playlistId = playlist.id;
+        }
 
-    /*
-    const address = await this.addressService.findOrCreate(
-      eventData.address,
-      eventData.coordinates
+
+        delete eventData.address;
+        delete eventData.coordinates;
+        delete eventData.contacts;
+
+        eventData.addressId = address.id;
+        eventData.placeId = place?.id; //|| "adc41def-3c60-4995-8365-f2a8a1990f96";
+        eventData.tagIds = eventData.tagIds || [];
+        eventData.type = eventData.recurrenceType == "none" ? "once" : "repeat";
+        eventData.coverId =
+          eventData.coverId || "00000000-0000-0000-0000-000000000001";
+        eventData.scheduleId =
+          eventData.scheduleId || "6f8f032c-3761-4012-a4cb-2f1bd81ba741";
+
+        const event:any = await this.eventRepository.create(eventData);
+
+        // Handle recurrence logic
+        if (eventData.recurrenceType && eventData.recurrenceType !== "none") {
+          await this.createRecurringInstances(
+            event,
+            eventData.recurrenceType,
+            eventData.recurrenceEndDate
+          );
+        } else {
+          await this.createInstance(event);
+        }
+
+        await this.contactRepository.createRecord(event.id,contacts)
+
+        return event;
+      }
     );
-    const place = await this.placeRepository.findOne({
-      where: { addressId: address.id },
-    });
-    */
-
-    delete eventData.address;
-    delete eventData.coordinates;
-
-    eventData.addressId = address.id;
-    eventData.placeId = place?.id; //|| "adc41def-3c60-4995-8365-f2a8a1990f96";
-    eventData.tagIds = eventData.tagIds || [];
-    eventData.type = eventData.recurrenceType == "none" ? "once" : "repeat";
-    eventData.coverId =
-      eventData.coverId || "00000000-0000-0000-0000-000000000001";
-    eventData.scheduleId =
-      eventData.scheduleId || "6f8f032c-3761-4012-a4cb-2f1bd81ba741";
-    // eventData.playlistId =
-    //   eventData.playlistId || "f0fcb028-b31d-4091-9801-7bfeab412ba0";
-    // Create the main event
-    const event = await this.eventRepository.create(eventData);
-
-    // Handle recurrence logic
-    if (eventData.recurrenceType && eventData.recurrenceType !== "none") {
-      await this.createRecurringInstances(
-        event,
-        eventData.recurrenceType,
-        eventData.recurrenceEndDate
-      );
-    } else {
-      await this.createInstance(event);
-    }
-
-    return event;
   }
   async edit(id: string, eventData: Partial<any>): Promise<Event> {
     let currentEvent: any = this.eventRepository.findById(id);

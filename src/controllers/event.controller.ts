@@ -30,6 +30,7 @@ import {
 } from "../blueprints/shared/schedule.include";
 import {Event,EventInstance,Price} from "../models";
 import {
+  ContactsRepository,
   DateTimeRepository,
   EventInstanceRepository,
   EventRepository,
@@ -48,6 +49,8 @@ export class EventController {
   constructor(
     @repository(EventRepository)
     public eventRepository: EventRepository,
+    @repository(ContactsRepository)
+    public contactRepository: ContactsRepository,
     @repository(ScheduleRepository)
     public scheduleRepository: ScheduleRepository,
     @repository(ScheduleRangeRepository)
@@ -318,7 +321,7 @@ export class EventController {
     })
     eventData: Partial<Event>
   ): Promise<Event> {
-    console.log({ eventData, id });
+    // console.log({ eventData, id });
     return this.eventService.edit(id, eventData);
   }
 
@@ -608,19 +611,22 @@ export class EventController {
     const result = await transactionWrapper(
       this.eventRepository,
       async (transaction: any) => {
-        console.log(data);
+
+
         const schedule = data?.schedule || { scheduleRange: [] };
         const payload = await EventCreateTransformer(data);
 
         const rules = data.rules || [];
         const tickets = data.tickets || [];
         const lineup = data.lineup || [];
+        const contacts = data.contacts || {}
         // const schedule = data?.schedule || { scheduleRange: [] };
 
         delete payload.rules;
         delete payload.tickets;
         delete payload.tag;
         delete payload.lineup;
+        delete payload.contacts;
 
         let playlist = await this.playlistRepository.create({
           name: "default playlist",
@@ -670,7 +676,7 @@ export class EventController {
           payload,
           transaction
         );
-        let entity = await this.eventRepository.findById(
+        let entity:any = await this.eventRepository.findById(
           response.id,
           transaction
         );
@@ -719,7 +725,7 @@ export class EventController {
             }
           }
         }
-
+        await this.contactRepository.createRecord(entity.id, contacts)
         entity = await this.updateScheduleData(entity);
         entity = await EventValidation(this.eventRepository, entity);
 

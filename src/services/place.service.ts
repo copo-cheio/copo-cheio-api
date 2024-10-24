@@ -2,6 +2,7 @@ import {inject} from "@loopback/core";
 import {repository} from "@loopback/repository";
 import {EventFullQuery} from "../blueprints/event.blueprint";
 import {
+  ContactsRepository,
   EventRepository,
   ImageRepository,
   PlaceRepository,
@@ -12,6 +13,8 @@ export class PlaceService {
   constructor(
     @repository(PlaceRepository)
     public placeRepository: PlaceRepository,
+    @repository(ContactsRepository)
+    public contactRepository: ContactsRepository,
     @repository(EventRepository)
     public eventRepository: EventRepository,
     @repository(ImageRepository)
@@ -19,6 +22,8 @@ export class PlaceService {
     @inject("services.QrFactoryService")
     protected qrFactoryService: QrFactoryService
   ) {}
+
+
 
   findOrCreateCheckInQrCode = async (id: string) => {
     // let record = await this.placeRepository.findById(id);
