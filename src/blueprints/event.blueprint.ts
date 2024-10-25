@@ -91,6 +91,7 @@ export const EventFullQuery: any = {
     IncludeOpeningHoursRelation,
     IncludeEventInstanceRelation, // Include event instances (occurrences)
     { relation: "recurringSchedule" }, // Include recurring schedules
+    IncludeContactsRelation
   ],
 };
 

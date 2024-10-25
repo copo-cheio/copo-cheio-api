@@ -15,6 +15,7 @@ import {OpeningHours} from './opening-hours.model';
 import {RecurringSchedule} from './recurring-schedule.model';
 import {Tag} from './tag.model';
 import {Ticket} from './ticket.model';
+import {Contacts} from './contacts.model';
 
 @model()
 export class Event extends Base {
@@ -129,7 +130,10 @@ export class Event extends Base {
 
   @hasOne(() => RecurringSchedule)
   recurringSchedule: RecurringSchedule;
+
   /*         Computed Properties        */
+  @hasOne(() => Contacts, {keyTo: 'refId'})
+  contacts: Contacts;
   /* ********************************** */
 
   @property({

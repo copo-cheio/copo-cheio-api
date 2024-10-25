@@ -23,8 +23,7 @@ import {
   Rule,
   Schedule,
   Tag,
-  Ticket
-} from "../models";
+  Ticket, Contacts} from "../models";
 import {AddressRepository} from "./address.repository";
 import {EventRuleRepository} from "./event-rule.repository";
 import {ImageRepository} from "./image.repository";
@@ -40,6 +39,7 @@ import {OpeningHoursRepository} from './opening-hours.repository';
 import {RecurringScheduleRepository} from './recurring-schedule.repository';
 import {TagRepository} from "./tag.repository";
 import {TicketRepository} from "./ticket.repository";
+import {ContactsRepository} from './contacts.repository';
 
 export class EventRepository extends SoftCrudRepository<
   Event,
@@ -92,6 +92,8 @@ export class EventRepository extends SoftCrudRepository<
 
   public readonly recurringSchedule: HasOneRepositoryFactory<RecurringSchedule, typeof Event.prototype.id>;
 
+  public readonly contacts: HasOneRepositoryFactory<Contacts, typeof Event.prototype.id>;
+
   constructor(
     @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
     @repository.getter("ImageRepository")
@@ -115,9 +117,11 @@ export class EventRepository extends SoftCrudRepository<
     @repository.getter("PlaylistRepository")
     protected playlistRepositoryGetter: Getter<PlaylistRepository>,
     @repository.getter("LineupRepository")
-    protected lineupRepositoryGetter: Getter<LineupRepository>, @repository.getter('OpeningHoursRepository') protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>, @repository.getter('EventInstanceRepository') protected eventInstanceRepositoryGetter: Getter<EventInstanceRepository>, @repository.getter('RecurringScheduleRepository') protected recurringScheduleRepositoryGetter: Getter<RecurringScheduleRepository>,
+    protected lineupRepositoryGetter: Getter<LineupRepository>, @repository.getter('OpeningHoursRepository') protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>, @repository.getter('EventInstanceRepository') protected eventInstanceRepositoryGetter: Getter<EventInstanceRepository>, @repository.getter('RecurringScheduleRepository') protected recurringScheduleRepositoryGetter: Getter<RecurringScheduleRepository>, @repository.getter('ContactsRepository') protected contactsRepositoryGetter: Getter<ContactsRepository>,
   ) {
     super(Event, dataSource);
+    this.contacts = this.createHasOneRepositoryFactoryFor('contacts', contactsRepositoryGetter);
+    this.registerInclusionResolver('contacts', this.contacts.inclusionResolver);
     this.recurringSchedule = this.createHasOneRepositoryFactoryFor('recurringSchedule', recurringScheduleRepositoryGetter);
     this.registerInclusionResolver('recurringSchedule', this.recurringSchedule.inclusionResolver);
     this.instances = this.createHasManyRepositoryFactoryFor('instances', eventInstanceRepositoryGetter,);

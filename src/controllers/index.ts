@@ -136,3 +136,4 @@ export * from './place-contacts.controller';
 export * from './staff-company.controller';
 export * from './company-image.controller';
 export * from './company-staff.controller';
+export * from './event-contacts.controller';
