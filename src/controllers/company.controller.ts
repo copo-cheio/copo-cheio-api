@@ -114,9 +114,9 @@ export class CompanyController {
     @param.path.string('id') id: string,
     @param.filter(Company, {exclude: 'where'}) filter?: FilterExcludingWhere<Company>
   ): Promise<Company> {
-    console.log({CompanyQueryFull})
+
     const res:any = this.companyRepository.findById(id, CompanyQueryFull);
-    console.log({res,resJ:JSON.stringify(res)})
+
     return res
   }
 

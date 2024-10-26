@@ -1,3 +1,26 @@
+import {AuthenticationBindings} from '@loopback/authentication';
+import {Getter,inject} from '@loopback/core';
+import {Entity,juggler} from '@loopback/repository';
+import {SoftCrudRepository} from 'loopback4-soft-delete';
+
+export class BaseRepository<
+  T extends Entity,
+  ID,
+  Relations extends object = {}
+> extends SoftCrudRepository<T, ID, Relations> {
+  constructor(
+    entityClass: typeof Entity & {prototype: T},
+    dataSource: juggler.DataSource,
+    @inject.getter(AuthenticationBindings.CURRENT_USER)
+    protected readonly getCurrentUser: Getter<any>,
+  ) {
+    super(entityClass, dataSource);
+  }
+  async getIdentifier() {
+    return this.getCurrentUser()
+    // return this.id;
+  }
+}
 // import {
 //   DataObject,
 //   DefaultCrudRepository,

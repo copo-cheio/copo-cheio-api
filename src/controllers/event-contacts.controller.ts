@@ -16,9 +16,8 @@ import {
   requestBody,
 } from '@loopback/rest';
 import {
-  Event,
   Contacts,
-  Contacts,
+  Event
 } from '../models';
 import {EventRepository} from '../repositories';
 

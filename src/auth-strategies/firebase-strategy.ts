@@ -94,4 +94,22 @@ export class FirebaseAuthStrategy implements AuthenticationStrategy {
     if (parts.length !== 2 || parts[0].toLowerCase() !== 'bearer') return undefined;
     return parts[1];
   }
+
+  async getCurrentUserId(request: Request): Promise<string | undefined> {
+    const params:any = {params:request.params || {}, headers:request.headers || {}};
+    const token = this.extractCredentials(request);
+    if (!token) {
+      return undefined
+    }
+
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      const user:any= await this.UserRepository.findOne({where:{firebaseUserId:decodedToken.uid}})
+
+      return user.id;
+    } catch (err) {
+      console.log(err.errorInfo)
+      throw new HttpErrors.Unauthorized('Error verifying token.');
+    }
+  }
 }
