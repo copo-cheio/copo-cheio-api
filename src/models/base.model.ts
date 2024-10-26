@@ -1,5 +1,3 @@
-import {AuthenticationBindings} from '@loopback/authentication';
-import {inject} from '@loopback/core';
 import {model,property} from '@loopback/repository';
 import {SoftDeleteEntity} from 'loopback4-soft-delete';
 @model({
@@ -58,8 +56,8 @@ export class Base extends   SoftDeleteEntity  {
   // isDeleted?: boolean;
 
   getIdentifier() {
-    console.log('getIdentifier',this.currentUser,'cu')
-    return this?.currentUser?.id;
+    // console.log('getIdentifier',this.currentUser,'cu')
+    return this.id //this?.currentUser?.id;
   }
 
 
@@ -67,8 +65,8 @@ export class Base extends   SoftDeleteEntity  {
 
   constructor(
     data?: Partial<Base>,
-    @inject(AuthenticationBindings.CURRENT_USER, { optional: true })
-    public currentUser?: any // Inject the current user profile
+    // @inject(AuthenticationBindings.CURRENT_USER, { optional: true })
+    // public currentUser?: any // Inject the current user profile
   ) {
     super(data);
 
