@@ -43,6 +43,10 @@ export class EventInstanceEventController {
       offset: 0,
       limit: 100,
       skip: 0,
+      // order: "startDate DESC",
+      where:{
+        deleted:false
+      },
       fields: {
         id: true,
         startDate: true,
@@ -52,7 +56,7 @@ export class EventInstanceEventController {
         longitude: true,
       },
       include: [{ relation: "event" }],
-      // order: "DESC"
+
     });
   }
   @get("/event-instances/raw", {
