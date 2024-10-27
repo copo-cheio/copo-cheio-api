@@ -141,6 +141,7 @@ export class PlaceController {
     return this.placeRepository.findById(id, filter);
   }
 
+  // xx
   @get("/places/{id}/full")
   @response(200, {
     description: "Place model instance with all dependencies",
