@@ -5,7 +5,7 @@ const StaffMembersRelation =
   {
     relation: "staffMembers",
     scope: {
-      relation: "user",
+      include:[{relation: "user"}]
     },
   }
 

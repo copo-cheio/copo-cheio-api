@@ -1,15 +1,17 @@
-
-
-
 export const IncludeEventInstanceRelation: any = {
- "relation":"instances",
-  "scope":{
-    "where":{
-      "startDate":{
-        "gte": new Date().toISOString()
-      },
-      "deleted":false
+  relation: "instances",
+  scope: {
+    where: {
+      and: [
+        {
+          endDate: {
+            gte: new Date().toISOString(),
+          },
+        },
+        { deleted: false },
+      ],
     },
-    "limit":1
-  }
+    order: ["startDate ASC"],
+    limit: 1,
+  },
 };
