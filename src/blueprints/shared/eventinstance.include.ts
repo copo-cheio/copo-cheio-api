@@ -7,7 +7,8 @@ export const IncludeEventInstanceRelation: any = {
     "where":{
       "startDate":{
         "gte": new Date().toISOString()
-      }
+      },
+      "deleted":false
     },
     "limit":1
   }

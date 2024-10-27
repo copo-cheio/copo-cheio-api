@@ -5,8 +5,8 @@ import {PlaceBelongsToTransformer} from "./place.blueprint";
 import {PlaylistBelongsToTransformer} from "./playlist.blueprint";
 import {ScheduleBelongsToTransformer} from "./schedule.blueprint";
 import {IncludeAddressRelation} from "./shared/address.include";
-import {IncludeContactsRelation} from './shared/contacts.include';
-import {IncludeEventInstanceRelation} from './shared/eventinstance.include';
+import {IncludeContactsRelation} from "./shared/contacts.include";
+import {IncludeEventInstanceRelation} from "./shared/eventinstance.include";
 import {IncludeCover} from "./shared/image.include";
 import {IncludeLineupRelation} from "./shared/lineup.include";
 import {IncludeOpeningHoursRelation} from "./shared/openinghours.include";
@@ -33,7 +33,7 @@ export const EventsQuery: any = {
     playlistId: true,
     placeId: true,
     endDate: true,
-    startDate:true,
+    startDate: true,
     type: true,
     tagIds: true,
     recurrenceType: true,
@@ -65,7 +65,7 @@ export const EventFullQuery: any = {
     webpage: true,
     status: true,
     endDate: true,
-    startDate:true,
+    startDate: true,
     type: true,
     coverId: true,
     addressId: true,
@@ -91,7 +91,7 @@ export const EventFullQuery: any = {
     IncludeOpeningHoursRelation,
     IncludeEventInstanceRelation, // Include event instances (occurrences)
     { relation: "recurringSchedule" }, // Include recurring schedules
-    IncludeContactsRelation
+    IncludeContactsRelation,
   ],
 };
 
@@ -235,4 +235,55 @@ export const EventValidation = async (repository: any, data: any) => {
   }
 
   return data;
+};
+
+export const EventInstanceFullQuery:any = {
+
+  fields: {
+    eventId: true,
+    id: true,
+    startDate: true,
+    endDate: true
+  },
+  include: [
+    {
+      relation: "event",
+      scope: {
+        fields: {
+          id: true,
+          name: true,
+          description: true,
+          email: true,
+          webpage: true,
+          status: true,
+          coverId: true,
+          addressId: true,
+          scheduleId: true,
+          playlistId: true,
+          placeId: true,
+          endDate: true,
+          startDate: true,
+          type: true,
+          tagIds: true,
+          recurrenceType: true,
+          recurrenceEndDate: true,
+          isRecurring: true, // True if recurring, false if one-time event
+          eventType: true,
+        },
+        include: [
+          "cover",
+          IncludeAddressRelation,
+          IncludeScheduleRelation,
+          IncludePlaceRelation,
+          IncludeOpeningHoursRelation,
+          IncludeTagsRelation,
+          IncludePlaylistRelation,
+
+          IncludeContactsRelation,
+          // { relation: "instances" }, // Include event instances (occurrences)
+          { relation: "recurringSchedule" }, // Include recurring schedules
+        ],
+      },
+    }, // Include recurring schedules
+  ],
 };

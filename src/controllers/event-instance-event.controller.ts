@@ -1,5 +1,6 @@
-import {Filter,repository} from "@loopback/repository";
-import {get,getModelSchemaRef,param} from "@loopback/rest";
+import {Count,CountSchema,Filter,repository,Where} from "@loopback/repository";
+import {get,getModelSchemaRef,param,patch,requestBody,response} from "@loopback/rest";
+import {EventInstanceFullQuery} from '../blueprints/event.blueprint';
 import {Event,EventInstance} from "../models";
 import {EventInstanceRepository} from "../repositories";
 
@@ -9,23 +10,25 @@ export class EventInstanceEventController {
     public eventInstanceRepository: EventInstanceRepository
   ) {}
 
-  @get("/event-instances/{id}/event", {
+  @get("/event-instances/{id}", {
     responses: {
       "200": {
         description: "Event belonging to EventInstance",
         content: {
           "application/json": {
-            schema: getModelSchemaRef(Event),
+            schema: getModelSchemaRef(EventInstance),
           },
         },
       },
     },
   })
-  async getEvent(
+  async getEventInstance(
     @param.path.string("id") id: typeof EventInstance.prototype.id
-  ): Promise<Event> {
-    return this.eventInstanceRepository.event(id);
+  ): Promise<EventInstance> {
+    return this.eventInstanceRepository.findById(id,EventInstanceFullQuery);
   }
+
+
   @get("/event-instances", {
     responses: {
       "200": {
@@ -38,15 +41,32 @@ export class EventInstanceEventController {
       },
     },
   })
-  async getEventInstances(): Promise<EventInstance[]> {
+  async getEventInstances(
+    @param.filter(EventInstance) filter?: Filter<EventInstance>
+    // @param.where(EventInstance) where?: Where<EventInstance>,
+  ): Promise<EventInstance[]> {
+
+    let where: any = filter?.where || {};
+    where.deleted = false;
+    where = {
+      and: Object.keys(where).map((key) => {
+        let q: any = {};
+        // @ts-ignore
+        q[key] = where[key];
+        return q;
+      }),
+    };
+
     return this.eventInstanceRepository.findAll({
-      offset: 0,
-      limit: 100,
-      skip: 0,
-      // order: "startDate DESC",
-      where:{
-        deleted:false
-      },
+      offset: filter?.offset || 0,
+      limit: filter?.limit || 100,
+      skip: filter?.skip || 0,
+
+      where,
+      // where:{
+      //   deleted:false,
+      //   ...where
+      // },
       fields: {
         id: true,
         startDate: true,
@@ -54,9 +74,9 @@ export class EventInstanceEventController {
         eventId: true,
         latitude: true,
         longitude: true,
+        deleted: true,
       },
       include: [{ relation: "event" }],
-
     });
   }
   @get("/event-instances/raw", {
@@ -75,10 +95,29 @@ export class EventInstanceEventController {
     @param.filter(EventInstance) filter?: Filter<EventInstance>
   ): Promise<EventInstance[]> {
 
-//     const query = `SELECT DISTINCT ${field} FROM EventInstance WHERE startTime >= ?`;
-// const params = ['2024-10-01T00:00:00Z'];
-
-// const distinctValues = await this.eventInstanceRepository.dataSource.execute(query, params);
+    // @ts-ignore
+    filter.order = ["startDate DESC"]
     return this.eventInstanceRepository.findAll(filter);
   }
+  @patch('/event-instances/raw')
+  @response(200, {
+    description: 'EventInstance PATCH success count',
+    content: {'application/json': {schema: CountSchema}},
+  })
+  async updateAll(
+    @requestBody({
+      content: {
+        'application/json': {
+          exclude: [ "updated_at", "created_at"],
+          schema: getModelSchemaRef(EventInstance, {partial: true}),
+
+        },
+      },
+    })
+    eventInstance: EventInstance,
+    @param.where(EventInstance) where?: Where<EventInstance>,
+  ): Promise<Count> {
+    return this.eventInstanceRepository.updateAll(eventInstance, where);
+  }
+
 }
