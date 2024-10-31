@@ -1,8 +1,9 @@
 import {inject} from "@loopback/core";
 import {repository} from "@loopback/repository";
-import {EventFullQuery} from "../blueprints/event.blueprint";
+import {EventFullQuery} from '../blueprints/event.blueprint';
 import {
   ContactsRepository,
+  EventInstanceRepository,
   EventRepository,
   ImageRepository,
   PlaceRepository,
@@ -17,13 +18,13 @@ export class PlaceService {
     public contactRepository: ContactsRepository,
     @repository(EventRepository)
     public eventRepository: EventRepository,
+    @repository(EventInstanceRepository)
+    public eventInstanceRepository: EventInstanceRepository,
     @repository(ImageRepository)
     public imageRepository: ImageRepository,
     @inject("services.QrFactoryService")
     protected qrFactoryService: QrFactoryService
   ) {}
-
-
 
   findOrCreateCheckInQrCode = async (id: string) => {
     // let record = await this.placeRepository.findById(id);
@@ -60,8 +61,28 @@ export class PlaceService {
     /**
      * @todo
      */
-    let eventId = "7b8ae7e3-37b0-4c19-b1ab-476426afc730";
-    let event = await this.eventRepository.findById(eventId, EventFullQuery);
+    const events = await this.eventRepository.findAll({
+      where: { placeId, deleted: false },
+    });
+    const instance: any = await this.eventInstanceRepository.findOne({
+      order: ["startDate DESC"],
+      where: {
+        and: [
+          { eventId: { inq: events.map((e: any) => e.id) || [] } },
+          {
+            endDate: {
+              gte: new Date().toDateString(),
+            },
+          },
+        ],
+      },
+    });
+    // let eventId = "7b8ae7e3-37b0-4c19-b1ab-476426afc730";
+    let event:any ={}
+    if(instance && instance?.eventId){
+
+       event = await this.eventRepository.findById(instance.eventId, EventFullQuery);
+    }
     return event;
   }
   async findOpenPlaces(dayOfWeek: number, time: string) {

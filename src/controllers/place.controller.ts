@@ -53,6 +53,25 @@ export class PlaceController {
     return this.placeRepository.find(_filter)
   }
 
+  @get("/places/current-event/{id}")
+  @response(200, {
+    description: "Place model instance",
+    content: {
+      "application/json": {
+        schema: getModelSchemaRef(Place, { includeRelations: true }),
+      },
+    },
+  })
+  async findCurrentEvent(
+    @param.path.string("id") id: string,
+    @param.filter(Place, { exclude: "where" })
+    filter?: FilterExcludingWhere<Place>
+  ): Promise<any> {
+
+    return  this.placeService.findCurrentEvent(id);
+
+  }
+
 
   @post("/places")
   @response(200, {
