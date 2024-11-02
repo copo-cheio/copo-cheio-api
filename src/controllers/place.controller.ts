@@ -1,9 +1,10 @@
-import {inject} from '@loopback/core';
+import {inject} from "@loopback/core";
 import {
   Count,
   CountSchema,
   Filter,
   FilterExcludingWhere,
+  IsolationLevel,
   repository,
   Where,
 } from "@loopback/repository";
@@ -19,38 +20,50 @@ import {
   response,
 } from "@loopback/rest";
 import {PlaceQueryFull,PlacesQuery} from "../blueprints/place.blueprint";
-import {FilterByTags} from '../blueprints/shared/tag.include';
+import {FilterByTags} from "../blueprints/shared/tag.include";
 import {Place} from "../models";
-import {PlaceRepository} from "../repositories";
-import {PlaceService} from '../services/place.service';
+import {
+  ContactsRepository,
+  OpeningHoursRepository,
+  PlaceRepository,
+  PlaylistRepository,
+} from "../repositories";
+import {PlaceService} from "../services/place.service";
 export class PlaceController {
   constructor(
     @inject("services.PlaceService")
     protected placeService: PlaceService,
     @repository(PlaceRepository)
-    public placeRepository: PlaceRepository
+    public placeRepository: PlaceRepository,
+    @repository(OpeningHoursRepository)
+    public openingHourRepository: OpeningHoursRepository,
+    @repository(ContactsRepository)
+    public contactsRepository: ContactsRepository,
+    @repository(PlaylistRepository)
+    public playlistRepository: PlaylistRepository
   ) {}
-
-
 
   @get("/places/nearby")
   async findNearbyPlaces(
     @param.query.number("lat") lat: number,
     @param.query.number("lon") lon: number
   ) {
-    const results = await this.placeRepository.findByDistance(lat || 0, lon|| 0);
-
+    const results = await this.placeRepository.findByDistance(
+      lat || 0,
+      lon || 0
+    );
 
     const _filter = {
-
       ...PlacesQuery,
-      where:{
-        "or":results.map((r:any)=>{return {id:r.id}})
+      where: {
+        or: results.map((r: any) => {
+          return { id: r.id };
+        }),
       },
       // sort:["distance DESC"]
-    }
+    };
 
-    return this.placeRepository.find(_filter)
+    return this.placeRepository.find(_filter);
   }
 
   @get("/places/current-event/{id}")
@@ -67,11 +80,8 @@ export class PlaceController {
     @param.filter(Place, { exclude: "where" })
     filter?: FilterExcludingWhere<Place>
   ): Promise<any> {
-
-    return  this.placeService.findCurrentEvent(id);
-
+    return this.placeService.findCurrentEvent(id);
   }
-
 
   @post("/places")
   @response(200, {
@@ -81,19 +91,67 @@ export class PlaceController {
   async create(
     @requestBody({
       content: {
-        "application/json": {
-          schema: getModelSchemaRef(Place, {
-            title: "NewPlace",
-            exclude: ["id", "updated_at", "created_at"],
-          }),
-        },
+        // "application/json": {
+        //   schema: getModelSchemaRef(Place, {
+        //     title: "NewPlace",
+        //     exclude: ["id", "updated_at", "created_at"],
+        //   }),
+        // },
       },
     })
-    place: Place
-  ): Promise<Place> {
-    const record:any = await this.placeRepository.create(place);
-    await this.placeService.findOrCreateCheckInQrCode(record.id)
-    return record
+    place: any
+  ): Promise<any> {
+    const transaction = await this.placeRepository.dataSource.beginTransaction(
+      IsolationLevel.SERIALIZABLE
+    );
+    try {
+      const openingHours = place?.openingHours || [];
+      const contacts = place.contacts || {};
+      if(!place.addressId ) throw "Address required"
+      place.coverId = place.coverId || "00000000-0000-0000-0000-000000000001"
+      // const coverId = place.coverId || "";
+      // const playlist = place.playlist || {};
+      // const address = place.address || {};
+      delete place.contacts;
+      delete place.openingHours;
+      delete place.playlist;
+      delete place.cover;
+      delete place.address;
+      if(!place.playlistId){
+        let playlistRecord = await this.playlistRepository.create({name: place.name+' playlist', tagIds:[]})
+        place.playlistId = playlistRecord.id
+      }
+
+      console.log(place)
+      const record: any = await this.placeRepository.create(place);
+      for (let openingHour of openingHours || []) {
+        if (openingHour.open) {
+          await this.openingHourRepository.create({
+            dayofweek: openingHour.dayofweek,
+            openhour: openingHour.openhour,
+            closehour: openingHour.closehour,
+            placeId: record.id,
+          });
+        }
+      }
+      const placeContactsPayload: any = {
+        email: contacts?.email || "",
+        phone: contacts?.phone || "",
+        website: contacts?.website || "",
+        social_facebook: contacts?.social_facebook || "",
+        social_instagram: contacts?.social_instagram || "",
+        social_threads: contacts?.social_threads,
+        refId: record.id,
+      };
+      await this.contactsRepository.create(placeContactsPayload);
+      await this.placeService.findOrCreateCheckInQrCode(record.id);
+      const result = await this.placeRepository.findById(record.id, PlaceQueryFull);
+      await transaction.commit();
+      return result;
+    } catch (ex) {
+      await transaction.rollback();
+      throw ex;
+    }
   }
 
   @get("/places/count")
@@ -118,9 +176,9 @@ export class PlaceController {
     },
   })
   async find(@param.filter(Place) filter?: Filter<Place>) {
-
-  return  this.placeRepository.find(FilterByTags({...filter,...PlacesQuery}));
-
+    return this.placeRepository.find(
+      FilterByTags({ ...filter, ...PlacesQuery })
+    );
   }
 
   @patch("/places")
@@ -175,7 +233,6 @@ export class PlaceController {
     @param.filter(Place, { exclude: "where" })
     filter?: FilterExcludingWhere<Place>
   ): Promise<Place> {
-
     return this.placeRepository.findById(id, PlaceQueryFull);
   }
 
@@ -194,10 +251,10 @@ export class PlaceController {
     })
     place: Place
   ): Promise<void> {
-    const record:any = await this.placeRepository.updateById(id, place);
+    const record: any = await this.placeRepository.updateById(id, place);
     // const record:any = await this.placeRepository.create(place);
-    await this.placeService.findOrCreateCheckInQrCode(id)
-    return record
+    await this.placeService.findOrCreateCheckInQrCode(id);
+    return record;
   }
 
   @put("/places/{id}")
