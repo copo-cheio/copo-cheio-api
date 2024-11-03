@@ -122,17 +122,18 @@ export class PlaceController {
         place.playlistId = playlistRecord.id
       }
 
-      console.log(place)
+
       const record: any = await this.placeRepository.create(place);
       for (let openingHour of openingHours || []) {
-        if (openingHour.open) {
+
           await this.openingHourRepository.create({
             dayofweek: openingHour.dayofweek,
             openhour: openingHour.openhour,
             closehour: openingHour.closehour,
             placeId: record.id,
+            active:openingHour.open || openingHour.active || false
           });
-        }
+
       }
       const placeContactsPayload: any = {
         email: contacts?.email || "",
@@ -181,25 +182,25 @@ export class PlaceController {
     );
   }
 
-  @patch("/places")
-  @response(200, {
-    description: "Place PATCH success count",
-    content: { "application/json": { schema: CountSchema } },
-  })
-  async updateAll(
-    @requestBody({
-      content: {
-        "application/json": {
-          schema: getModelSchemaRef(Place, { partial: true }),
-          exclude: ["id", "updated_at", "created_at"],
-        },
-      },
-    })
-    place: Place,
-    @param.where(Place) where?: Where<Place>
-  ): Promise<Count> {
-    return this.placeRepository.updateAll(place, where);
-  }
+  // @patch("/places")
+  // @response(200, {
+  //   description: "Place PATCH success count",
+  //   content: { "application/json": { schema: CountSchema } },
+  // })
+  // async updateAll(
+  //   @requestBody({
+  //     content: {
+  //       "application/json": {
+  //         schema: getModelSchemaRef(Place, { partial: true }),
+  //         exclude: ["id", "updated_at", "created_at"],
+  //       },
+  //     },
+  //   })
+  //   place: Place,
+  //   @param.where(Place) where?: Where<Place>
+  // ): Promise<Count> {
+  //   return this.placeRepository.updateAll(place, where);
+  // }
 
   @get("/places/{id}")
   @response(200, {
@@ -244,13 +245,19 @@ export class PlaceController {
     @param.path.string("id") id: string,
     @requestBody({
       content: {
-        "application/json": {
-          schema: getModelSchemaRef(Place, { partial: true }),
-        },
+        // "application/json": {
+        //   schema: getModelSchemaRef(Place, { partial: true }),
+        // },
       },
     })
-    place: Place
+    place: any
   ): Promise<void> {
+
+    const openingHours: any = place.openingHours;
+    delete place.openingHours;
+    if(Array.isArray(openingHours)){
+      await this.placeService.updatePlaceOpeningHours(id,openingHours)
+    }
     const record: any = await this.placeRepository.updateById(id, place);
     // const record:any = await this.placeRepository.create(place);
     await this.placeService.findOrCreateCheckInQrCode(id);

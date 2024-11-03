@@ -1,11 +1,12 @@
 import {inject} from "@loopback/core";
 import {repository} from "@loopback/repository";
-import {EventFullQuery} from '../blueprints/event.blueprint';
+import {EventFullQuery} from "../blueprints/event.blueprint";
 import {
   ContactsRepository,
   EventInstanceRepository,
   EventRepository,
   ImageRepository,
+  OpeningHoursRepository,
   PlaceRepository,
 } from "../repositories";
 import {QrFactoryService} from "./qr-factory.service";
@@ -22,6 +23,8 @@ export class PlaceService {
     public eventInstanceRepository: EventInstanceRepository,
     @repository(ImageRepository)
     public imageRepository: ImageRepository,
+    @repository(OpeningHoursRepository)
+    public openingHoursRepository: OpeningHoursRepository,
     @inject("services.QrFactoryService")
     protected qrFactoryService: QrFactoryService
   ) {}
@@ -78,10 +81,12 @@ export class PlaceService {
       },
     });
     // let eventId = "7b8ae7e3-37b0-4c19-b1ab-476426afc730";
-    let event:any ={}
-    if(instance && instance?.eventId){
-
-       event = await this.eventRepository.findById(instance.eventId, EventFullQuery);
+    let event: any = {};
+    if (instance && instance?.eventId) {
+      event = await this.eventRepository.findById(
+        instance.eventId,
+        EventFullQuery
+      );
     }
     return event;
   }
@@ -117,5 +122,35 @@ export class PlaceService {
       ],
     });
     return places;
+  }
+
+  /**
+   * checks what opening hours are the same
+   * updates or creates the rest
+   * @param placeId
+   * @param openingHoursList
+   */
+  async updatePlaceOpeningHours(placeId:string, openingHoursList: any[] ) {
+
+    for(let openingHour of openingHoursList){
+      let record = await this.openingHoursRepository.findOne({where:{
+        dayofweek:openingHour.dayofweek,placeId
+      }})
+
+      const payload:any = {
+        dayofweek:openingHour.dayofweek,
+        openhour:openingHour.openhour || openingHour.from || "00:00",
+        closehour:openingHour.closehour || openingHour.to || "00:00",
+        active: !openingHour.open && !openingHour.active ? false:true,
+        placeId:placeId
+      }
+      if(record){
+        await this.openingHoursRepository.updateById(record.id,payload)
+      }else{
+        await this.openingHoursRepository.create(payload)
+      }
+
+    }
+
   }
 }
