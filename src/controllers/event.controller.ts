@@ -338,7 +338,7 @@ export class EventController {
       },
     },
   })
-  async findUpcomingEvents(): Promise<EventInstance[]> {
+  async findUpcomingEvents(): Promise<any[]> {
 
     return this.eventService.upcomming()
     // const currentDateTime = new Date().toISOString(); // Get current time

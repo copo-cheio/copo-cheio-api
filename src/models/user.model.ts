@@ -1,9 +1,10 @@
 import {hasOne,model,property} from '@loopback/repository';
-import {SoftDeleteEntity} from 'loopback4-soft-delete';
+import {IUser} from 'loopback4-soft-delete';
+import {Base} from './base.model';
 import {ShoppingCart} from './shopping-cart.model';
 
 @model()
-export class User extends SoftDeleteEntity {
+export class User extends Base implements IUser  {
 
   @property({
     type: 'string'
@@ -28,39 +29,39 @@ export class User extends SoftDeleteEntity {
   shoppingCart: ShoppingCart;
 
 
-  @property({
-    type: 'string',
-    id: true,
-    generated: true,
-    useDefaultIdType: false,
-    postgresql: {
-      dataType: 'uuid',
-      extension: 'pgcrypto',
-      defaultFn: 'gen_random_uuid()', //<---- only this line is different
-    },
+  // @property({
+  //   type: 'string',
+  //   id: true,
+  //   generated: true,
+  //   useDefaultIdType: false,
+  //   postgresql: {
+  //     dataType: 'uuid',
+  //     extension: 'pgcrypto',
+  //     defaultFn: 'gen_random_uuid()', //<---- only this line is different
+  //   },
 
-  })
-  id?: string;
+  // })
+  // id?: string;
 
-  @property({
-    type: 'date',
-    generated: true,
-    jsonSchema: {
-      format: 'date-time',
-    },
-    defaultFn: 'now',
-  })
-  created_at ? : Date;
+  // @property({
+  //   type: 'date',
+  //   generated: true,
+  //   jsonSchema: {
+  //     format: 'date-time',
+  //   },
+  //   defaultFn: 'now',
+  // })
+  // created_at ? : Date;
 
-  @property({
-    type: 'date',
-    generated: true,
-    jsonSchema: {
-      format: 'date-time',
-    },
-    defaultFn: 'now',
-  })
-  updated_at ? : Date;
+  // @property({
+  //   type: 'date',
+  //   generated: true,
+  //   jsonSchema: {
+  //     format: 'date-time',
+  //   },
+  //   defaultFn: 'now',
+  // })
+  // updated_at ? : Date;
 
 
 

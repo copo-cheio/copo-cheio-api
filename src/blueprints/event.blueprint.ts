@@ -18,7 +18,7 @@ import {IncludeScheduleRelation} from "./shared/schedule.include";
 import {IncludeTagsRelation} from "./shared/tag.include";
 import {IncludeTicketsRelation} from "./shared/ticket.include";
 
-export const EventsQuery: any = {
+export const BaseEventsQuery:any = {
   ...QueryFilterBaseBlueprint,
   fields: {
     id: true,
@@ -49,11 +49,16 @@ export const EventsQuery: any = {
     IncludeOpeningHoursRelation,
     IncludeTagsRelation,
     IncludePlaylistRelation,
-    IncludeEventInstanceRelation,
+
     IncludeContactsRelation,
     // { relation: "instances" }, // Include event instances (occurrences)
     { relation: "recurringSchedule" }, // Include recurring schedules
   ],
+
+}
+export const EventsQuery: any = {
+  ...BaseEventsQuery,
+  include:[...BaseEventsQuery.include,IncludeEventInstanceRelation]
 };
 
 export const EventFullQuery: any = {

@@ -34,6 +34,7 @@
     "openapi-spec": "node ./dist/openapi-spec",
     "prestart": "npm run rebuild",
     "start": "node -r source-map-support/register .",
+    "start:watch": "tsc-watch --target es2017 --outDir ./dist --onSuccess \"node .\"",
     "clean": "lb-clean dist *.tsbuildinfo .eslintcache",
     "rebuild": "npm run clean && npm run build"
   },
@@ -58,7 +59,6 @@
     "@loopback/rest-explorer": "^7.0.5",
     "@loopback/security": "^0.11.5",
     "@loopback/service-proxy": "^7.0.5",
-    "@monkey-space/loopback-component-filter": "^0.0.5",
     "firebase-admin": "^12.4.0",
     "jimp": "^0.22.12",
     "loopback-connector-postgresql": "^7.1.4",
@@ -88,6 +88,7 @@
     "@types/uuid": "^10.0.0",
     "eslint": "^8.57.0",
     "source-map-support": "^0.5.21",
+    "tsc-watch": "^6.2.0",
     "turbo": "^2.2.3",
     "typescript": "~5.2.2"
   },

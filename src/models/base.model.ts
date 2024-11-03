@@ -13,6 +13,14 @@ import {SoftDeleteEntity} from 'loopback4-soft-delete';
   }
 })
 export class Base extends   SoftDeleteEntity  {
+
+  constructor(
+    data?: Partial<Base>,
+
+  ) {
+    super(data);
+
+  }
 // export class Base extends Entity {
   @property({
     type: 'string',
@@ -98,13 +106,7 @@ export class Base extends   SoftDeleteEntity  {
 
 
 
-  constructor(
-    data?: Partial<Base>,
 
-  ) {
-    super(data);
-
-  }
 }
 
 export interface BaseRelations {

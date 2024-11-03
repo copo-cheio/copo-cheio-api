@@ -1,6 +1,6 @@
 import { /* inject, */ BindingScope,inject,injectable} from "@loopback/core";
 import {repository} from "@loopback/repository";
-import {EventsQuery} from "../blueprints/event.blueprint";
+import {BaseEventsQuery,EventsQuery} from "../blueprints/event.blueprint";
 import {Event,EventInstance} from "../models";
 import {
   ContactsRepository,
@@ -61,13 +61,10 @@ export class EventService {
   async getDistinctEventIds(mode: string = "upcoming") {
     const startDate = new Date().toISOString();
     const params = [startDate];
-    const query = `SELECT  id , eventid 
-FROM (
-  SELECT  id , eventid , startDate, ROW_NUMBER() OVER (PARTITION BY eventid ORDER BY startDate) as row_num
-  FROM EventInstance
-) subquery
-WHERE row_num = 1 AND  startDate >= ?
-ORDER BY startDate;`;
+    const query = `SELECT DISTINCT ON (eventid) id,eventid, endDate,startDate, latitude,longitude
+FROM eventinstance WHERE endDate >= $i 
+ORDER BY eventid,startdate ASC;
+`;
 
     const distinctEventsIds = await this.eventInstanceRepository.dataSource.execute(
       query,
@@ -94,18 +91,15 @@ ORDER BY startDate;`;
   async upcomming() {
     const startDate = new Date().toISOString();
     const params = [startDate];
-    const query = `SELECT  id , eventid 
-  FROM (
-    SELECT  id , eventid , startDate, ROW_NUMBER() OVER (PARTITION BY eventid ORDER BY startDate) as row_num
-    FROM EventInstance
-  ) subquery
-  WHERE row_num = 1 AND  startDate >= $1
-  ORDER BY startDate`;
+    const query = `SELECT DISTINCT ON (eventid) id,eventid, endDate,startDate, latitude,longitude
+    FROM eventinstance WHERE startDate >= $1 and deleted = false
+    ORDER BY eventid,startDate ASC;`;
 
     const distinctEventsIds = await this.eventInstanceRepository.dataSource.execute(
       query,
       params
     );
+
     const distinctEventsInstanceIds = distinctEventsIds.map(
       (deid: any) => deid.id
     );
@@ -118,7 +112,7 @@ ORDER BY startDate;`;
         {
           relation: "event",
           scope: {
-            ...EventsQuery,
+            ...BaseEventsQuery,
           },
         },
       ],
@@ -178,8 +172,9 @@ ORDER BY startDate;`;
 
     // Fetch all upcoming events
     const upcomingEvents = await this.eventInstanceRepository.find({
+      order: ["startDate ASC"],
       where: {
-        startDate: { gt: currentDateTime }, // Filter only future events
+        endDate: { gt: currentDateTime }, // Filter only future events
       },
       include: [
         { relation: "event", scope: { include: [{ relation: "address" }] } },
@@ -245,7 +240,6 @@ ORDER BY startDate;`;
     const place = await this.placeRepository.findById(event.placeId);
     const address = await this.addressService.findById(place.addressId);
 
-
     const coordinates = {
       latitude: parseFloat("" + address.latitude),
       longitude: parseFloat("" + address.longitude),
@@ -272,7 +266,7 @@ ORDER BY startDate;`;
       return {
         id: eI.id,
         startDay: startDay,
-        data:eI
+        data: eI,
       };
     });
   }
@@ -283,7 +277,7 @@ ORDER BY startDate;`;
   ) {
     const eventInstances = [];
     const newEventInstances = [];
-    const updateEventInstances:any  = [];
+    const updateEventInstances: any = [];
     let deleteEventInstances = [];
 
     let currentEventInstances: any = await this.eventInstanceRepository.findAll(
@@ -337,14 +331,13 @@ ORDER BY startDate;`;
       //   eventId: event.id!,
       //   deleted:false
       // });
-      const eventInstance:any ={
+      const eventInstance: any = {
         startDate: currentStartDate.toISOString(),
         endDate: currentEndDate.toISOString(),
         latitude: coordinates.latitude, // Adjust based on actual event location logic
         longitude: coordinates.longitude, // Adjust based on actual event location logic
         eventId: event.id!,
-
-      }
+      };
 
       let newStartDate = this.parseStartDates([eventInstance])[0];
       let hasRecord = currentEventInstances.find(
@@ -352,7 +345,6 @@ ORDER BY startDate;`;
       );
 
       if (hasRecord) {
-
         eventInstance.id = hasRecord.id;
         eventInstance.deleted = false;
         updateEventInstances.push(eventInstance);
@@ -369,7 +361,6 @@ ORDER BY startDate;`;
       // Move the date forward by the recurrence interval (e.g., 7 days for weekly)
       currentStartDate.setDate(currentStartDate.getDate() + recurrenceInterval);
       currentEndDate.setDate(currentEndDate.getDate() + recurrenceInterval);
-
     }
 
     console.log(" ");
@@ -388,8 +379,8 @@ ORDER BY startDate;`;
     for (let updateInstance of updateEventInstances) {
       let id = updateInstance.id;
       delete updateInstance.id;
-      console.log('update',{id,updateInstance})
-      await this.eventInstanceRepository.forceUpdateById(id,updateInstance)
+      console.log("update", { id, updateInstance });
+      await this.eventInstanceRepository.forceUpdateById(id, updateInstance);
       // await this.eventInstanceRepository.updateAll( updateInstance,{and: [{id}, {or:[{deleted:true},{deleted:false}]}]});
     }
     // Delete all the prev instances

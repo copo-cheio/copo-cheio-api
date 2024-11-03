@@ -53,3 +53,4 @@ export * from './order-timeline.model';
 export * from './company.model';
 export * from './staff.model';
 export * from './contacts.model';
+export * from './team.model';

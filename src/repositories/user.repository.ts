@@ -1,11 +1,12 @@
+import {AuthenticationBindings} from '@loopback/authentication';
 import {Getter,inject} from '@loopback/core';
 import {HasOneRepositoryFactory,repository} from '@loopback/repository';
-import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {ShoppingCart,User,UserRelations} from '../models';
+import {BaseRepository} from './base.repository.base';
 import {ShoppingCartRepository} from './shopping-cart.repository';
 
-export class UserRepository extends SoftCrudRepository<
+export class UserRepository extends BaseRepository<
   User,
   typeof User.prototype.id,
   UserRelations
@@ -15,10 +16,12 @@ export class UserRepository extends SoftCrudRepository<
 
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource, @repository.getter('ShoppingCartRepository') protected shoppingCartRepositoryGetter: Getter<ShoppingCartRepository>,
+    @inject.getter(AuthenticationBindings.CURRENT_USER, {optional: true})
+    protected readonly getCurrentUser?: Getter<User | undefined>,
   ) {
 
 
-    super(User, dataSource);
+    super(User, dataSource,getCurrentUser);
     this.shoppingCart = this.createHasOneRepositoryFactoryFor('shoppingCart', shoppingCartRepositoryGetter);
     this.registerInclusionResolver('shoppingCart', this.shoppingCart.inclusionResolver);
   }

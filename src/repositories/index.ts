@@ -1,3 +1,4 @@
+// export * from './_base.repository.base';
 export * from './address.repository';
 export * from './artist.repository';
 export * from './balcony.repository';
@@ -49,5 +50,9 @@ export * from './timeline.repository';
 export * from './user.repository';
 
 export * from './company.repository';
-export * from './staff.repository';
 export * from './contacts.repository';
+export * from './staff.repository';
+export * from './team.repository';
+
+export * from './base.repository.base';
+
