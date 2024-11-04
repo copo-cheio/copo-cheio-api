@@ -139,3 +139,7 @@ export * from './company-staff.controller';
 export * from './event-contacts.controller';
 export * from './team.controller';
 export * from './app.controller';
+export * from './company-team.controller';
+export * from './company-event.controller';
+export * from './event-instance-team.controller';
+export * from './team-staff.controller';

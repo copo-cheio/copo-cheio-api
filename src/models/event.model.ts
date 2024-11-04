@@ -79,13 +79,13 @@ export class Event extends Base {
   @property({
     type: 'number',
     required: true,
-    default:0
+    default: 0
   })
   status: number;
   @property({
     type: 'boolean',
 
-    default:false
+    default: false
   })
   live: boolean;
 
@@ -134,6 +134,11 @@ export class Event extends Base {
   /*         Computed Properties        */
   @hasOne(() => Contacts, {keyTo: 'refId'})
   contacts: Contacts;
+
+  @property({
+    type: 'string',
+  })
+  companyId?: string;
   /* ********************************** */
 
   @property({

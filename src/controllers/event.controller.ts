@@ -1,11 +1,9 @@
-import {inject} from "@loopback/core";
+import {authenticate,AuthenticationBindings} from '@loopback/authentication';
+import {inject,intercept} from "@loopback/core";
 import {
-  Count,
-  CountSchema,
   Filter,
   FilterExcludingWhere,
-  repository,
-  Where,
+  repository
 } from "@loopback/repository";
 import {
   del,
@@ -14,10 +12,12 @@ import {
   param,
   patch,
   post,
-  put,
+  Request,
   requestBody,
   response,
+  RestBindings
 } from "@loopback/rest";
+import {UserProfile} from '@loopback/security';
 import {
   EventCreateTransformer,
   EventFullQuery,
@@ -28,6 +28,7 @@ import {
   IncludeScheduleRangeRelation,
   ScheduleTypes,
 } from "../blueprints/shared/schedule.include";
+import {addCompanyOwnership} from '../interceptors/add-company-ownership.interceptor';
 import {Event,EventInstance,Price} from "../models";
 import {
   ContactsRepository,
@@ -73,195 +74,16 @@ export class EventController {
     public eventInstanceRepository: EventInstanceRepository,
 
     @repository(RecurringScheduleRepository)
-    public recurringScheduleRepository: RecurringScheduleRepository
-  ) {}
+    public recurringScheduleRepository: RecurringScheduleRepository,
+    @inject(RestBindings.Http.REQUEST) private request: Request,
+    @inject(AuthenticationBindings.CURRENT_USER, { optional: true })
+    public currentUser: UserProfile // Inject the current user profile
+  ) {
+    console.log(AuthenticationBindings.CURRENT_USER)
 
-  /*
-   // 1. Create an event (one-time or recurring)
-   @post('/events', {
-    responses: {
-      '200': {
-        description: 'Event model instance',
-        content: {'application/json': {schema: getModelSchemaRef(Event)}},
-      },
-    },
-  })
-  async createEvent(@param.body() eventData: Event): Promise<Event> {
-    // Create the event
-    const event = await this.eventRepository.create(eventData);
-
-    // If the event is recurring, create the schedule
-    if (eventData.isRecurring) {
-      // You may receive schedule information in the body of the request
-      const scheduleData = eventData.recurringSchedule;
-      if (scheduleData) {
-        await this.eventRepository.schedule(event.id).create(scheduleData);
-      }
-    }
-
-    return event;
   }
 
-  // 2. Find all events (with event instances and schedules included)
-  @get('/events', {
-    responses: {
-      '200': {
-        description: 'Array of Event model instances',
-        content: {
-          'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Event)},
-          },
-        },
-      },
-    },
-  })
-  async findAllEvents(): Promise<Event[]> {
-    return this.eventRepository.find({
-      include: [
-        {relation: 'instances'}, // Include event instances (occurrences)
-        {relation: 'schedule'}, // Include recurring schedules
-      ],
-    });
-  }
 
-  // 3. Find nearest future events
-  @get('/events/upcoming', {
-    responses: {
-      '200': {
-        description: 'Array of upcoming EventInstances',
-        content: {
-          'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(EventInstance)},
-          },
-        },
-      },
-    },
-  })
-  async findUpcomingEvents(): Promise<EventInstance[]> {
-    const currentDateTime = new Date().toISOString(); // Get current time
-    return this.eventInstanceRepository.find({
-      where: {
-        startDate: {gt: currentDateTime}, // Events happening in the future
-      },
-      order: ['startDate ASC'], // Order by nearest future events
-      limit: 10, // Return nearest 10 events (optional)
-      include: [{relation: 'event'}], // Include event details
-    });
-  }
-
-  // 4. Find ongoing events
-  @get('/events/ongoing', {
-    responses: {
-      '200': {
-        description: 'Array of ongoing EventInstances',
-        content: {
-          'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(EventInstance)},
-          },
-        },
-      },
-    },
-  })
-  async findOngoingEvents(): Promise<EventInstance[]> {
-    const currentDateTime = new Date().toISOString();
-    return this.eventInstanceRepository.find({
-      where: {
-        and: [
-          {startDate: {lte: currentDateTime}},
-          {
-            or: [{endDate: {gte: currentDateTime}}, {endDate: null}],
-          },
-        ],
-      },
-      order: ['startDate ASC'],
-      include: [{relation: 'event'}],
-    });
-  }
-
-  // 5. Create a new event instance for an event (for recurring events)
-  @post('/events/{id}/instances', {
-    responses: {
-      '200': {
-        description: 'Create an instance of an event',
-        content: {'application/json': {schema: getModelSchemaRef(EventInstance)}},
-      },
-    },
-  })
-  async createEventInstance(
-    @param.path.string('id') eventId: string,
-    @param.body() eventInstanceData: EventInstance,
-  ): Promise<EventInstance> {
-    return this.eventRepository.instances(eventId).create(eventInstanceData);
-  }
-}
-
-  async upComingEvents() {
-    const currentDateTime = new Date().toISOString(); // Current date and time in ISO format
-
-    const upcomingEvents = await this.eventInstanceRepository.find({
-      where: {
-        startDate: { gt: currentDateTime }, // Find events where startDate is greater than now
-      },
-      order: ["startDate ASC"], // Order by the nearest start date
-      limit: 10, // Limit the result to the nearest 10 events (optional)
-      include: [{ relation: "event" }], // Include the related event details
-    });
-
-    return upcomingEvents;
-  }
-
-  async findOngoingEvents() {
-    const currentDateTime = new Date().toISOString();
-
-    const ongoingEvents = await this.eventInstanceRepository.find({
-      where: {
-        and: [
-          { startDate: { lte: currentDateTime } }, // Events that started before or at the current time
-          {
-            or: [
-              { endDate: { gte: currentDateTime } }, // Ongoing event with an end date
-              { endDate: null }, // Ongoing event with no end date (e.g., a single-day event)
-            ],
-          },
-        ],
-      },
-      order: ["startDate ASC"],
-      include: [{ relation: "event" }], // Include the related event details
-    });
-
-    return ongoingEvents;
-  }
-
-  async findOngoingAndUpcomingEvents() {
-    const currentDateTime = new Date().toISOString();
-
-    const events = await this.eventInstanceRepository.find({
-      where: {
-        or: [
-          {
-            and: [
-              { startDate: { lte: currentDateTime } },
-              {
-                or: [{ endDate: { gte: currentDateTime } }, { endDate: null }],
-              },
-            ],
-          },
-          { startDate: { gt: currentDateTime } },
-        ],
-      },
-      order: ["startDate ASC"],
-      include: [{ relation: "event" }], // Include the related event details
-    });
-
-    return events;
-  }
-*/
-  // @get('/events/qr/check-in')
-  // async createCheckInQr(
-  //   @param.query.string("id") id:string
-  // ){
-  //   return this.generateCheckInQrCode(id)
-  // }
   @post("/create/event")
   @response(200, {
     description: "Event model instance",
@@ -341,59 +163,7 @@ export class EventController {
   async findUpcomingEvents(): Promise<any[]> {
 
     return this.eventService.upcomming()
-    // const currentDateTime = new Date().toISOString(); // Get current time
-    // return this.eventInstanceRepository.find({
-    //   where: {
-    //     startDate: { gt: currentDateTime }, // Events happening in the future
-    //   },
-    //   order: ["startDate ASC"], // Order by nearest future events
-    //   limit: 10, // Return nearest 10 events (optional)
-    //   include: [{ relation: "event", scope:EventsQuery }], // Include event details
-    // });
-    // console.log('xxxxx')
-    // const currentDateTime = new Date().toISOString();
-    // let eventIds: any = [];
-    // let keepRunning = true;
-    // let records: any = [];
-    // let i = 0;
-    // while (keepRunning) {
-    //   if(i >= 100)break;
-    //   i++
-    //   try {
-    //     let record: any = await this.eventInstanceRepository.findOne({
-    //       where: {
 
-    //           startDate: { gte: currentDateTime },
-
-    //           eventId: { nin: eventIds },
-
-
-    //       },
-
-    //       order: ["startDate ASC"],
-    //       include: [
-    //         {
-    //           relation: "event",
-    //           scope: {
-    //             ...EventsQuery,
-    //           },
-    //         },
-    //       ],
-    //     });
-
-    //     if (record) {
-    //       record.event.startDate = record.startDate;
-    //       record.event.endDate = record.endDate;
-    //       records.push(record);
-    //       eventIds.push(record.eventId);
-    //     } else {
-    //       keepRunning = false;
-    //     }
-    //   } catch (ex) {
-    //     keepRunning = false;
-    //   }
-    // }
-    // return records;
   }
 
   // 4. Find ongoing events
@@ -454,6 +224,7 @@ export class EventController {
     return records;
   }
 
+  /*
   @get("/events/raw", {
     responses: {
       "200": {
@@ -470,6 +241,7 @@ export class EventController {
   async findRaw(@param.filter(Event) filter?: Filter<Event>): Promise<Event[]> {
     return this.eventRepository.find(filter);
   }
+  */
   @get("/events/upcoming/nearby", {
     responses: {
       "200": {
@@ -482,10 +254,13 @@ export class EventController {
       },
     },
   })
-  async findUpcomingNearbyEvents(): Promise<EventInstance[]> {
+  async findUpcomingNearbyEvents(
+    @param.query.number("latitude") latitude: number = 38.64239,
+    @param.query.number("longitude") longitude: number = -9.19569
+  ): Promise<EventInstance[]> {
     return this.eventService.findUpcomingNearbyEvents(
-      38.64239,
-      -9.19569,
+      latitude,
+      longitude,
       100000000000000000
     );
   }
@@ -521,10 +296,10 @@ export class EventController {
 
   @get("/events/nearby")
   async findNearbyPlaces(
-    @param.query.number("lat") lat: number,
-    @param.query.number("lon") lon: number
+    @param.query.number("latitude") latitude: number,
+    @param.query.number("longitude") longitude: number
   ) {
-    const results = await this.eventRepository.findByDistance(lat, lon);
+    const results = await this.eventRepository.findByDistance(latitude, longitude);
 
     const _filter = {
       ...EventsQuery,
@@ -560,6 +335,7 @@ export class EventController {
     description: "Event model instance",
     content: { "application/json": { schema: getModelSchemaRef(Event) } },
   })
+  @intercept(addCompanyOwnership)
   async create(
     @requestBody({
       content: {
@@ -585,6 +361,7 @@ export class EventController {
     description: "Event model instance",
     content: { "application/json": { schema: getModelSchemaRef(Event) } },
   })
+  @intercept(addCompanyOwnership)
   async createFull(
     @requestBody({
       description: "Required input for login",
@@ -736,29 +513,14 @@ export class EventController {
     return result;
   }
 
-  @patch("/events/{id}")
-  @response(204, {
-    description: "Event PATCH success",
-  })
+
   async updateById(
     @param.path.string("id") id: string,
     @requestBody({
       description: "Required input for login",
       required: true,
       content: {
-        // "application/json": {
-        //   schema: {
-        //     type: "object",
-        //     properties: {
-        //       name: {
-        //         type: "string",
-        //       },
-        //       placeId: {
-        //         type: "string",
-        //       },
-        //     },
-        //   },
-        // },
+
       },
     })
     data: any
@@ -798,14 +560,6 @@ export class EventController {
     return result;
   }
 
-  @get("/events/count")
-  @response(200, {
-    description: "Event model count",
-    content: { "application/json": { schema: CountSchema } },
-  })
-  async count(@param.where(Event) where?: Where<Event>): Promise<Count> {
-    return this.eventRepository.count(where);
-  }
 
   @get("/events")
   @response(200, {
@@ -823,25 +577,7 @@ export class EventController {
     return this.eventRepository.find(EventsQuery);
   }
 
-  @patch("/events")
-  @response(200, {
-    description: "Event PATCH success count",
-    content: { "application/json": { schema: CountSchema } },
-  })
-  async updateAll(
-    @requestBody({
-      content: {
-        "application/json": {
-          exclude: ["id", "updated_at", "created_at"],
-          schema: getModelSchemaRef(Event, { partial: true }),
-        },
-      },
-    })
-    event: Event,
-    @param.where(Event) where?: Where<Event>
-  ): Promise<Count> {
-    return this.eventRepository.updateAll(event, where);
-  }
+
 
   @get("/events/{id}")
   @response(200, {
@@ -860,26 +596,20 @@ export class EventController {
     return this.eventRepository.findById(id, filter);
   }
 
-  @put("/events/{id}")
-  @response(204, {
-    description: "Event PUT success",
-  })
-  async replaceById(
-    @param.path.string("id") id: string,
-    @requestBody() event: Event
-  ): Promise<void> {
-    const response = await this.eventRepository.replaceById(id, event);
-    const entity = await this.eventRepository.findById(id);
-    await this.updateScheduleData(entity);
-    return response;
-  }
 
   @del("/events/{id}")
   @response(204, {
     description: "Event DELETE success",
   })
+  @authenticate("firebase")
+  // @intercept(validateDeleteAction)
+  //@ts-ignore
+  @intercept('interceptors.CompanyOwnershipValidation')
   async deleteById(@param.path.string("id") id: string): Promise<void> {
-    await this.eventRepository.deleteById(id);
+    // await this.eventRepository.deleteById(id);
+    return new Promise((res)=>{
+      setTimeout(res,1000)
+    })
   }
 
   private async updateScheduleData(entity: any) {

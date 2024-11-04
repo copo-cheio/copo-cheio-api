@@ -54,3 +54,4 @@ export * from './company.model';
 export * from './staff.model';
 export * from './contacts.model';
 export * from './team.model';
+export * from './team-staff.model';

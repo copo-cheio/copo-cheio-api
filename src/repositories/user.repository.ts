@@ -1,4 +1,3 @@
-import {AuthenticationBindings} from '@loopback/authentication';
 import {Getter,inject} from '@loopback/core';
 import {HasOneRepositoryFactory,repository} from '@loopback/repository';
 import {PostgresSqlDataSource} from '../datasources';
@@ -16,12 +15,12 @@ export class UserRepository extends BaseRepository<
 
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource, @repository.getter('ShoppingCartRepository') protected shoppingCartRepositoryGetter: Getter<ShoppingCartRepository>,
-    @inject.getter(AuthenticationBindings.CURRENT_USER, {optional: true})
-    protected readonly getCurrentUser?: Getter<User | undefined>,
+    // @inject.getter(AuthenticationBindings.CURRENT_USER, {optional: true})
+    // protected readonly getCurrentUser?: Getter<User | undefined>,
   ) {
 
 
-    super(User, dataSource,getCurrentUser);
+    super(User, dataSource);
     this.shoppingCart = this.createHasOneRepositoryFactoryFor('shoppingCart', shoppingCartRepositoryGetter);
     this.registerInclusionResolver('shoppingCart', this.shoppingCart.inclusionResolver);
   }

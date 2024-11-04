@@ -1,8 +1,11 @@
-import {hasOne,model,property,referencesMany, belongsTo, hasMany} from '@loopback/repository';
+import {belongsTo,hasMany,hasOne,model,property,referencesMany} from '@loopback/repository';
 import {Base} from './base.model';
 import {Contacts} from './contacts.model';
-import {Staff} from './staff.model';
+import {Event} from './event.model';
 import {Image} from './image.model';
+import {Place} from './place.model';
+import {Staff} from './staff.model';
+import {Team} from './team.model';
 
 @model()
 export class Company extends Base {
@@ -17,8 +20,8 @@ export class Company extends Base {
   })
   description?: string;
 
-  @referencesMany(() => Staff)
-  staffIds: string[];
+  // @referencesMany(() => Staff)
+  // staffIds: string[];
 
   @hasOne(() => Contacts, {keyTo: 'refId'})
   contacts: Contacts;
@@ -28,6 +31,15 @@ export class Company extends Base {
 
   @hasMany(() => Staff)
   staffMembers: Staff[];
+
+  @hasMany(() => Team)
+  teams: Team[];
+
+  @hasMany(() => Event)
+  events: Event[];
+
+  @referencesMany(() => Place)
+  previousPlaceIds: string[];
 
   constructor(data?: Partial<Company>) {
     super(data);

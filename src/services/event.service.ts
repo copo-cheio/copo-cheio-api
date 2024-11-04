@@ -168,23 +168,7 @@ ORDER BY eventid,startdate ASC;
     // @param.query.number('radius')
     radius: number = 100000000000000 // Default radius in kilometers
   ): Promise<EventInstance[]> {
-    // const currentDateTime = new Date().toISOString(); // Get current time
 
-    // // Fetch all upcoming events
-    // const upcomingEvents = await this.eventInstanceRepository.find({
-    //   order: ["startDate ASC"],
-    //   where: {
-    //     endDate: { gt: currentDateTime }, // Filter only future events
-    //   },
-    //   include: [
-    //     {
-    //       relation: "event",
-    //       scope: {
-    //         ...BaseEventsQuery,
-    //       },
-    //     },
-    //   ], // Include related Event details
-    // });
 
     const upcomingEvents = await this.upcomming()
     // Filter the events based on proximity (calculate distance using Haversine)

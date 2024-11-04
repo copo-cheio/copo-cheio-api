@@ -29,7 +29,7 @@ export class BaseRepository<
     entityClass: typeof Entity & { prototype: T },
     dataSource: juggler.DataSource,
     @inject.getter(AuthenticationBindings.CURRENT_USER, { optional: true })
-    protected readonly getCurrentUser?: Getter<any | undefined>
+    public readonly getCurrentUser?: Getter<any | undefined>
   ) {
     super(entityClass, dataSource, getCurrentUser);
     // super(entityClass, dataSource,getCurrentUser);

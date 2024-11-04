@@ -1,6 +1,7 @@
-import {ApplicationConfig,CopoCheioServerApplication} from './application';
+import {ApplicationConfig,CopoCheioServerApplication} from "./application";
+import {CompanyOwnershipValidation} from "./interceptors/company-ownership-validation";
 
-export * from './application';
+export * from "./application";
 
 export async function main(options: ApplicationConfig = {}) {
   const app = new CopoCheioServerApplication(options);
@@ -11,6 +12,7 @@ export async function main(options: ApplicationConfig = {}) {
   console.log(`Server is running at ${url}`);
   console.log(`Try ${url}/ping`);
 
+  app.interceptor(CompanyOwnershipValidation);
   return app;
 }
 
@@ -33,8 +35,8 @@ if (require.main === module) {
       // protocol: 'http',
     },
   };
-  main(config).catch(err => {
-    console.error('Cannot start the application.', err);
+  main(config).catch((err) => {
+    console.error("Cannot start the application.", err);
     process.exit(1);
   });
 }

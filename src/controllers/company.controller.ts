@@ -1,10 +1,8 @@
+import {intercept} from '@loopback/core';
 import {
-  Count,
-  CountSchema,
   Filter,
   FilterExcludingWhere,
-  repository,
-  Where,
+  repository
 } from '@loopback/repository';
 import {
   del,
@@ -18,6 +16,7 @@ import {
   response,
 } from '@loopback/rest';
 import {CompanyQueryFull,CompanysQuery} from '../blueprints/company.blueprint';
+import {addCompanyOwnership} from '../interceptors/add-company-ownership.interceptor';
 import {Company} from '../models';
 import {CompanyRepository,ContactsRepository} from '../repositories';
 
@@ -28,6 +27,16 @@ export class CompanyController {
     @repository(ContactsRepository)
     public contactRepository : ContactsRepository,
   ) {}
+
+
+
+  @post('/companies/test')
+  @intercept(addCompanyOwnership) // Use the `log` function
+  async createResource(@requestBody() resourceData: any) {
+    // Your logic to handle resource creation
+    return {success: true, data: resourceData};
+  }
+
 
   @post('/companies')
   @response(200, {
@@ -53,16 +62,6 @@ export class CompanyController {
     return result
   }
 
-  @get('/companies/count')
-  @response(200, {
-    description: 'Company model count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async count(
-    @param.where(Company) where?: Where<Company>,
-  ): Promise<Count> {
-    return this.companyRepository.count(where);
-  }
 
   @get('/companies')
   @response(200, {
@@ -82,24 +81,7 @@ export class CompanyController {
     return this.companyRepository.find(CompanysQuery);
   }
 
-  @patch('/companies')
-  @response(200, {
-    description: 'Company PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async updateAll(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Company, {partial: true}),
-        },
-      },
-    })
-    company: Company,
-    @param.where(Company) where?: Where<Company>,
-  ): Promise<Count> {
-    return this.companyRepository.updateAll(company, where);
-  }
+
 
   @get('/companies/{id}')
   @response(200, {

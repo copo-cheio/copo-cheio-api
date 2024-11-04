@@ -16,6 +16,7 @@ import {
   registerAuthenticationStrategy,
 } from "@loopback/authentication";
 import {FirebaseAuthStrategy} from './auth-strategies/firebase-strategy';
+import {CompanyOwnershipValidation} from './interceptors/company-ownership-validation';
 import {FILE_UPLOAD_SERVICE,STORAGE_DIRECTORY} from './services/FileUpload/keys';
 import {MultipartFormDataBodyParser} from './utils/parser';
 
@@ -28,7 +29,7 @@ export class CopoCheioServerApplication extends BootMixin(
   constructor(options: ApplicationConfig = {}) {
     super(options);
 
-
+    this.interceptor(CompanyOwnershipValidation);
 
     // Set up the custom sequence
     this.sequence(MySequence);
