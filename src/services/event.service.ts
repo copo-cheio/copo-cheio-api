@@ -166,29 +166,36 @@ ORDER BY eventid,startdate ASC;
     // @param.query.number('longitude')
     userLongitude: number,
     // @param.query.number('radius')
-    radius: number = 10 // Default radius in kilometers
+    radius: number = 100000000000000 // Default radius in kilometers
   ): Promise<EventInstance[]> {
-    const currentDateTime = new Date().toISOString(); // Get current time
+    // const currentDateTime = new Date().toISOString(); // Get current time
 
-    // Fetch all upcoming events
-    const upcomingEvents = await this.eventInstanceRepository.find({
-      order: ["startDate ASC"],
-      where: {
-        endDate: { gt: currentDateTime }, // Filter only future events
-      },
-      include: [
-        { relation: "event", scope: { include: [{ relation: "address" }] } },
-      ], // Include related Event details
-    });
+    // // Fetch all upcoming events
+    // const upcomingEvents = await this.eventInstanceRepository.find({
+    //   order: ["startDate ASC"],
+    //   where: {
+    //     endDate: { gt: currentDateTime }, // Filter only future events
+    //   },
+    //   include: [
+    //     {
+    //       relation: "event",
+    //       scope: {
+    //         ...BaseEventsQuery,
+    //       },
+    //     },
+    //   ], // Include related Event details
+    // });
 
+    const upcomingEvents = await this.upcomming()
     // Filter the events based on proximity (calculate distance using Haversine)
     const nearbyEvents = upcomingEvents.filter((event: any) => {
       const distance = getDistanceFromLatLonInKm(
         userLatitude,
         userLongitude,
-        event?.event?.address?.latitude,
-        event?.event?.address?.longitude
+        event?.event?.address?.latitude || event?.latitude,
+        event?.event?.address?.longitude || event?.longitude
       );
+
       return distance <= radius; // Return events within the specified radius
     });
 
@@ -363,13 +370,6 @@ ORDER BY eventid,startdate ASC;
       currentEndDate.setDate(currentEndDate.getDate() + recurrenceInterval);
     }
 
-    console.log(" ");
-    console.log(" ");
-    console.log("will create ", newEventInstances.length);
-    console.log("will update ", updateEventInstances.length);
-    console.log("will delete ", deleteEventInstances.length);
-    console.log(" ");
-    console.log(" ");
     // Save all event instances in bulk
     //await this.eventInstanceRepository.createAll(eventInstances);
     if (newEventInstances.length > 0) {

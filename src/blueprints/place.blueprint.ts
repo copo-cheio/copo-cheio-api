@@ -43,28 +43,39 @@ export const PlaceQueryFull: any = {
   ],
 };
 
-export const PlacesQuery: any = {
-  ...QueryFilterBaseBlueprint,
+export const BasePlacesQuery:any = {
 
-  fields: {
-    id: true,
-    created_at: true,
-    updated_at: true,
-    name: true,
-    description: true,
-    coverId: true,
-    addressId: true,
-    scheduleId:true,
-    tagIds:true,
-    email:true,
-    phone:true,
-    webpage:true
-  },
+    ...QueryFilterBaseBlueprint,
+
+    fields: {
+      id: true,
+      created_at: true,
+      updated_at: true,
+      name: true,
+      description: true,
+      coverId: true,
+      addressId: true,
+      scheduleId:true,
+      tagIds:true,
+      email:true,
+      phone:true,
+      webpage:true
+    },
+
+    include: [
+      {"relation":"cover"},
+      IncludeAddressRelation,
+      IncludeTagsRelation,
+      // IncludeScheduleRelation,
+      // IncludeOpeningHoursRelation,
+    ],
+  };
+
+export const PlacesQuery: any = {
+ ...BasePlacesQuery,
 
   include: [
-    {"relation":"cover"},
-    IncludeAddressRelation,
-    IncludeTagsRelation,
+    ...BasePlacesQuery.include,
     // IncludeScheduleRelation,
     IncludeOpeningHoursRelation,
   ],

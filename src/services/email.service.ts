@@ -17,7 +17,7 @@ export class EmailService {
         pass: 'umff mopf fmju okeb'      // Replace with your App Password or Gmail password (if less secure apps allowed)
       }
     });
-    console.log({transporter})
+
     // Setup email data
     const mailOptions = {
       from: 'pihh.rocks@gmail.com',   // Your email address

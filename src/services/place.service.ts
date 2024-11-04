@@ -1,6 +1,7 @@
 import {inject} from "@loopback/core";
 import {repository} from "@loopback/repository";
 import {EventFullQuery} from "../blueprints/event.blueprint";
+import {BasePlacesQuery,PlacesQuery} from '../blueprints/place.blueprint';
 import {
   ContactsRepository,
   EventInstanceRepository,
@@ -90,7 +91,92 @@ export class PlaceService {
     }
     return event;
   }
+
+  async findNearbyPlaces(latitude:number,longitude:number,mode="all"){
+    const query = `SELECT 
+    	place.id,
+    	place.addressid,
+    	address.latitude,
+    	address.longitude,
+    	(6371 * ACOS(
+            COS(RADIANS($1)) * COS(RADIANS(address.latitude)) *
+            COS(RADIANS(address.longitude) - RADIANS($2)) +
+            SIN(RADIANS($1)) * SIN(RADIANS(address.latitude))
+        )) AS distance_km
+      FROM place 
+      INNER JOIN address
+      ON  place.addressid::text = address.id::text 
+      ORDER BY
+        distance_km ASC;`
+
+      const params = [latitude,longitude]
+     const nearbyPlaces =  await this.placeRepository.dataSource.execute(
+      query,
+      params
+    );
+
+    let placeDistanceMap:any = {};
+    for(let place of nearbyPlaces){
+      placeDistanceMap[place.id]=place.distance_km
+    }
+    let result:any = nearbyPlaces;
+    if(mode == "all"){
+      result = await this.placeRepository.findAll({...PlacesQuery,where:{id:{inq:nearbyPlaces.map((np:any) => np.id)}}})
+
+    }else if(mode =="open") {
+      let today = new Date()
+      let dayOfWeek = today.getDay()
+      let time = [today.getHours(),today.getMinutes(),0].map((t:any) => {
+        t = ""+t;
+        if(t.length < 1){
+          t = "0"+t
+        }
+      }).join(':')
+      result = await this.placeRepository.findAll({...BasePlacesQuery,
+        include:[...BasePlacesQuery.include,
+          {
+            relation: "openHours",
+            scope: {
+              where: {
+                and: [
+                  { dayOfWeek: dayOfWeek },
+                  { active: true },
+                  {
+                    or: [
+                      {
+                        and: [
+                          { openTime: { lte: time } },
+                          { closeTime: { gte: time } },
+                        ],
+                      },
+                      {
+                        and: [
+                          { openTime: { lte: time } },
+                          { closeTime: { lt: "09:00:00" } },
+                        ],
+                      }, // Assuming a bar could close before 4 AM.
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      })
+    }
+    return result.map((res:any)=>{
+      return {
+        ...res,
+        distance_km: placeDistanceMap[res.id]
+      }
+    }).sort((a:any,b:any)=> a.distance_km < b.distance_km)
+
+  }
+
+
+
   async findOpenPlaces(dayOfWeek: number, time: string) {
+    if(!dayOfWeek) dayOfWeek = new Date().getDay()
     const places = await this.placeRepository.find({
       include: [
         {
@@ -99,6 +185,7 @@ export class PlaceService {
             where: {
               and: [
                 { dayOfWeek: dayOfWeek },
+                { active: true },
                 {
                   or: [
                     {
@@ -110,7 +197,7 @@ export class PlaceService {
                     {
                       and: [
                         { openTime: { lte: time } },
-                        { closeTime: { lt: "04:00:00" } },
+                        { closeTime: { lt: "09:00:00" } },
                       ],
                     }, // Assuming a bar could close before 4 AM.
                   ],

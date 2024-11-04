@@ -89,7 +89,7 @@ export class ActivityController {
   @get("/whoami")
   @authenticate("firebase") // Make sure this route is protected by authentication
   async whoAmI(): Promise<any> {
-    console.log('xxxxxxxxxxxxx',this.currentUser,this.activityRepository.getIdentifier(),'yyy')
+
     if (!this.currentUser) {
       throw new Error("User not authenticated");
     }
