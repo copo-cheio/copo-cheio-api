@@ -1,4 +1,4 @@
-import {model,property, hasMany} from '@loopback/repository';
+import {hasMany,model,property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Staff} from './staff.model';
 import {TeamStaff} from './team-staff.model';
@@ -10,6 +10,11 @@ export class Team extends Base {
     type: 'string',
   })
   companyId?: string;
+
+  @property({
+    type: 'string',
+  })
+  name?: string;
 
   @hasMany(() => Staff, {through: {model: () => TeamStaff}})
   staff: Staff[];

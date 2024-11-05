@@ -18,3 +18,9 @@ export const isValidHttpUrl =(str:string) => {
 
   return url.protocol === "http:" || url.protocol === "https:";
 }
+
+
+export function replaceAll (str:string="",find:string, replace:string){
+  return str.replace(new RegExp(find, 'g'), replace);
+
+};
