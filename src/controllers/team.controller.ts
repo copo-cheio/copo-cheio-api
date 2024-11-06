@@ -1,4 +1,3 @@
-import {authenticate} from '@loopback/authentication';
 import {
   Count,
   CountSchema,
@@ -60,7 +59,7 @@ export class TeamController {
   }
 
   @get('/teams')
-  @authenticate("firebase")
+ // @authenticate("firebase")
   @response(200, {
     description: 'Array of Team model instances',
     content: {
