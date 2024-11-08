@@ -8,3 +8,9 @@ export const IncludePlaceRelation: any = {
     include: [IncludeCover,IncludeTagsRelation,IncludeAddressRelation],
   },
 };
+export const IncludePlacesRelation: any = {
+  relation: "places",
+  scope: {
+    include: [IncludeCover,IncludeTagsRelation,IncludeAddressRelation],
+  },
+};

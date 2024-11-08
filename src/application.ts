@@ -16,6 +16,7 @@ import {
   registerAuthenticationStrategy,
 } from "@loopback/authentication";
 import {FirebaseAuthStrategy} from './auth-strategies/firebase-strategy';
+import {AclInterceptor} from './interceptors/acl.interceptor';
 import {CompanyOwnershipValidation} from './interceptors/company-ownership-validation';
 import {FILE_UPLOAD_SERVICE,STORAGE_DIRECTORY} from './services/FileUpload/keys';
 import {MultipartFormDataBodyParser} from './utils/parser';
@@ -30,6 +31,7 @@ export class CopoCheioServerApplication extends BootMixin(
     super(options);
 
     this.interceptor(CompanyOwnershipValidation);
+    // this.interceptor(AclInterceptor);
 
     // Set up the custom sequence
     this.sequence(MySequence);
@@ -46,12 +48,11 @@ export class CopoCheioServerApplication extends BootMixin(
     this.component(AuthenticationComponent);
     registerAuthenticationStrategy(this, FirebaseAuthStrategy);
 
-
+    this.bind('services.ACL').toProvider(AclInterceptor);
 
     // Configure Uploader
     this.bodyParser(MultipartFormDataBodyParser);
     this.configureFileUpload(options.fileStorageDirectory);
-
 
     this.projectRoot = __dirname;
     // Customize @loopback/boot Booter Conventions here

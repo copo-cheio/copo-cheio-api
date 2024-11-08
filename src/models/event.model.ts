@@ -16,6 +16,7 @@ import {RecurringSchedule} from './recurring-schedule.model';
 import {Tag} from './tag.model';
 import {Ticket} from './ticket.model';
 import {Contacts} from './contacts.model';
+import {Team} from './team.model';
 
 @model()
 export class Event extends Base {
@@ -139,6 +140,9 @@ export class Event extends Base {
     type: 'string',
   })
   companyId?: string;
+
+  @belongsTo(() => Team)
+  teamId: string;
   /* ********************************** */
 
   @property({

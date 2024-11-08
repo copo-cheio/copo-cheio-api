@@ -1,15 +1,6 @@
 import {
   repository,
 } from '@loopback/repository';
-import {
-  param,
-  get,
-  getModelSchemaRef,
-} from '@loopback/rest';
-import {
-  Staff,
-  Company,
-} from '../models';
 import {StaffRepository} from '../repositories';
 
 export class StaffCompanyController {
@@ -18,6 +9,7 @@ export class StaffCompanyController {
     public staffRepository: StaffRepository,
   ) { }
 
+  /*
   @get('/staff/{id}/company', {
     responses: {
       '200': {
@@ -35,4 +27,5 @@ export class StaffCompanyController {
   ): Promise<Company> {
     return this.staffRepository.company(id);
   }
+    */
 }

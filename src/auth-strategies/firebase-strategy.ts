@@ -11,16 +11,19 @@ export const FirebaseAuthHelper =  (()=>{
      try{
 
        const authHeader = request.headers.authorization;
+
        if (!authHeader) return undefined;
        const parts = authHeader.split(' ');
        if (parts.length !== 2 || parts[0].toLowerCase() !== 'bearer') return undefined;
+
        return parts[1];
       }catch(ex){
+        console.log({ex:ex.message})
         return undefined
       }
   }
 
-  const getAuthenticatedUser = async (request:Request)=> {
+  const getAuthenticatedUser = async (request:Request,full?:boolean)=> {
 
     try{
       const token = extractCredentials(request);
@@ -38,13 +41,15 @@ export const FirebaseAuthHelper =  (()=>{
           id: decodedToken.uid,
         };
         request.params.__auth__ = decodedToken.uid
+
         return userProfile.id;
       } catch (err) {
-        console.log({err})
+        console.log({err:err.message})
         //return undefined
         throw new HttpErrors.Unauthorized('Error verifying token.');
       }
     }catch(ex){
+      console.log({err:ex.message})
       return undefined
     }
   }

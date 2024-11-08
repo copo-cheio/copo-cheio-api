@@ -1,5 +1,6 @@
-import {model,property} from '@loopback/repository';
+import {model,property, belongsTo} from '@loopback/repository';
 import {Base} from './base.model';
+import {Staff} from './staff.model';
 
 @model()
 export class TeamStaff extends Base {
@@ -11,10 +12,8 @@ export class TeamStaff extends Base {
   })
   teamId?: string;
 
-  @property({
-    type: 'string',
-  })
-  staffId?: string;
+  @belongsTo(() => Staff)
+  staffId: string;
 
   constructor(data?: Partial<TeamStaff>) {
     super(data);

@@ -1,20 +1,17 @@
 import {IncludeContactsRelation} from "./shared/contacts.include";
 import {IncludeEventsRelation} from "./shared/event.include";
 import {IncludeCover} from "./shared/image.include";
-import {IncludePlaceRelation} from "./shared/place.include";
 import {QueryFilterBaseBlueprint} from "./shared/query-filter.interface";
 import {IncludeTeamsRelation} from "./shared/team.include";
 
-const IncludePreviousPlacesRelation = {
-  ...IncludePlaceRelation,
-  relation: "previousPlaces",
-};
-const StaffMembersRelation = {
-  relation: "staffMembers",
-  scope: {
-    include: [{ relation: "user" }],
-  },
-};
+const IncludeEventsWithPlacesRelation = JSON.parse(JSON.stringify(IncludeEventsRelation))
+IncludeEventsWithPlacesRelation.scope.include.push({relation:"place"})
+// const StaffMembersRelation = {
+//   relation: "staffMembers",
+//   scope: {
+//     include: [{ relation: "user" }],
+//   },
+// };
 
 export const CompanyQueryFull: any = {
   ...QueryFilterBaseBlueprint,
@@ -26,16 +23,16 @@ export const CompanyQueryFull: any = {
     name: true,
     description: true,
     coverId: true,
-    previousPlaceIds: true,
+    // previousPlaceIds: true,
   },
 
   include: [
     IncludeCover,
     IncludeContactsRelation,
-    StaffMembersRelation,
+    // StaffMembersRelation,
     IncludeTeamsRelation,
-    IncludePreviousPlacesRelation,
-    IncludeEventsRelation,
+    // IncludePreviousPlacesRelation,
+    IncludeEventsWithPlacesRelation,
 
   ],
 };
@@ -57,7 +54,5 @@ export const CompanysQuery: any = {
 
     IncludeContactsRelation,
 
-    // IncludeScheduleRelation,
-    // IncludeOpeningHoursRelation,
   ],
 };

@@ -12,7 +12,7 @@ export class Staff extends Base {
   role: string;
 
   @property.array(String)
-  roles: string[]; // "owner", "admin", "manager", "bar", "door"
+  roles?: string[]; // "owner", "admin", "manager", "bar", "door"
 
   @belongsTo(() => User)
   userId: string;

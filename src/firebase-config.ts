@@ -38,5 +38,5 @@ export const sendNotification = async (
   }
 };
 
-export {admin};
+export {admin,serviceAccount};
 

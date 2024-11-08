@@ -1,24 +1,6 @@
 import {
-  Count,
-  CountSchema,
-  Filter,
-  repository,
-  Where,
+  repository
 } from '@loopback/repository';
-import {
-  del,
-  get,
-  getModelSchemaRef,
-  getWhereSchemaFor,
-  param,
-  patch,
-  post,
-  requestBody,
-} from '@loopback/rest';
-import {
-  Company,
-  Staff,
-} from '../models';
 import {CompanyRepository} from '../repositories';
 
 export class CompanyStaffController {
@@ -26,6 +8,7 @@ export class CompanyStaffController {
     @repository(CompanyRepository) protected companyRepository: CompanyRepository,
   ) { }
 
+  /*
   @get('/companies/{id}/staff', {
     responses: {
       '200': {
@@ -107,4 +90,5 @@ export class CompanyStaffController {
   ): Promise<Count> {
     return this.companyRepository.staffMembers(id).delete(where);
   }
+  */
 }

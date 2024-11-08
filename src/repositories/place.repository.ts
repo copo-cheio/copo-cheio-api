@@ -3,13 +3,17 @@ import {
   BelongsToAccessor,
   HasManyRepositoryFactory,
   HasManyThroughRepositoryFactory,
+  HasOneRepositoryFactory,
   ReferencesManyAccessor,
-  repository, HasOneRepositoryFactory} from "@loopback/repository";
-import {SoftCrudRepository} from 'loopback4-soft-delete';
+  repository,
+} from "@loopback/repository";
+import {SoftCrudRepository} from "loopback4-soft-delete";
 import {PostgresSqlDataSource} from "../datasources";
 import {
   Address,
   Balcony,
+
+  Contacts,
   Event,
   Image,
   OpeningHours,
@@ -19,9 +23,13 @@ import {
   Playlist,
   Rule,
   Schedule,
-  Tag, Contacts} from "../models";
+  Tag,
+  Team,
+} from "../models";
 import {AddressRepository} from "./address.repository";
 import {BalconyRepository} from "./balcony.repository";
+// import { CompanyRepository } from "./company.repository";
+import {ContactsRepository} from "./contacts.repository";
 import {EventRepository} from "./event.repository";
 import {ImageRepository} from "./image.repository";
 import {OpeningHoursRepository} from "./opening-hours.repository";
@@ -30,7 +38,7 @@ import {PlaylistRepository} from "./playlist.repository";
 import {RuleRepository} from "./rule.repository";
 import {ScheduleRepository} from "./schedule.repository";
 import {TagRepository} from "./tag.repository";
-import {ContactsRepository} from './contacts.repository';
+import {TeamRepository} from "./team.repository";
 
 /**
   {
@@ -91,7 +99,14 @@ export class PlaceRepository extends SoftCrudRepository<
     typeof Place.prototype.id
   >;
 
-  public readonly contacts: HasOneRepositoryFactory<Contacts, typeof Place.prototype.id>;
+  public readonly contacts: HasOneRepositoryFactory<
+    Contacts,
+    typeof Place.prototype.id
+  >;
+
+  public readonly team: BelongsToAccessor<Team, typeof Place.prototype.id>;
+
+  // public readonly company: BelongsToAccessor<Company, typeof Place.prototype.id>;
   // public readonly tags: ReferencesManyAccessor<Tag, typeof Artist.prototype.id>;
 
   constructor(
@@ -116,28 +131,45 @@ export class PlaceRepository extends SoftCrudRepository<
     @repository.getter("TagRepository")
     protected tagRepositoryGetter: Getter<TagRepository>,
     @repository.getter("OpeningHoursRepository")
-    protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>, @repository.getter('ContactsRepository') protected contactsRepositoryGetter: Getter<ContactsRepository>,
+    protected openingHoursRepositoryGetter: Getter<OpeningHoursRepository>,
+    @repository.getter("ContactsRepository")
+    protected contactsRepositoryGetter: Getter<ContactsRepository>,
+    @repository.getter("TeamRepository")
+    protected teamRepositoryGetter: Getter<TeamRepository>
   ) {
     super(Place, dataSource);
-    this.contacts = this.createHasOneRepositoryFactoryFor('contacts', contactsRepositoryGetter);
-    this.registerInclusionResolver('contacts', this.contacts.inclusionResolver);
+
+    this.team = this.createBelongsToAccessorFor("team", teamRepositoryGetter);
+    this.registerInclusionResolver("team", this.team.inclusionResolver);
+    this.contacts = this.createHasOneRepositoryFactoryFor(
+      "contacts",
+      contactsRepositoryGetter
+    );
+    this.registerInclusionResolver("contacts", this.contacts.inclusionResolver);
     this.gallery = this.createHasManyRepositoryFactoryFor(
       "gallery",
       imageRepositoryGetter
     );
 
-    this.registerInclusionResolver('gallery', async (entities, inclusion, options) => {
-      const result = await this.gallery.inclusionResolver(entities, {
-        // @ts-ignore
-        ...inclusion,
-        scope: {
-          where: {
-            type: 'gallery',
+    this.registerInclusionResolver(
+      "gallery",
+      async (entities, inclusion, options) => {
+        const result = await this.gallery.inclusionResolver(
+          entities,
+          {
+            // @ts-ignore
+            ...inclusion,
+            scope: {
+              where: {
+                type: "gallery",
+              },
+            },
           },
-        },
-      }, options);
-      return result;
-    });
+          options
+        );
+        return result;
+      }
+    );
 
     // this.registerInclusionResolver("gallery", this.gallery.inclusionResolver);
     this.openingHours = this.createHasManyRepositoryFactoryFor(
@@ -215,14 +247,16 @@ export class PlaceRepository extends SoftCrudRepository<
     return this.dataSource.execute(sql);
   }
 
-  public async findGalleryImages(productId: string, filter?: any): Promise<Image[]> {
+  public async findGalleryImages(
+    productId: string,
+    filter?: any
+  ): Promise<Image[]> {
     return this.gallery(productId).find({
       where: {
-        type: 'gallery',
+        type: "gallery",
         ...filter?.where,
       },
       ...filter,
     });
   }
-
 }
