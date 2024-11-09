@@ -40,6 +40,7 @@ export const BaseEventsQuery:any = {
     recurrenceEndDate: true,
     isRecurring: true, // True if recurring, false if one-time event
     eventType: true,
+    teamId:true
   },
   include: [
     "cover",
@@ -82,6 +83,7 @@ export const EventFullQuery: any = {
     recurrenceEndDate: true,
     isRecurring: true, // True if recurring, false if one-time event
     eventType: true,
+    teamId:true
   },
   include: [
     IncludeCover,
@@ -274,6 +276,7 @@ export const EventInstanceFullQuery:any = {
           recurrenceEndDate: true,
           isRecurring: true, // True if recurring, false if one-time event
           eventType: true,
+          teamId:true
         },
         include: [
           "cover",

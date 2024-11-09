@@ -61,11 +61,13 @@ export const transactionWrapper = async (repository:any, operation:(transaction:
     {isolationLevel: IsolationLevel.READ_COMMITTED}
   );
   try {
+    console.log(1)
     const result = await operation(transaction);
+    console.log(2,result)
     await transaction.commit();
     return result;
   } catch (ex){
-    console.log({ex})
+    console.log(3,{ex})
     await transaction.rollback();
     throw ex
   }
