@@ -2,16 +2,16 @@ import {Getter,inject} from "@loopback/core";
 import {
   HasManyRepositoryFactory,
   HasManyThroughRepositoryFactory,
-  repository,
-} from "@loopback/repository";
+  repository, BelongsToAccessor} from "@loopback/repository";
 import {PostgresSqlDataSource} from "../datasources";
-import {Event,Place,Staff,Team,TeamRelations,TeamStaff} from "../models";
+import {Event,Place,Staff,Team,TeamRelations,TeamStaff, Image} from "../models";
 import {BaseRepository} from "./base.repository.base";
 // import {CompanyRepository} from './company.repository';
 import {EventRepository} from "./event.repository";
 import {PlaceRepository} from "./place.repository";
 import {StaffRepository} from "./staff.repository";
 import {TeamStaffRepository} from "./team-staff.repository";
+import {ImageRepository} from './image.repository';
 
 export class TeamRepository extends BaseRepository<
   Team,
@@ -36,6 +36,8 @@ export class TeamRepository extends BaseRepository<
   >;
 
   public readonly teamStaffs: HasManyRepositoryFactory<TeamStaff, typeof Team.prototype.id>;
+
+  public readonly cover: BelongsToAccessor<Image, typeof Team.prototype.coverId>;
   // public readonly company: BelongsToAccessor<Company, typeof Team.prototype.id>;
 
   constructor(
@@ -49,11 +51,13 @@ export class TeamRepository extends BaseRepository<
     @repository.getter("EventRepository")
     protected eventRepositoryGetter: Getter<EventRepository>,
     @repository.getter("PlaceRepository")
-    protected placeRepositoryGetter: Getter<PlaceRepository>
+    protected placeRepositoryGetter: Getter<PlaceRepository>, @repository.getter('ImageRepository') protected imageRepositoryGetter: Getter<ImageRepository>,
   ) //  @repository.getter('CompanyRepository') protected companyRepositoryGetter: Getter<CompanyRepository>,
 
   {
     super(Team, dataSource);
+    this.cover = this.createBelongsToAccessorFor('cover', imageRepositoryGetter,);
+    this.registerInclusionResolver('cover', this.cover.inclusionResolver);
     this.teamStaffs = this.createHasManyRepositoryFactoryFor('teamStaffs', teamStaffRepositoryGetter,);
     this.registerInclusionResolver('teamStaffs', this.teamStaffs.inclusionResolver);
     // this.company = this.createBelongsToAccessorFor('company', companyRepositoryGetter,);

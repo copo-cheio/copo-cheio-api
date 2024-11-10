@@ -57,3 +57,4 @@ export * from './team.repository';
 export * from './base.repository.base';
 
 export * from './team-staff.repository';
+export * from './search.repository';

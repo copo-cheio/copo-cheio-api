@@ -3,7 +3,7 @@
 import {intercept} from "@loopback/core";
 import {FilterExcludingWhere,repository} from "@loopback/repository";
 
-import {authenticate} from '@loopback/authentication';
+import {authenticate} from "@loopback/authentication";
 import {
   del,
   get,
@@ -16,9 +16,11 @@ import {
 } from "@loopback/rest";
 import {StaffQueryFull} from "../blueprints/stafff.blueprint";
 import {TeamQueryFull} from "../blueprints/team.blueprint";
-import {addCompanyOwnership} from '../interceptors/add-company-ownership.interceptor';
+import {DEFAULT_MODEL_ID} from "../constants";
+import {addCompanyOwnership} from "../interceptors/add-company-ownership.interceptor";
 import {Staff,Team,TeamStaff} from "../models";
 import {
+  CompanyRepository,
   EventRepository,
   PlaceRepository,
   StaffRepository,
@@ -34,6 +36,8 @@ export class ManagerController {
   constructor(
     @repository(TeamRepository)
     public teamRepository: TeamRepository,
+    @repository(CompanyRepository)
+    public companyRepository: CompanyRepository,
     @repository(TeamStaffRepository)
     public teamStaffRepository: TeamStaffRepository,
     @repository(EventRepository)
@@ -49,6 +53,12 @@ export class ManagerController {
   @intercept("services.ACL")
   async getAdminData(payload: any = {}) {
     console.log(payload);
+    return { data: "Admin data goes here", payload };
+  }
+  @get("/search")
+  // @authenticate('firebase')
+  @intercept("services.Search")
+  async getSearchData(payload: any = {}) {
     return { data: "Admin data goes here", payload };
   }
 
@@ -83,35 +93,28 @@ export class ManagerController {
   ): Promise<any> {
     const callbackFn = async (transaction: any) => {
       const { teamId, staffId, roles } = teamStaff;
-
-
-      const record = await this.teamStaffRepository.findOne(
-        { where: { teamId, staffId } }
-
-      );
-
+      const record = await this.teamStaffRepository.findOne({
+        where: { teamId, staffId },
+      });
       if (record && record?.id) {
-
         const result = await this.teamStaffRepository.updateById(
           record.id,
           { roles: roles || [] },
-          {transaction}
+          { transaction }
         );
-
-
-        return result
+        return result;
       } else {
         const result = await this.teamStaffRepository.create(
           { teamId, staffId, roles: roles || [] },
-          {transaction}
+          { transaction }
         );
 
-        return result
+        return result;
       }
     };
-    const res= await transactionWrapper(this.teamStaffRepository, callbackFn);
+    const res = await transactionWrapper(this.teamStaffRepository, callbackFn);
 
-    return res||{}
+    return res || {};
   }
 
   @patch("/manager/team/staff")
@@ -145,7 +148,7 @@ export class ManagerController {
   }
 
   @del("/manager/team/staff/{teamId}/{staffId}")
-  @authenticate('firebase')
+  @authenticate("firebase")
   @response(204, {
     description: "TeamStaff DELETE success",
   })
@@ -153,8 +156,6 @@ export class ManagerController {
     @param.path.string("teamId") teamId: string,
     @param.path.string("staffId") staffId: string
   ): Promise<void> {
-
-
     return transactionWrapper(
       this.teamStaffRepository,
       async (transaction: any) =>
@@ -178,7 +179,6 @@ export class ManagerController {
     content: {},
   })
   async findTeamsFull(
-
     @param.filter(Team, { exclude: "where" })
     filter?: FilterExcludingWhere<Team>
   ): Promise<any> {
@@ -200,13 +200,11 @@ export class ManagerController {
     return team;
   }
 
-
-
   @post("/manager/teams")
   @intercept(addCompanyOwnership) // Use the `log` function
   @response(200, {
     description: "Team model instance",
-    content: { },
+    content: {},
   })
   async createTeamS(
     @requestBody({
@@ -215,22 +213,31 @@ export class ManagerController {
     teamStaff: Omit<any, "id">
   ): Promise<any> {
     const callbackFn = async (transaction: any) => {
-      const { name ,companyId} = teamStaff;
-      const {staff} = teamStaff
-      const team = await this.teamRepository.create({name,companyId})
-      for(let member of staff || []){
-        await this.teamStaffRepository.create({
-          staffId:member.staffId,
-          roles:member.roles,
-          teamId:team.id
-        })
+      const { name, companyId, description } = teamStaff;
+      const { staff } = teamStaff;
+      let coverId = teamStaff.coverId;
+      if (!coverId) {
+        const company = await this.companyRepository.findById(companyId);
+        coverId = company.coverId || DEFAULT_MODEL_ID.coverId;
       }
-    return team
-
+      const team = await this.teamRepository.create({
+        name,
+        companyId,
+        coverId,
+        description,
+      });
+      for (let member of staff || []) {
+        await this.teamStaffRepository.create({
+          staffId: member.staffId,
+          roles: member.roles,
+          teamId: team.id,
+        });
+      }
+      return team;
     };
-    const res= await transactionWrapper(this.teamRepository, callbackFn);
+    const res = await transactionWrapper(this.teamRepository, callbackFn);
 
-    return res||{}
+    return res || {};
   }
 
   @patch("/manager/teams")
@@ -244,10 +251,11 @@ export class ManagerController {
     team: any
   ): Promise<any> {
     const callbackFn = async (transaction: any) => {
-      const { name ,id} = team;
-      const record = await this.teamRepository.updateById(id,{name})
+      const id = team.id;
+      delete team.id;
+      const record = await this.teamRepository.updateById(id, team);
 
-      return {}
+      return {};
     };
     return transactionWrapper(this.teamRepository, callbackFn);
   }

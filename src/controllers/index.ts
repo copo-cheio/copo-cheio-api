@@ -153,3 +153,6 @@ export * from './team.controller';
 export * from './company-place.controller';
 export * from './team-staff-staff.controller';
 export * from './team-team-staff.controller';
+export * from './search-user.controller';
+export * from './team-image.controller';
+export * from './bar.controller';

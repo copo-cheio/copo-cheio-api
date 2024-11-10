@@ -1,22 +1,31 @@
-import {hasMany,model,property} from '@loopback/repository';
+import {hasMany,model,property, belongsTo} from '@loopback/repository';
 import {Base} from './base.model';
 import {Event} from './event.model';
 import {Place} from './place.model';
 import {Staff} from './staff.model';
 import {TeamStaff} from './team-staff.model';
+import {Image} from './image.model';
 
 @model()
 export class Team extends Base {
 
   @property({
-     type: 'string',
-   })
-   companyId?: string;
+    type: 'string',
+    required: true
+  })
+  companyId?: string;
 
   @property({
     type: 'string',
+    required: true
   })
+
   name?: string;
+  @property({
+    type: 'string',
+  })
+  description?: string;
+
 
   @hasMany(() => Staff, {through: {model: () => TeamStaff}})
   staff: Staff[];
@@ -29,6 +38,9 @@ export class Team extends Base {
 
   @hasMany(() => TeamStaff)
   teamStaffs: TeamStaff[];
+
+  @belongsTo(() => Image)
+  coverId: string;
 
   constructor(data?: Partial<Team>) {
     super(data);
