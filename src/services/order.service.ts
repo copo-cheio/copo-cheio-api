@@ -254,12 +254,12 @@ export class OrderService {
     });
     await transaction.commit();
     // return this.orderRepository.findById(record.id, OrderSingleFull);
-    await this.pushNotificationService.sendTopicNotification(PUSH_NOTIFICATION_SUBSCRIPTIONS.checkIn.staff[1](placeId,"",balconyId), {
-      action: "NEW_ORDER",
-      payload: {
-        id: record.id
-      }
-    })
+    // await this.pushNotificationService.sendTopicNotification(PUSH_NOTIFICATION_SUBSCRIPTIONS.checkIn.staff[1](placeId,"",balconyId), {
+    //   action: "NEW_ORDER",
+    //   payload: {
+    //     id: record.id
+    //   }
+    // })
     return this.orderRepository.findOne({
       ...OrderSingleFull,
       where: { id: record.id },
