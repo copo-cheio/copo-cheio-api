@@ -240,4 +240,35 @@ export class PlaceService {
     }
 
   }
+
+  async getTodayOpeningHours(placeId:string){
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const dayofweek = new Date().getDay();
+    const prevdayofweek = yesterday.getDay();
+    let hours: any = new Date().getHours();
+    let minutes: any = new Date().getMinutes();
+    if (hours < 10) hours = "0" + hours;
+    if (minutes < 10) minutes = "0" + minutes;
+
+    let time = [hours, minutes, "00"].join(":");
+
+    const query = `
+    SELECT * from openinghours WHERE 
+      ( openhour > closehour and closehour != '00:00' and ( 
+        (openhour <= $1 and dayofweek = $2 ) or (closehour >= $1 and dayofweek = $3 )))
+      OR 
+      ( ((openhour < closehour and closehour != '00:00' and closehour > $1) OR closehour='00:00') AND openhour <= $1  AND dayofweek = $2 )
+      AND deleted = false 
+      AND placeId = $4  
+    `
+
+    const params =[time,dayofweek,prevdayofweek,placeId]
+
+
+
+    return this.placeRepository.dataSource.execute(query,params)
+  }
 }

@@ -51,11 +51,15 @@ export class AclInterceptor implements Provider<Interceptor> {
     }
 
 
-    const userAccess:any = await this.userService.getFullUserAccess(user.Id)
+    const userAccess:any = await this.userService.getFullUserAccess(user.id)
+    userAccess.user = {id:user.id}
 
+    if(typeof invocationCtx.args[0] == "object") {
 
-    invocationCtx.args[0] = invocationCtx.args[0] || {} ;
-    invocationCtx.args[0].__userAccess= userAccess
+      invocationCtx.args[0].__userAccess= userAccess
+    } else{
+      invocationCtx.args.push({__userAccess:userAccess})
+    }
     const result = await next(); // Proceed with the next step in the request lifecycle
 
     // Post-processing logic
