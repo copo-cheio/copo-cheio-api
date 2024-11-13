@@ -3,12 +3,15 @@
 import {get,param,response} from "@loopback/rest";
 
 import {intercept} from "@loopback/core";
-import {repository} from "@loopback/repository";
+import {FilterExcludingWhere,repository} from "@loopback/repository";
+import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
 import {EventFullQuery} from "../blueprints/event.blueprint";
 import {PlaceQueryFull} from "../blueprints/place.blueprint";
 import {OrderSingleFull} from "../blueprints/shared/order.include";
+import {Balcony} from '../models';
 import {
   ActivityRepository,
+  BalconyRepository,
   CompanyRepository,
   EventInstanceRepository,
   EventRepository,
@@ -39,6 +42,8 @@ export class BarController {
     public orderRepository: OrderRepository,
     @repository(ActivityRepository)
     public activityRepository: ActivityRepository,
+    @repository(BalconyRepository)
+    public balconyRepository: BalconyRepository,
     @repository(StaffRepository)
     public staffRepository: StaffRepository
   ) {}
@@ -84,6 +89,17 @@ export class BarController {
       }),
     };
   }
+
+  @get("/bar/balcony/{id}/menu")
+  async findMenuByBalconyId(
+    @param.path.string("id") id: string,
+    @param.filter(Balcony, { exclude: "where" })
+    filter?: FilterExcludingWhere<Balcony>
+  ): Promise<Balcony> {
+
+    return this.balconyRepository.findById(id, BalconyFullQuery);
+  }
+
 
   @get("/bar/balcony/{id}/orders")
   @intercept("services.ACL")

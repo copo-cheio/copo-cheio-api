@@ -23,11 +23,13 @@ import {UserProfile} from "@loopback/security";
 import {OrderSingleFull} from "../blueprints/shared/order.include";
 import {Order,ORDER_COMPLETE_STATUS,ORDER_READY_STATUS,ORDER_STATUS} from "../models";
 import {
+  ActivityRepository,
   CredentialRepository,
   ImageRepository,
   OrderItemRepository,
   OrderRepository,
   OrderTimelineRepository,
+  PlaceRepository,
   PriceRepository,
 } from "../repositories";
 import {OrderService,PUSH_NOTIFICATION_SUBSCRIPTIONS,PushNotificationService,QrFactoryService} from "../services";
@@ -40,6 +42,8 @@ export class OrderController {
     public orderTimelineRepository: OrderTimelineRepository,
     @repository(PriceRepository)
     public priceRepository: PriceRepository,
+    @repository(PlaceRepository)
+    public placeRepository: PlaceRepository,
     @repository(ImageRepository)
     public imageRepository: ImageRepository,
     @repository(OrderItemRepository)
@@ -50,6 +54,8 @@ export class OrderController {
     protected qrFactoryService: QrFactoryService,
     @repository(CredentialRepository)
     public credentialRepository: CredentialRepository,
+    @repository(ActivityRepository)
+    public activityRepository: ActivityRepository,
     @inject(AuthenticationBindings.CURRENT_USER, { optional: true })
     private currentUser: UserProfile, // Inject the current user profile,
     @inject('services.OrderService')
@@ -259,11 +265,47 @@ export class OrderController {
   async findCheckInOrders(
     @param.path.string("balconyId") balconyId: string
   ): Promise<any> {
+    const checkInPayload = {
+      userId:this.currentUser.id,
+      action: "check-in",
+      complete: false,
+
+      role: "user"
+    }
+
+    const checkIn:any = await this.activityRepository.findOne({ where: checkInPayload ,order:["created_at DESC"]});
+
+    const openHours: any = await this.placeRepository.getTodayOpeningHours(
+      checkIn.placeId
+    );
+    const openhour = openHours?.[0].openhour;
+    const dayofweek = openHours?.[0].dayofweek;
+    const now = new Date();
+    let startDate = now;
+    if (startDate.getDay() > dayofweek)
+      startDate.setDate(startDate.getDate() - 1);
+    startDate.setHours(openhour.split(":")[0]);
+    startDate.setMinutes(openhour.split(":")[1]);
+    startDate.setSeconds(0);
+    startDate.setMilliseconds(0);
+
+  return await this.orderRepository.findAll({
+    ...OrderSingleFull,
+    where: {
+      and: [
+        { balconyId: balconyId },
+        { userId: this.currentUser.id },
+        { created_at: { gte: startDate } },
+        { deleted: false },
+      ],
+    },
+    order: "created_at DESC",
+  });
     // Promise all this sff this
-    return this.orderRepository.find({
-      ...OrderSingleFull,
-      where: { balconyId, userId: this.currentUser.id },order:'created_at DESC',
-    });
+    // return this.orderRepository.find({
+    //   ...OrderSingleFull,
+    //   where: { balconyId, userId: this.currentUser.id },order:'created_at DESC',
+    // });
   }
   // /u
 

@@ -42,7 +42,7 @@ export class BalconyController {
     @param.filter(Balcony, { exclude: "where" })
     filter?: FilterExcludingWhere<Balcony>
   ): Promise<Balcony> {
-    console.log(JSON.stringify(filter),"filter",JSON.stringify(BalconyFullQuery))
+    // console.log(JSON.stringify(filter),"filter",JSON.stringify(BalconyFullQuery))
     return this.balconyRepository.findById(id, BalconyFullQuery);
   }
 
