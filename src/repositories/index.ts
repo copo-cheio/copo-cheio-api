@@ -58,3 +58,4 @@ export * from './base.repository.base';
 
 export * from './team-staff.repository';
 export * from './search.repository';
+export * from './time-table.repository';

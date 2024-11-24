@@ -8,7 +8,8 @@ import {IncludeAddressRelation} from "./shared/address.include";
 import {IncludeContactsRelation} from "./shared/contacts.include";
 import {IncludeEventInstanceRelation} from "./shared/eventinstance.include";
 import {IncludeCover} from "./shared/image.include";
-import {IncludeLineupRelation} from "./shared/lineup.include";
+// import {IncludeLineupRelation} from "./shared/lineup.include";
+import {IncludeLineupsRelation} from './shared/lineups.include';
 import {IncludeOpeningHoursRelation} from "./shared/openinghours.include";
 import {IncludePlaceRelation} from "./shared/place.include";
 import {IncludePlaylistRelation} from "./shared/playlist.include";
@@ -54,7 +55,7 @@ export const BaseEventsQuery:any = {
     IncludeContactsRelation,
     // { relation: "instances" }, // Include event instances (occurrences)
     { relation: "recurringSchedule" }, // Include recurring schedules
-  ],
+  ]
 
 }
 export const EventsQuery: any = {
@@ -93,9 +94,9 @@ export const EventFullQuery: any = {
     IncludePlaylistRelation,
     IncludeRulesRelation,
     IncludeTicketsRelation,
-    IncludeLineupRelation,
     IncludeTagsRelation,
     IncludeOpeningHoursRelation,
+    IncludeLineupsRelation,
     IncludeEventInstanceRelation, // Include event instances (occurrences)
     { relation: "recurringSchedule" }, // Include recurring schedules
     IncludeContactsRelation,

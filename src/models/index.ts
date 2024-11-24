@@ -56,3 +56,4 @@ export * from './contacts.model';
 export * from './team.model';
 export * from './team-staff.model';
 export * from './search.model';
+export * from './time-table.model';

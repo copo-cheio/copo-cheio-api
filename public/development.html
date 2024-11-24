@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>PIHH</title>
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="https://loopback.io/favicon.ico"
+    />
+
+    <style>
+      body {
+        height: 100dvh;
+        margin: 0;
+        overflow-y: auto;
+      }
+
+      h3 {
+        margin-left: 25px;
+        text-align: center;
+      }
+
+      a,
+      a:visited {
+        color: #3f5dff;
+      }
+
+      h3 a {
+        margin-left: 10px;
+      }
+
+      a:hover,
+      a:focus,
+      a:active {
+        color: #001956;
+      }
+
+      .power {
+        position: absolute;
+        bottom: 25px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .info {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .info h1 {
+        text-align: center;
+        margin-bottom: 0;
+      }
+
+      .info p {
+        text-align: center;
+        margin-bottom: 3em;
+        margin-top: 1em;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: rgb(29, 30, 32);
+          color: white;
+        }
+
+        a,
+        a:visited {
+          color: #4990e2;
+        }
+
+        a:hover,
+        a:focus,
+        a:active {
+          color: #2b78ff;
+        }
+      }
+      main {
+        display: flex;
+        height: fit-content;
+      }
+      .ace_editor {
+        height: -webkit-fill-available;
+        min-height: unset;
+        overflow: auto;
+      }
+      .actions--options {
+        flex-basis: 25%;
+      }
+      .actions--options section {
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+        text-align: left;
+        padding: 0.25em 1em;
+      }
+      .actions--options section button {
+        text-align: left;
+        padding: 0.5em 1em;
+        text-transform: capitalize;
+        border-radius: 0.5em;
+        border: none;
+      }
+      .actions {
+        display: flex;
+        flex-basis: 75%;
+      }
+      .actions .actions--query,
+      .actions .actions--result {
+        flex-basis: 50%;
+        /* height: calc(100vh - 14em); */
+      }
+
+      .actions .actions--query {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .actions .actions--result {
+        height: calc(100vh - 14em);
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="">
+      <nav>
+        <h1>copo-cheio-server development</h1>
+        <p>Version 1.0.0</p>
+      </nav>
+    </header>
+    <main>
+      <aside class="actions--options">
+        <section>
+          <label for="action--options--key">
+            Key:
+            <input type="string" disabled="true" id="action--options--key" />
+          </label>
+        </section>
+        <hr />
+        <section>
+          <label for="action--options--key">
+            Password:
+            <!-- <input type="string" id="action--options--password" value="#9E1LetkJd@"/> -->
+            <input type="string" id="action--options--password" value=""/>
+          </label>
+        </section>
+        <hr />
+        <section>
+          <button onclick="onQueryList()">List models</button>
+          <button onclick="onQueryRaw()">Raw Query</button>
+          <button onclick="onQueryModelFilter()">Model Full filter</button>
+          <button onclick="onQueryModel()">Query Model</button>
+          <button onclick="onQueryModelId()">Query Model with ID</button>
+        </section>
+      </aside>
+      <section class="actions">
+        <div class="actions--query">
+          <label for="action--id">
+            ID:
+            <input type="string" id="action--id" />
+          </label>
+          <hr />
+          <label for="action--options--models">
+            Model:
+            <select id="action--options--models"></select>
+          </label>
+          <hr />
+          <div id="action--payload"></div>
+        </div>
+        <div class="actions--result">
+          <div id="action--output"></div>
+        </div>
+      </section>
+    </main>
+    <footer class="power">
+      <a href="https://loopback.io" target="_blank">
+        <img
+          src="https://loopback.io/images/branding/powered-by-loopback/blue/powered-by-loopback-sm.png"
+        />
+      </a>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/core-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/sha256.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/enc-base64.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/pbkdf2.js"></script>
+    <script
+      src="//ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js"
+      type="text/javascript"
+      charset="utf-8"
+    ></script>
+
+    <script>
+      var $outputEditor;
+      var $payloadEditor;
+      const ELEMENTS = {
+        OUTPUT: "action--output",
+        PAYLOAD: "action--payload",
+        OPTIONS: "#action--options--models",
+        KEY: "#action--options--key",
+        PASSWORD: "#action--options--password",
+        ID: "#action--id",
+      };
+
+      const encrypt = (payload = {}) => {
+
+        let text =
+          typeof payload == "string" ? payload : JSON.stringify(payload);
+        // text = JSON.stringify({...JSON.parse(text),limit:1})
+        const $password = document.querySelector(ELEMENTS.PASSWORD).value;
+        const $key = document.querySelector(ELEMENTS.KEY).value;
+        const secret = $password + $key;
+
+        var key = CryptoJS.enc.Utf8.parse(secret);
+        var iv = CryptoJS.enc.Utf8.parse(key);
+
+        const encrypted = CryptoJS.AES.encrypt(text, key, { iv: iv });
+        // console.log({secret,len:encrypted.toString().length,len2:encrypted.toString().replaceAll("/", "__314__").length})
+
+        return encrypted.toString().replaceAll("/", "__314__");
+      };
+
+      const buildPayload = (payload = {}) => {
+        return {
+          payload: encrypt(payload),
+          model: document.querySelector(ELEMENTS.OPTIONS).value,
+        };
+      };
+
+      const buildEditor = () => {
+        $outputEditor = ace.edit(ELEMENTS.OUTPUT);
+        $outputEditor.getSession().setUseWorker(false);
+        $outputEditor.setTheme("ace/theme/monokai");
+        $outputEditor.getSession().setMode("ace/mode/json");
+
+        $payloadEditor = ace.edit(ELEMENTS.PAYLOAD);
+        $payloadEditor.getSession().setUseWorker(false);
+        // $payloadEditor.setTheme("ace/theme/monokai");
+        $payloadEditor.getSession().setMode("ace/mode/json");
+      };
+
+      const renderResponse = async (response) => {
+        const json = await response.json();
+        $outputEditor.setValue(JSON.stringify(json, null, "\t"));
+
+        return json;
+      };
+      const onQueryList = async () => {
+        const response = await fetch("/development/list");
+        renderResponse(response);
+      };
+
+      const onQueryRaw = async () => {
+        const { model, payload } = buildPayload($payloadEditor.getValue());
+
+        const response = await fetch("/development/query/" + model, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({ payload: payload }),
+        });
+        renderResponse(response);
+      };
+      const onQueryModelFilter = async () => {
+        const model = document.querySelector(ELEMENTS.OPTIONS).value;
+        const response = await fetch("/development/filter/" + model);
+        renderResponse(response);
+      };
+      const onQueryModel = async () => {
+        const response = await fetch("/");
+        const json = await response.json();
+        const $output = (document.querySelector(
+          ELEMENTS.OUTPUT
+        ).value = JSON.stringify(json));
+      };
+      const onQueryModelId = async () => {
+        const response = await fetch("/");
+        const json = await response.json();
+        const $output = (document.querySelector(
+          ELEMENTS.OUTPUT
+        ).value = JSON.stringify(json));
+      };
+
+      const load = async () => {
+        buildEditor();
+        const response = await fetch("/development/list");
+
+        const json = await renderResponse(response);
+
+        const $modelsInput = document.querySelector(ELEMENTS.OPTIONS);
+        const $keyInput = document.querySelector(ELEMENTS.KEY);
+
+        $keyInput.value = json.key;
+        for (let model of json.models) {
+          const $el = document.createElement("option");
+          $el.value = model;
+          $el.innerText = model;
+          $modelsInput.appendChild($el);
+        }
+
+        $modelsInput.value = json.models[0];
+      };
+
+      (() => {
+        load();
+      })();
+    </script>
+  </body>
+</html>

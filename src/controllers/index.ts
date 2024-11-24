@@ -156,3 +156,6 @@ export * from './team-team-staff.controller';
 export * from './search-user.controller';
 export * from './team-image.controller';
 export * from './bar.controller';
+export * from './development.controller';
+export * from './lineup-time-table.controller';
+export * from './time-table-playlist.controller';
