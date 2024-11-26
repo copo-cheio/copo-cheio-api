@@ -6,7 +6,7 @@ import {PlaylistBelongsToTransformer} from "./playlist.blueprint";
 import {ScheduleBelongsToTransformer} from "./schedule.blueprint";
 import {IncludeAddressRelation} from "./shared/address.include";
 import {IncludeContactsRelation} from "./shared/contacts.include";
-import {IncludeEventInstanceRelation} from "./shared/eventinstance.include";
+import {IncludeEventInstanceRelation,IncludeEventInstancesRelation} from "./shared/eventinstance.include";
 import {IncludeCover} from "./shared/image.include";
 // import {IncludeLineupRelation} from "./shared/lineup.include";
 import {IncludeLineupsRelation} from './shared/lineups.include';
@@ -97,7 +97,7 @@ export const EventFullQuery: any = {
     IncludeTagsRelation,
     IncludeOpeningHoursRelation,
     IncludeLineupsRelation,
-    IncludeEventInstanceRelation, // Include event instances (occurrences)
+    IncludeEventInstancesRelation, // Include event instances (occurrences)
     { relation: "recurringSchedule" }, // Include recurring schedules
     IncludeContactsRelation,
   ],
