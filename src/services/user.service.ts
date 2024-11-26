@@ -81,6 +81,21 @@ export class UserService {
     return {teams,roles}
   }
 
+  async getFavorites(userId:string){
+    let favorites:any = await this.userRepository.favorites(userId)
+    let result:any = {
+      events:[],
+      places:[]
+    }
+    for(let i =0; i < favorites.length; i++){
+      let fav:any = favorites[i]
+      let id:any = fav.eventId || fav.placeId
+      if(fav.eventId && result.events.indexOf(id) ==-1) result.events.push(id)
+      if(fav.placeId && result.places.indexOf(id) ==-1) result.places.push(id)
+    }
+
+    return result
+  }
   /*
    * Add service methods here
    */

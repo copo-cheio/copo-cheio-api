@@ -3,6 +3,7 @@ import {repository} from "@loopback/repository";
 import {get,post,requestBody} from "@loopback/rest";
 import {EventRepository,StaffRepository,TeamStaffRepository,UserRepository} from "../repositories";
 import {AuthService} from "../services";
+import {UserService} from '../services/user.service';
 
 export class AuthController {
   constructor(
@@ -15,7 +16,9 @@ export class AuthController {
     @repository(EventRepository)
     public eventRepository: EventRepository,
     @inject("services.AuthService")
-    private authService: AuthService
+    private authService: AuthService,
+    @inject("services.UserService")
+    private userService: UserService
   ) {}
 
   @get("/__/auth/handler", {
@@ -55,8 +58,9 @@ export class AuthController {
       // Verify the Firebase ID token
       const decodedToken = await this.authService.verifyIdToken(body.token);
 
-      let user = await this.userRepository.findOne({
+      let user:any = await this.userRepository.findOne({
         where: { email: decodedToken.email, firebaseUserId: decodedToken.uid },
+        include:[{"relation":"favorites"}]
       });
       if (!user) {
         user = await this.userRepository.create({
@@ -99,6 +103,8 @@ export class AuthController {
         responsePayload.staffIds = staffIds
         responsePayload.userTeams = [...new Set(userTeams.map(t => t.teamId))]
 
+      }else {
+        responsePayload.favorites = await this.userRepository.getFavorites(user.id)
       }
 
       // Example: return user information

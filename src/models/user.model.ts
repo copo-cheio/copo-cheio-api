@@ -1,7 +1,8 @@
-import {hasOne,model,property} from "@loopback/repository";
+import {hasOne,model,property, hasMany} from "@loopback/repository";
 import {IUser} from "loopback4-soft-delete";
 import {Base} from "./base.model";
 import {ShoppingCart} from "./shopping-cart.model";
+import {Favorite} from './favorite.model';
 
 @model()
 export class User extends Base implements IUser {
@@ -55,6 +56,9 @@ export class User extends Base implements IUser {
     default: false,
   })
   isDeleted?: boolean;
+
+  @hasMany(() => Favorite)
+  favorites: Favorite[];
 
   getIdentifier() {
     return this.id;

@@ -159,3 +159,7 @@ export * from './bar.controller';
 export * from './development.controller';
 export * from './lineup-time-table.controller';
 export * from './time-table-playlist.controller';
+export * from './favorite-user.controller';
+export * from './favorite-event.controller';
+export * from './favorite-place.controller';
+export * from './user-favorite.controller';

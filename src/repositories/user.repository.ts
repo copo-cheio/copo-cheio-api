@@ -1,8 +1,9 @@
 import {Getter,inject} from '@loopback/core';
-import {HasOneRepositoryFactory,repository} from '@loopback/repository';
+import {HasManyRepositoryFactory,HasOneRepositoryFactory,repository} from '@loopback/repository';
 import {PostgresSqlDataSource} from '../datasources';
-import {ShoppingCart,User,UserRelations} from '../models';
+import {Favorite,ShoppingCart,User,UserRelations} from '../models';
 import {BaseRepository} from './base.repository.base';
+import {FavoriteRepository} from './favorite.repository';
 import {ShoppingCartRepository} from './shopping-cart.repository';
 
 export class UserRepository extends BaseRepository<
@@ -13,17 +14,40 @@ export class UserRepository extends BaseRepository<
 
   public readonly shoppingCart: HasOneRepositoryFactory<ShoppingCart, typeof User.prototype.id>;
 
+  public readonly favorites: HasManyRepositoryFactory<Favorite, typeof User.prototype.id>;
+
   constructor(
-    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource, @repository.getter('ShoppingCartRepository') protected shoppingCartRepositoryGetter: Getter<ShoppingCartRepository>,
+    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource, @repository.getter('ShoppingCartRepository') protected shoppingCartRepositoryGetter: Getter<ShoppingCartRepository>, @repository.getter('FavoriteRepository') protected favoriteRepositoryGetter: Getter<FavoriteRepository>,
     // @inject.getter(AuthenticationBindings.CURRENT_USER, {optional: true})
     // protected readonly getCurrentUser?: Getter<User | undefined>,
   ) {
 
 
     super(User, dataSource);
+    this.favorites = this.createHasManyRepositoryFactoryFor('favorites', favoriteRepositoryGetter,);
+    this.registerInclusionResolver('favorites', this.favorites.inclusionResolver);
     this.shoppingCart = this.createHasOneRepositoryFactoryFor('shoppingCart', shoppingCartRepositoryGetter);
     this.registerInclusionResolver('shoppingCart', this.shoppingCart.inclusionResolver);
   }
+
+  async getFavorites(userId:string){
+    let favorites:any = await this.favorites(userId).find()
+
+
+    let result:any = {
+      events:[],
+      places:[]
+    }
+    for(let i =0; i < favorites.length; i++){
+      let fav:any = favorites[i]
+      let id:any = fav.eventId || fav.placeId
+      if(fav.eventId && result.events.indexOf(id) ==-1) result.events.push(id)
+      if(fav.placeId && result.places.indexOf(id) ==-1) result.places.push(id)
+    }
+
+    return result
+  }
+
 }
 
 
