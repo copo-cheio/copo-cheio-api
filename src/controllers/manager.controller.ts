@@ -14,15 +14,20 @@ import {
   requestBody,
   response,
 } from "@loopback/rest";
+import {ProductQueryFull} from "../blueprints/product.blueprint";
 import {StaffQueryFull} from "../blueprints/stafff.blueprint";
 import {TeamQueryFull} from "../blueprints/team.blueprint";
 import {DEFAULT_MODEL_ID} from "../constants";
 import {addCompanyOwnership} from "../interceptors/add-company-ownership.interceptor";
-import {Staff,Team,TeamStaff} from "../models";
+import {Product,Staff,Team,TeamStaff} from "../models";
 import {
   CompanyRepository,
   EventRepository,
   PlaceRepository,
+  PriceRepository,
+  ProductIngredientRepository,
+  ProductOptionRepository,
+  ProductRepository,
   StaffRepository,
   TeamRepository,
   TeamStaffRepository,
@@ -45,7 +50,15 @@ export class ManagerController {
     @repository(PlaceRepository)
     public placeRepository: PlaceRepository,
     @repository(StaffRepository)
-    public staffRepository: StaffRepository
+    public staffRepository: StaffRepository,
+    @repository(ProductRepository)
+    public productRepository: ProductRepository,
+    @repository(ProductOptionRepository)
+    public productOptionRepository: ProductOptionRepository,
+    @repository(ProductIngredientRepository)
+    public productIngredientRepository: ProductIngredientRepository,
+    @repository(PriceRepository)
+    public priceRepository: PriceRepository
   ) {}
 
   @get("/manager")
@@ -258,5 +271,52 @@ export class ManagerController {
       return {};
     };
     return transactionWrapper(this.teamRepository, callbackFn);
+  }
+
+  @post("/manager/products")
+  @response(200, {
+    description: "Product model instance",
+    content: {},
+  })
+  async create(
+    @requestBody({
+      content: {},
+    })
+    payload: any
+  ): Promise<Product> {
+    return  transactionWrapper(
+      this.productRepository,
+      async (transaction: any) => {
+        const _product = {
+          name: payload.name,
+          description: payload.description,
+          thumbnailId: payload.thumbnailId,
+          tagIds: payload.tagIds || [],
+        };
+        const _options = payload.options || [];
+        const _ingredients = payload.ingredients || [];
+
+        const product: any = await this.productRepository.create(_product);
+        for (let option of _options) {
+          const _price = await this.priceRepository.create({
+            price: 0,
+            currencyId: "bc6635ea-7273-4518-b18a-c066fb300b1f",
+          });
+          await this.productOptionRepository.create({
+            productId: product.id,
+            priceId: _price.id,
+            ingredientId: option,
+          });
+        }
+        for (let ingredient of _ingredients) {
+          await this.productIngredientRepository.create({
+            productId: product.id,
+
+            ingredientId: ingredient,
+          });
+        }
+        return this.productRepository.findById(product.id, ProductQueryFull);
+      }
+    );
   }
 }

@@ -235,6 +235,7 @@ export class PlaceController {
     filter?: FilterExcludingWhere<Place>
   ): Promise<Place> {
     return this.placeRepository.findById(id, PlaceQueryFull);
+
   }
 
   @patch("/places/{id}")

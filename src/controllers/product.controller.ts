@@ -17,6 +17,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import {ProductQueryFull} from '../blueprints/product.blueprint';
 import {Product} from '../models';
 import {ProductRepository} from '../repositories';
 
@@ -109,6 +110,25 @@ export class ProductController {
     @param.filter(Product, {exclude: 'where'}) filter?: FilterExcludingWhere<Product>
   ): Promise<Product> {
     return this.productRepository.findById(id, filter);
+  }
+
+  @get('/products/{id}/full')
+  @response(200, {
+    description: 'Product model instance',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(Product, {includeRelations: true}),
+      },
+    },
+  })
+  async findByIdFull(
+    @param.path.string('id') id: string,
+    @param.filter(Product, {exclude: 'where'}) filter?: FilterExcludingWhere<Product>
+  ): Promise<Product> {
+    return this.productRepository.findById(id, ProductQueryFull);
+
+
+
   }
 
   @patch('/products/{id}')
