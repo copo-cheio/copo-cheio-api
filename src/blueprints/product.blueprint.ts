@@ -16,7 +16,6 @@ export const ProductQueryFull: any = {
     name: true,
     description: true,
     thumbnailId: true,
-
     tagIds: true,
   },
 

@@ -12,6 +12,14 @@ export class ProductOption extends Base {
     required:true
   })
   group:string;
+
+  @property({
+    type:"boolean",
+    required:false,
+    default:false
+  })
+  includedByDefault:boolean;
+
   @belongsTo(() => Product)
   productId: string;
 

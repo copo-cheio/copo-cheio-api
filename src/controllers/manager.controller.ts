@@ -14,7 +14,6 @@ import {
   requestBody,
   response,
 } from "@loopback/rest";
-import {ProductQueryFull} from "../blueprints/product.blueprint";
 import {StaffQueryFull} from "../blueprints/stafff.blueprint";
 import {TeamQueryFull} from "../blueprints/team.blueprint";
 import {DEFAULT_MODEL_ID} from "../constants";
@@ -284,7 +283,7 @@ export class ManagerController {
     })
     payload: any
   ): Promise<Product> {
-    return  transactionWrapper(
+    return transactionWrapper(
       this.productRepository,
       async (transaction: any) => {
         const _product = {
@@ -297,25 +296,175 @@ export class ManagerController {
         const _ingredients = payload.ingredients || [];
 
         const product: any = await this.productRepository.create(_product);
+
         for (let option of _options) {
           const _price = await this.priceRepository.create({
-            price: 0,
-            currencyId: "bc6635ea-7273-4518-b18a-c066fb300b1f",
+            price: option?.price?.price || 0,
+            currencyId:
+              option?.price?.currencyId ||
+              "bc6635ea-7273-4518-b18a-c066fb300b1f",
           });
-          await this.productOptionRepository.create({
+
+          const productOption: any = await this.productOptionRepository.create({
             productId: product.id,
             priceId: _price.id,
             ingredientId: option,
+            includedByDefault: option.includedByDefault,
+            group: option.group,
           });
+          console.log(3, { productOption });
         }
         for (let ingredient of _ingredients) {
-          await this.productIngredientRepository.create({
-            productId: product.id,
-
-            ingredientId: ingredient,
-          });
+          const productIngredient = await this.productIngredientRepository.create(
+            {
+              productId: product.id,
+              ingredientId: ingredient.ingredientId,
+            }
+          );
         }
-        return this.productRepository.findById(product.id, ProductQueryFull);
+
+        return this.productRepository.findById(product.id);
+      }
+    );
+  }
+
+  @patch("/manager/products/{id}")
+  @response(200, {
+    description: "Product model instance",
+    content: {},
+  })
+  async updateProduct(
+    @param.path.string("id") id: string,
+    @requestBody({
+      content: {},
+    })
+    payload: any
+  ): Promise<Product> {
+    return transactionWrapper(
+      this.productRepository,
+      async (transaction: any) => {
+        const _product = {
+          name: payload.name,
+          description: payload.description,
+          thumbnailId: payload.thumbnailId,
+          tagIds: payload.tagIds || [],
+        };
+        const _options = payload.options || [];
+        const _ingredients = payload.ingredients || [];
+
+        // let product: any = await this.productRepository.findById(id);
+        let product: any = await this.productRepository.updateById(
+          id,
+          _product
+        );
+        product = await this.productRepository.findById(id);
+
+        let priceIds: any = [];
+        let productOptionIds: any = [];
+        let productIngredientIds: any = [];
+
+        for (let option of _options) {
+          let priceId = option?.price?.id;
+          if (!priceId || priceId == "") {
+            const _price = await this.priceRepository.create({
+              price: option?.price?.price || 0,
+              currencyId:
+                option?.price?.currencyId ||
+                "bc6635ea-7273-4518-b18a-c066fb300b1f",
+            });
+
+            priceId = _price.id;
+          } else {
+            await this.priceRepository.updateById(priceId, {
+              price: option?.price?.price || 0,
+              currencyId:
+                option?.price?.currencyId ||
+                "bc6635ea-7273-4518-b18a-c066fb300b1f",
+            });
+          }
+
+          let productOptionId = option.id;
+          let _productOption: any = {};
+          let productOption: any = {};
+
+          if (productOptionId && productOptionId !== "") {
+            _productOption = await this.productOptionRepository.findById(
+              productOptionId
+            );
+
+          }
+          if (_productOption?.id) {
+            productOptionId = _productOption.id;
+            productOption = _productOption;
+            await this.productOptionRepository.updateById(_productOption.id, {
+              productId: product.id,
+              priceId: priceId,
+              ingredientId: option.ingredientId,
+              includedByDefault: option.includedByDefault,
+              group: option.group,
+            });
+          } else {
+            productOption = await this.productOptionRepository.create({
+              productId: product.id,
+              priceId: priceId,
+              ingredientId: option.ingredientId,
+              includedByDefault: option.includedByDefault,
+              group: option.group,
+            });
+
+            productOptionId = productOption.id;
+          }
+
+          priceIds.push(priceId);
+          productOptionIds.push(productOptionId);
+        }
+        for (let ingredient of _ingredients) {
+          let productIngredientId = ingredient.id;
+          console.log(2,{ingredient,productIngredientId})
+          let productIngredient: any = {};
+          if (!productIngredientId || productIngredientId == "") {
+            productIngredient = await this.productIngredientRepository.create({
+              productId: product.id,
+              ingredientId: ingredient.ingredientId,
+            });
+            productIngredientId = productIngredient.id;
+
+          }
+          productIngredientIds.push(productIngredientId);
+        }
+        console.log({productOptionIds,
+          productIngredientIds})
+        await this.productOptionRepository.deleteAll({
+          // where: {
+          and: [{ productId: product.id }, { id: { nin: productOptionIds } }],
+
+          // productId: product.id,               // Filtering by projectId = "x"
+          // id: {                         // Excluding ids in the array [1, 2, 3]
+          //   nin: productOptionIds,
+          // },
+          // }
+        });
+        await this.productIngredientRepository.deleteAll({
+          // where: {
+          and: [
+            { productId: product.id },
+            { id: { nin: productIngredientIds } },
+          ],
+
+          // productId: product.id,               // Filtering by projectId = "x"
+          // id: {                         // Excluding ids in the array [1, 2, 3]
+          //   nin: productOptionIds,
+          // },
+          // }
+        });
+
+        //   id:{nin:productIds},
+
+        // },transaction)
+        // await this.productIngredientRepository
+        // await this.priceRepository
+
+        return this.productRepository.findById(product.id);
       }
     );
   }

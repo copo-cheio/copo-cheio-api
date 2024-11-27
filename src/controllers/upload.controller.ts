@@ -243,7 +243,7 @@ export class FileUploadController {
     const imagePayload: any = {
       url: minioClientSetup.bucketUrl + fileName,
       type: "cover",
-      refId: request.body.refId || "0000000-0000-0000-0000-00000000000",
+      refId: request.body.refId || "00000000-0000-0000-0000-000000000001",
     };
     const imageRecord = await this.imageRepository.create(imagePayload);
     const { body, data }: any = request;
@@ -278,16 +278,17 @@ export class FileUploadController {
   }
 
   async fileUploadHelper(request: Request, type?: string): Promise<object> {
+    console.log('up')
     const upload = multer().single("file");
     const handler = this.promisify(upload);
     await handler(request);
 
     const bucketName = "copo-cheio"; //minioClientSetup.bucketUrl// Replace with your bucket name
     const file = (request as any).file;
-    let refId = request.body.refId || "0000000-0000-0000-0000-00000000000";
+    let refId = request.body.refId || "00000000-0000-0000-0000-000000000002";
     let table = request.body.model;
-
     type = type || "cover";
+    console.log({refId,table,type})
 
     if (!file) {
       throw new Error("File not found in request");
@@ -305,6 +306,8 @@ export class FileUploadController {
       refId,
     };
     const imageRecord = await this.imageRepository.create(imagePayload);
+
+    console.log({imageRecord})
     // const { body, data }: any = request;
 
     if (refId && table) {
@@ -316,19 +319,20 @@ export class FileUploadController {
 
       if (repo && repo.findById && refId) {
         // @ts-ignore
+        try {
+          const record = await repo.findById(refId);
+          if (record) {
+            let fileKey = "coverId";
+            if (type == "thumbnail") {
+              fileKey = "thumbnailId";
+            }
 
-        const record = await repo.findById(refId);
-        if (record) {
-          let fileKey = "coverId";
-          if (type == "thumbnail") {
-            fileKey = "thumbnailId";
+            record[fileKey] = imageRecord.id;
+
+            console.log({ rid: record.id, refId, type, model });
+            await repo.updateById(record.id, record);
           }
-
-          record[fileKey] = imageRecord.id;
-
-          console.log({ rid: record.id, refId, type, model });
-          await repo.updateById(record.id, record);
-        }
+        } catch (ex) {}
       }
     }
 
