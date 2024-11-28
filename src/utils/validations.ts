@@ -1,3 +1,4 @@
+
 export const isValidEmail = (email:string = "") => {
   let str:any= String(email)
     .toLowerCase()
@@ -24,3 +25,11 @@ export function replaceAll (str:string="",find:string, replace:string){
   return str.replace(new RegExp(find, 'g'), replace);
 
 };
+
+export const validateUuid = (id:any, fallback:string)=>{
+  let valid =typeof id =="string" && id.split('-').length >4; //validate(id);
+  return {
+    valid,
+    uuid:valid? id: fallback
+  }
+}

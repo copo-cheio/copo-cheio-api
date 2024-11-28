@@ -3,6 +3,7 @@ import {BelongsToAccessor,repository} from '@loopback/repository';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../datasources';
 import {Ingredient,Product,ProductIngredient,ProductIngredientRelations} from '../models';
+import {validateUuid} from '../utils/validations';
 import {IngredientRepository} from './ingredient.repository';
 import {ProductRepository} from './product.repository';
 
@@ -25,4 +26,41 @@ export class ProductIngredientRepository extends SoftCrudRepository<
     this.product = this.createBelongsToAccessorFor('product', productRepositoryGetter,);
     this.registerInclusionResolver('product', this.product.inclusionResolver);
   }
+
+
+
+  async updateOrCreateById(id: string, payload: any = {}, options: any = {}) {
+    let record: any;
+    const { productId, ingredientId,  } = payload;
+
+    payload = {
+
+      productId,
+      ingredientId,
+
+    };
+    if (!validateUuid(productId, "").valid)
+      throw new Error("Invalid productId id", { cause: {productId, payload } });
+    if (!validateUuid(ingredientId, "").valid)
+      throw new Error("Invalid ingredientId id", {
+        cause: { payload, ingredientId },
+      });
+
+
+    if (id && validateUuid(id, "").valid) {
+      record = await this.updateById(id, payload, options) ;
+      // record = await this.findById(id) ;
+    } else {
+      record = await this.create(payload, options);
+      id = record.id;
+    }
+
+    if (!validateUuid(id, "").valid)
+      throw new Error("Invalid product ingredient", {
+        cause: { productOption: record },
+      });
+
+    return await this.findById(id);
+  }
+
 }

@@ -1,4 +1,5 @@
 export const DEFAULT_MODEL_ID:any = {
   coverId: "00000000-0000-0000-0000-000000000001",
-  thumbnailId: ""
+  thumbnailId: "00000000-0000-0000-0000-000000000002",
+  currencyId: "bc6635ea-7273-4518-b18a-c066fb300b1f"
 }

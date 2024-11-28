@@ -1,6 +1,6 @@
 // Uncomment these imports to begin using these cool features!
 
-import {intercept} from "@loopback/core";
+import {inject,intercept} from "@loopback/core";
 import {FilterExcludingWhere,repository} from "@loopback/repository";
 
 import {authenticate} from "@loopback/authentication";
@@ -31,6 +31,7 @@ import {
   TeamRepository,
   TeamStaffRepository,
 } from "../repositories";
+import {ProductService} from "../services";
 import {transactionWrapper} from "../shared/database";
 import {uniqueBy} from "../utils/query";
 
@@ -57,7 +58,9 @@ export class ManagerController {
     @repository(ProductIngredientRepository)
     public productIngredientRepository: ProductIngredientRepository,
     @repository(PriceRepository)
-    public priceRepository: PriceRepository
+    public priceRepository: PriceRepository,
+    @inject("services.ProductService")
+    protected productService: ProductService
   ) {}
 
   @get("/manager")
@@ -283,49 +286,8 @@ export class ManagerController {
     })
     payload: any
   ): Promise<Product> {
-    return transactionWrapper(
-      this.productRepository,
-      async (transaction: any) => {
-        const _product = {
-          name: payload.name,
-          description: payload.description,
-          thumbnailId: payload.thumbnailId,
-          tagIds: payload.tagIds || [],
-        };
-        const _options = payload.options || [];
-        const _ingredients = payload.ingredients || [];
+    return this.productService.create(payload);
 
-        const product: any = await this.productRepository.create(_product);
-
-        for (let option of _options) {
-          const _price = await this.priceRepository.create({
-            price: option?.price?.price || 0,
-            currencyId:
-              option?.price?.currencyId ||
-              "bc6635ea-7273-4518-b18a-c066fb300b1f",
-          });
-
-          const productOption: any = await this.productOptionRepository.create({
-            productId: product.id,
-            priceId: _price.id,
-            ingredientId: option,
-            includedByDefault: option.includedByDefault,
-            group: option.group,
-          });
-          console.log(3, { productOption });
-        }
-        for (let ingredient of _ingredients) {
-          const productIngredient = await this.productIngredientRepository.create(
-            {
-              productId: product.id,
-              ingredientId: ingredient.ingredientId,
-            }
-          );
-        }
-
-        return this.productRepository.findById(product.id);
-      }
-    );
   }
 
   @patch("/manager/products/{id}")
@@ -340,132 +302,23 @@ export class ManagerController {
     })
     payload: any
   ): Promise<Product> {
-    return transactionWrapper(
-      this.productRepository,
-      async (transaction: any) => {
-        const _product = {
-          name: payload.name,
-          description: payload.description,
-          thumbnailId: payload.thumbnailId,
-          tagIds: payload.tagIds || [],
-        };
-        const _options = payload.options || [];
-        const _ingredients = payload.ingredients || [];
+    return this.productService.updateProduct(id, payload);
 
-        // let product: any = await this.productRepository.findById(id);
-        let product: any = await this.productRepository.updateById(
-          id,
-          _product
-        );
-        product = await this.productRepository.findById(id);
+  }
 
-        let priceIds: any = [];
-        let productOptionIds: any = [];
-        let productIngredientIds: any = [];
+  // /manager/product-option/'+newOption.id+'/include-by-default/
+  @get("/manager/product-option/{id}/include-by-default/{value}")
+  @response(200, {
+    description: "Place model instance with all dependencies",
+    content: {},
+  })
+  async updateDefaultInclusion(
+    @param.path.string("id") id: string,
+    @param.path.string("value") value: string
 
-        for (let option of _options) {
-          let priceId = option?.price?.id;
-          if (!priceId || priceId == "") {
-            const _price = await this.priceRepository.create({
-              price: option?.price?.price || 0,
-              currencyId:
-                option?.price?.currencyId ||
-                "bc6635ea-7273-4518-b18a-c066fb300b1f",
-            });
 
-            priceId = _price.id;
-          } else {
-            await this.priceRepository.updateById(priceId, {
-              price: option?.price?.price || 0,
-              currencyId:
-                option?.price?.currencyId ||
-                "bc6635ea-7273-4518-b18a-c066fb300b1f",
-            });
-          }
-
-          let productOptionId = option.id;
-          let _productOption: any = {};
-          let productOption: any = {};
-
-          if (productOptionId && productOptionId !== "") {
-            _productOption = await this.productOptionRepository.findById(
-              productOptionId
-            );
-
-          }
-          if (_productOption?.id) {
-            productOptionId = _productOption.id;
-            productOption = _productOption;
-            await this.productOptionRepository.updateById(_productOption.id, {
-              productId: product.id,
-              priceId: priceId,
-              ingredientId: option.ingredientId,
-              includedByDefault: option.includedByDefault,
-              group: option.group,
-            });
-          } else {
-            productOption = await this.productOptionRepository.create({
-              productId: product.id,
-              priceId: priceId,
-              ingredientId: option.ingredientId,
-              includedByDefault: option.includedByDefault,
-              group: option.group,
-            });
-
-            productOptionId = productOption.id;
-          }
-
-          priceIds.push(priceId);
-          productOptionIds.push(productOptionId);
-        }
-        for (let ingredient of _ingredients) {
-          let productIngredientId = ingredient.id;
-          console.log(2,{ingredient,productIngredientId})
-          let productIngredient: any = {};
-          if (!productIngredientId || productIngredientId == "") {
-            productIngredient = await this.productIngredientRepository.create({
-              productId: product.id,
-              ingredientId: ingredient.ingredientId,
-            });
-            productIngredientId = productIngredient.id;
-
-          }
-          productIngredientIds.push(productIngredientId);
-        }
-        console.log({productOptionIds,
-          productIngredientIds})
-        await this.productOptionRepository.deleteAll({
-          // where: {
-          and: [{ productId: product.id }, { id: { nin: productOptionIds } }],
-
-          // productId: product.id,               // Filtering by projectId = "x"
-          // id: {                         // Excluding ids in the array [1, 2, 3]
-          //   nin: productOptionIds,
-          // },
-          // }
-        });
-        await this.productIngredientRepository.deleteAll({
-          // where: {
-          and: [
-            { productId: product.id },
-            { id: { nin: productIngredientIds } },
-          ],
-
-          // productId: product.id,               // Filtering by projectId = "x"
-          // id: {                         // Excluding ids in the array [1, 2, 3]
-          //   nin: productOptionIds,
-          // },
-          // }
-        });
-
-        //   id:{nin:productIds},
-
-        // },transaction)
-        // await this.productIngredientRepository
-        // await this.priceRepository
-
-        return this.productRepository.findById(product.id);
-      }
-    );
+  ): Promise<any> {
+    await this.productOptionRepository.updateById(id, {includedByDefault: value == "true"});
+    return this.productOptionRepository.findById(id)
   }
 }

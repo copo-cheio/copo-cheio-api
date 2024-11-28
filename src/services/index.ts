@@ -11,3 +11,4 @@ export * from './shopping-cart-service.service';
 export * from './stripe.service';
 
 export * from './email.service';
+export * from './product.service';
