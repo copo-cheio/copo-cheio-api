@@ -4,6 +4,7 @@ import {Image} from './image.model';
 import {Menu} from './menu.model';
 import {Order} from './order.model';
 import {Place} from './place.model';
+import {Stock} from './stock.model';
 
 @model()
 export class Balcony extends Base {
@@ -29,6 +30,9 @@ description: string;
 
   @hasMany(() => Order)
   orders: Order[];
+
+  @hasMany(() => Stock)
+  stocks: Stock[];
 
   constructor(data?: Partial<Balcony>) {
     super(data);

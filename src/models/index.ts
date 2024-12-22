@@ -58,3 +58,4 @@ export * from './team-staff.model';
 export * from './search.model';
 export * from './time-table.model';
 export * from './favorite.model';
+export * from './stock.model';

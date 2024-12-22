@@ -1,14 +1,22 @@
 // Uncomment these imports to begin using these cool features!
 
-import {get,param,response} from "@loopback/rest";
+import {
+  get,
+  getModelSchemaRef,
+  param,
+  patch,
+  requestBody,
+  response,
+} from '@loopback/rest';
 
-import {intercept} from "@loopback/core";
-import {FilterExcludingWhere,repository} from "@loopback/repository";
+import {intercept} from '@loopback/core';
+import {FilterExcludingWhere, repository} from '@loopback/repository';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
-import {EventFullQuery} from "../blueprints/event.blueprint";
-import {PlaceQueryFull} from "../blueprints/place.blueprint";
-import {OrderSingleFull} from "../blueprints/shared/order.include";
-import {Balcony} from '../models';
+import {EventFullQuery} from '../blueprints/event.blueprint';
+import {PlaceQueryFull} from '../blueprints/place.blueprint';
+import {IncludeIngredientRelation} from '../blueprints/shared/ingredient.include';
+import {OrderSingleFull} from '../blueprints/shared/order.include';
+import {Balcony, Stock} from '../models';
 import {
   ActivityRepository,
   BalconyRepository,
@@ -18,9 +26,10 @@ import {
   OrderRepository,
   PlaceRepository,
   StaffRepository,
+  StockRepository,
   TeamRepository,
   TeamStaffRepository,
-} from "../repositories";
+} from '../repositories';
 
 // import {inject} from '@loopback/core';
 
@@ -45,13 +54,15 @@ export class BarController {
     @repository(BalconyRepository)
     public balconyRepository: BalconyRepository,
     @repository(StaffRepository)
-    public staffRepository: StaffRepository
+    public staffRepository: StaffRepository,
+    @repository(StockRepository)
+    public stockRepository: StockRepository,
   ) {}
 
-  @get("/bar/check-in-options")
-  @intercept("services.ACL")
+  @get('/bar/check-in-options')
+  @intercept('services.ACL')
   @response(200, {
-    description: "TeamStaff DELETE success",
+    description: 'TeamStaff DELETE success',
   })
   async getCheckInOptions(payload: any = {}): Promise<any> {
     const userAccess = payload?.__userAccess;
@@ -59,11 +70,11 @@ export class BarController {
 
     const events = await this.eventRepository.findAll({
       ...EventFullQuery,
-      where: { teamId: { inq: barTeams } },
+      where: {teamId: {inq: barTeams}},
     });
     const places = await this.placeRepository.findAll({
       ...PlaceQueryFull,
-      where: { id: { inq: [...new Set(events.map((e) => e.placeId))] } },
+      where: {id: {inq: [...new Set(events.map(e => e.placeId))]}},
     });
 
     return {
@@ -73,42 +84,76 @@ export class BarController {
         return {
           ...place,
           events: [
-            ...[...events.filter((event) => event.placeId == place.id)].map(
-              (event) => {
+            ...[...events.filter(event => event.placeId == place.id)].map(
+              event => {
                 return {
                   ...event,
                   team: userAccess.teams[event.teamId],
                 };
-              }
+              },
             ),
           ],
           teams: place?.events?.map((event: any) => {
-            return { id: event.teamId, ...userAccess.teams[event.teamId] };
+            return {id: event.teamId, ...userAccess.teams[event.teamId]};
           }),
         };
       }),
     };
   }
 
-  @get("/bar/balcony/{id}/menu")
+  @get('/bar/balcony/{id}/menu')
   async findMenuByBalconyId(
-    @param.path.string("id") id: string,
-    @param.filter(Balcony, { exclude: "where" })
-    filter?: FilterExcludingWhere<Balcony>
+    @param.path.string('id') id: string,
+    @param.filter(Balcony, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Balcony>,
   ): Promise<Balcony> {
-
     return this.balconyRepository.findById(id, BalconyFullQuery);
   }
+  @get('/bar/balcony/{id}/stock')
+  async findStockByBalconyId(
+    @param.path.string('id') id: string,
+    @param.filter(Balcony, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Balcony>,
+  ): Promise<any> {
+    const balcony: any = await this.balconyRepository.findById(
+      id,
+      BalconyFullQuery,
+    ); //{include:[{relation:"meny"}])
+    const stock: any = await this.stockRepository.findAll({
+      where: {balconyId: id},
+      include: [IncludeIngredientRelation],
+    }); //BalconyFullQuery);
 
+    return {balcony, stock};
+  }
 
-  @get("/bar/balcony/{id}/orders")
-  @intercept("services.ACL")
+  @patch('/bar/balcony/stock/{id}')
+  @response(204, {
+    description: 'Balcony PATCH success',
+  })
+  async updateStockById(
+    @param.path.string('id') id: string,
+    @requestBody({
+      content: {
+        'application/json': {
+          exclude: ['id', 'updated_at', 'created_at'],
+          schema: getModelSchemaRef(Stock, {partial: true}),
+        },
+      },
+    })
+    stock: Stock,
+  ): Promise<void> {
+    await this.stockRepository.updateById(id, {status: stock.status});
+  }
+
+  @get('/bar/balcony/{id}/orders')
+  @intercept('services.ACL')
   @response(200, {
-    description: "TeamStaff DELETE success",
+    description: 'TeamStaff DELETE success',
   })
   async getCurrentBalconyOrders(
-    @param.path.string("id") id: string,
-    payload: any = {}
+    @param.path.string('id') id: string,
+    payload: any = {},
   ): Promise<any> {
     // Step #1
     //// Validar acesso ao bar
@@ -116,14 +161,14 @@ export class BarController {
 
     const barAccessPayload: any = {
       userId: payload?.__userAccess?.user?.id,
-      action: { inq: ["check-in", "check-out"] },
-      job: "BAR",
-      role: "staff",
+      action: {inq: ['check-in', 'check-out']},
+      job: 'BAR',
+      role: 'staff',
     };
 
     const barAccess = await this.activityRepository.findOne({
       where: barAccessPayload,
-      order: ["created_at DESC"],
+      order: ['created_at DESC'],
     });
 
     let hasAccess = false;
@@ -136,7 +181,7 @@ export class BarController {
     if (
       barAccess?.balconyId == id &&
       barAccess?.complete == false &&
-      barAccess?.action == "check-in"
+      barAccess?.action == 'check-in'
     ) {
       hasAccess = true;
 
@@ -144,8 +189,8 @@ export class BarController {
         const instance = await this.eventInstanceRepository.findOne({
           where: {
             eventId,
-            startDate: { lte: now },
-            endDate: { gte: now },
+            startDate: {lte: now},
+            endDate: {gte: now},
           },
         });
         if (instance) {
@@ -153,17 +198,16 @@ export class BarController {
         }
       }
       if (!startDate) {
-        const openHours: any = await this.placeRepository.getTodayOpeningHours(
-          placeId
-        );
+        const openHours: any =
+          await this.placeRepository.getTodayOpeningHours(placeId);
         const openhour = openHours?.[0].openhour;
         const dayofweek = openHours?.[0].dayofweek;
         const now = new Date();
         startDate = now;
         if (startDate.getDay() > dayofweek)
           startDate.setDate(startDate.getDate() - 1);
-        startDate.setHours(openhour.split(":")[0]);
-        startDate.setMinutes(openhour.split(":")[1]);
+        startDate.setHours(openhour.split(':')[0]);
+        startDate.setMinutes(openhour.split(':')[1]);
         startDate.setSeconds(0);
         startDate.setMilliseconds(0);
       }
@@ -171,15 +215,15 @@ export class BarController {
         ...OrderSingleFull,
         where: {
           and: [
-            { balconyId: id },
-            { created_at: { gte: startDate } },
-            { deleted: false },
+            {balconyId: id},
+            {created_at: {gte: startDate}},
+            {deleted: false},
           ],
         },
-        order: "created_at DESC",
+        order: 'created_at DESC',
       });
     } else {
-      throw "Access denied";
+      throw 'Access denied';
     }
   }
 }

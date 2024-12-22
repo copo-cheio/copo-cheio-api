@@ -163,3 +163,7 @@ export * from './favorite-user.controller';
 export * from './favorite-event.controller';
 export * from './favorite-place.controller';
 export * from './user-favorite.controller';
+export * from './stock-balcony.controller';
+export * from './stock-ingredient.controller';
+export * from './balcony-stock.controller';
+export * from './stock.controller';
