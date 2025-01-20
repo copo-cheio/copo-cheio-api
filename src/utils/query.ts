@@ -3,7 +3,7 @@ export function getDistanceFromLatLonInKm(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ) {
   const R = 6371; // Radius of the earth in km
   const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -19,11 +19,20 @@ export function getDistanceFromLatLonInKm(
   return distance;
 }
 
-export const uniqueBy = (arr:any = [], prop: string) => {
+export const uniqueBy = (arr: any = [], prop: string) => {
   return [...new Map(arr.map((item: any) => [item[prop], item])).values()];
 
   // return arr.reduce((a:any, d:any) => {
   //   if (!a.includes(d[prop])) { a.push(d[prop]); }
   //   return a;
   // }, []);
+};
+
+export const responseError = (
+  file: string,
+  message: string,
+  data: any = {},
+) => {
+  console.error({file, message, data});
+  return new Error(message, data);
 };

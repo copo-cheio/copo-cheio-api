@@ -1,8 +1,13 @@
-import {inject} from "@loopback/core";
-import {repository} from "@loopback/repository";
-import {get,post,requestBody} from "@loopback/rest";
-import {EventRepository,StaffRepository,TeamStaffRepository,UserRepository} from "../repositories";
-import {AuthService} from "../services";
+import {inject} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {get, post, requestBody} from '@loopback/rest';
+import {
+  EventRepository,
+  StaffRepository,
+  TeamStaffRepository,
+  UserRepository,
+} from '../repositories';
+import {AuthService, SpotifyService} from '../services';
 import {UserService} from '../services/user.service';
 
 export class AuthController {
@@ -15,16 +20,18 @@ export class AuthController {
     public teamStaffRepository: TeamStaffRepository,
     @repository(EventRepository)
     public eventRepository: EventRepository,
-    @inject("services.AuthService")
+    @inject('services.AuthService')
     private authService: AuthService,
-    @inject("services.UserService")
-    private userService: UserService
+    @inject('services.UserService')
+    private userService: UserService,
+    @inject('services.SpotifyService')
+    private spotifyService: SpotifyService,
   ) {}
 
-  @get("/__/auth/handler", {
+  @get('/__/auth/handler', {
     responses: {
-      "200": {
-        description: "Auth belonging to Balcony",
+      '200': {
+        description: 'Auth belonging to Balcony',
         content: {},
       },
     },
@@ -32,17 +39,17 @@ export class AuthController {
   async test() {
     console.log(this);
   }
-  @post("/auth/google")
+  @post('/auth/google')
   async googleAuth(
     @requestBody({
       content: {
-        "application/json": {
+        'application/json': {
           schema: {
-            type: "object",
+            type: 'object',
             properties: {
-              token: { type: "string" },
+              token: {type: 'string'},
             },
-            required: ["token"],
+            required: ['token'],
           },
         },
       },
@@ -51,16 +58,16 @@ export class AuthController {
       token: string;
       app?: string;
       coordinates?: any;
-    }
+    },
   ) {
-    let responsePayload: any = {};
+    const responsePayload: any = {};
     try {
       // Verify the Firebase ID token
       const decodedToken = await this.authService.verifyIdToken(body.token);
 
-      let user:any = await this.userRepository.findOne({
-        where: { email: decodedToken.email, firebaseUserId: decodedToken.uid },
-        include:[{"relation":"favorites"}]
+      let user: any = await this.userRepository.findOne({
+        where: {email: decodedToken.email, firebaseUserId: decodedToken.uid},
+        include: [{relation: 'favorites'}],
       });
       if (!user) {
         user = await this.userRepository.create({
@@ -71,52 +78,96 @@ export class AuthController {
         });
       }
 
-      let latitude = body?.coordinates?.latitude;
-      let longitude = body?.coordinates?.longitude;
+      const latitude = body?.coordinates?.latitude;
+      const longitude = body?.coordinates?.longitude;
 
       if (latitude && longitude) {
         responsePayload.latitude = latitude;
         responsePayload.longitude = longitude;
-        await this.userRepository.updateById(user.id, { latitude, longitude });
+        await this.userRepository.updateById(user.id, {latitude, longitude});
       } else {
         if (user?.latitude && user?.longitude) {
           responsePayload.latitude = user.latitude;
           responsePayload.longitude = user.longitude;
         }
       }
-      if (body.app == "admin") {
+      if (body.app == 'admin') {
         const userWorksAt = await this.staffRepository.findAll({
-          where: { and: [{ userId: user.id }, { role: "admin" }] },
+          where: {and: [{userId: user.id}, {role: 'admin'}]},
         });
         if (userWorksAt?.[0]) {
           responsePayload.companyId = userWorksAt[0].companyId;
           responsePayload.staffId = userWorksAt[0].id;
           responsePayload.id = userWorksAt[0].userId;
         }
-      }else if(body.app =="staff"){
+      } else if (body.app == 'staff') {
         // Get all places where staff works
         const userWorksAt = await this.staffRepository.findAll({
-          where: { userId: user.id },
+          where: {userId: user.id},
         });
-        let staffIds:any = [...new Set(userWorksAt.map(u => u.id))];
-        const userTeams = await this.teamStaffRepository.findAll({where:{staffId:{inq:staffIds}}})
-        responsePayload.staffIds = staffIds
-        responsePayload.userTeams = [...new Set(userTeams.map(t => t.teamId))]
-
-      }else {
-        responsePayload.favorites = await this.userRepository.getFavorites(user.id)
+        const staffIds: any = [...new Set(userWorksAt.map(u => u.id))];
+        const userTeams = await this.teamStaffRepository.findAll({
+          where: {staffId: {inq: staffIds}},
+        });
+        responsePayload.staffIds = staffIds;
+        responsePayload.userTeams = [...new Set(userTeams.map(t => t.teamId))];
+      } else {
+        responsePayload.favorites = await this.userRepository.getFavorites(
+          user.id,
+        );
       }
 
       // Example: return user information
       return {
-        message: "User authenticated",
+        message: 'User authenticated',
         userId: decodedToken.uid,
         email: decodedToken.email,
         ...responsePayload,
       };
     } catch (error) {
-      console.error("Authentication error:", error);
+      console.error('Authentication error:', error);
       throw error;
     }
+  }
+
+  @post('/auth/spotify')
+  async spotifyAuth(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              code: {type: 'string'},
+            },
+          },
+        },
+      },
+    })
+    body: {
+      code?: string;
+    },
+  ) {
+    return this.spotifyService.authenticate(body);
+  }
+  @post('/auth/refresh-spotify')
+  async spotifyRefresh(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              refresh_token: {type: 'string'},
+            },
+          },
+        },
+      },
+    })
+    body: {
+      refresh_token?: string;
+    },
+  ) {
+    return this.spotifyService.authenticate(body);
   }
 }
