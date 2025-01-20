@@ -1,6 +1,6 @@
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {get, post, requestBody} from '@loopback/rest';
+import {get, param, post, requestBody} from '@loopback/rest';
 import {
   EventRepository,
   StaffRepository,
@@ -130,25 +130,9 @@ export class AuthController {
     }
   }
 
-  @post('/auth/spotify')
-  async spotifyAuth(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              code: {type: 'string'},
-            },
-          },
-        },
-      },
-    })
-    body: {
-      code?: string;
-    },
-  ) {
-    return this.spotifyService.authenticate(body);
+  @get('/auth/spotify')
+  async spotifyAuth(@param.path.string('code') code: string) {
+    return this.spotifyService.authenticate({code});
   }
   @post('/auth/refresh-spotify')
   async spotifyRefresh(

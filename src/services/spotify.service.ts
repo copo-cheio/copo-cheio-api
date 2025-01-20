@@ -10,7 +10,7 @@ export class SpotifyService {
   private CLIENT_ID = '74d1b969e84d4042897a121936cb0219'; //process.env.CLIENT_ID;
   private CLIENT_SECRET = '8f8ae7ba294348768a218d42c87b355a'; //process.env.CLIENT_SECRET;
   private ENCRYPTION_SECRET = 'the-secret'; //process.env.ENCRYPTION_SECRET;
-  public CLIENT_CALLBACK_URL = 'copocheiospotify://callback'; //process.env.CLIENT_CALLBACK_URL;
+  public CLIENT_CALLBACK_URL = 'copocheio://callback'; //process.env.CLIENT_CALLBACK_URL;
 
   constructor(/* Add @inject to inject parameters */) {}
 
