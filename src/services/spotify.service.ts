@@ -28,7 +28,7 @@ export class SpotifyService {
           headers: {
             Authorization:
               'Basic ' +
-              new Buffer(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64'),
+              Buffer.from(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64'),
           },
           json: true,
         },
@@ -67,7 +67,7 @@ export class SpotifyService {
       /*       return res.json({
         "error": "Parameter missing"
       }); */
-      throw responseError(this.FILE_KEY + '::refresh', 'No token');
+      throw responseError(this.FILE_KEY + '::auth', 'No token');
     }
 
     try {
@@ -84,7 +84,7 @@ export class SpotifyService {
       };
     } catch (error) {
       console.error('Authentication error:', error);
-      throw responseError(this.FILE_KEY + '::refresh', 'Spotify Auth', error);
+      throw responseError(this.FILE_KEY + '::auth', 'Spotify Auth', error);
     }
   }
 

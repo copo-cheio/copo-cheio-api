@@ -131,7 +131,7 @@ export class AuthController {
   }
 
   @get('/auth/spotify')
-  async spotifyAuth(@param.path.string('code') code: string) {
+  async spotifyAuth(@param.query.string('code') code: string) {
     return this.spotifyService.authenticate({code});
   }
   @post('/auth/refresh-spotify')
