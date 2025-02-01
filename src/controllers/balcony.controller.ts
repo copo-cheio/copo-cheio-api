@@ -24,28 +24,26 @@ import {BalconyRepository} from '../repositories';
 export class BalconyController {
   constructor(
     @repository(BalconyRepository)
-    public balconyRepository : BalconyRepository,
+    public balconyRepository: BalconyRepository,
   ) {}
 
-
-  @get("/balconies/{id}/full")
+  @get('/balconies/{id}/full')
   @response(200, {
-    description: "Balcony model instance with all dependencies",
+    description: 'Balcony model instance with all dependencies',
     content: {
-      "application/json": {
-        schema: getModelSchemaRef(Balcony, { includeRelations: true }),
+      'application/json': {
+        schema: getModelSchemaRef(Balcony, {includeRelations: true}),
       },
     },
   })
   async findByIdFull(
-    @param.path.string("id") id: string,
-    @param.filter(Balcony, { exclude: "where" })
-    filter?: FilterExcludingWhere<Balcony>
+    @param.path.string('id') id: string,
+    @param.filter(Balcony, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Balcony>,
   ): Promise<Balcony> {
     // console.log(JSON.stringify(filter),"filter",JSON.stringify(BalconyFullQuery))
     return this.balconyRepository.findById(id, BalconyFullQuery);
   }
-
 
   @post('/balconies')
   @response(200, {
@@ -56,11 +54,9 @@ export class BalconyController {
     @requestBody({
       content: {
         'application/json': {
-          exclude: ["id", "updated_at", "created_at"],
+          exclude: ['id', 'updated_at', 'created_at'],
           schema: getModelSchemaRef(Balcony, {
             title: 'NewBalcony',
-
-
           }),
         },
       },
@@ -75,9 +71,7 @@ export class BalconyController {
     description: 'Balcony model count',
     content: {'application/json': {schema: CountSchema}},
   })
-  async count(
-    @param.where(Balcony) where?: Where<Balcony>,
-  ): Promise<Count> {
+  async count(@param.where(Balcony) where?: Where<Balcony>): Promise<Count> {
     return this.balconyRepository.count(where);
   }
 
@@ -108,9 +102,8 @@ export class BalconyController {
     @requestBody({
       content: {
         'application/json': {
-          exclude: ["id", "updated_at", "created_at"],
+          exclude: ['id', 'updated_at', 'created_at'],
           schema: getModelSchemaRef(Balcony, {partial: true}),
-
         },
       },
     })
@@ -131,7 +124,8 @@ export class BalconyController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Balcony, {exclude: 'where'}) filter?: FilterExcludingWhere<Balcony>
+    @param.filter(Balcony) filter?: Filter<Balcony>,
+    /*   @param.filter(Balcony, {exclude: 'where'}) filter?: FilterExcludingWhere<Balcony> */
   ): Promise<Balcony> {
     return this.balconyRepository.findById(id, filter);
   }
@@ -145,9 +139,8 @@ export class BalconyController {
     @requestBody({
       content: {
         'application/json': {
-          exclude: ["id", "updated_at", "created_at"],
+          exclude: ['id', 'updated_at', 'created_at'],
           schema: getModelSchemaRef(Balcony, {partial: true}),
-
         },
       },
     })
