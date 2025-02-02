@@ -167,3 +167,4 @@ export * from './stock-balcony.controller';
 export * from './stock-ingredient.controller';
 export * from './balcony-stock.controller';
 export * from './stock.controller';
+export * from './dev.controller';

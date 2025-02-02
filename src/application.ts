@@ -1,32 +1,34 @@
-import {BootMixin} from "@loopback/boot";
-import {ApplicationConfig} from "@loopback/core";
-import {RepositoryMixin} from "@loopback/repository";
-import {RestApplication} from "@loopback/rest";
+import {BootMixin} from '@loopback/boot';
+import {ApplicationConfig} from '@loopback/core';
+import {RepositoryMixin} from '@loopback/repository';
+import {RestApplication} from '@loopback/rest';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
-} from "@loopback/rest-explorer";
-import {ServiceMixin} from "@loopback/service-proxy";
+} from '@loopback/rest-explorer';
+import {ServiceMixin} from '@loopback/service-proxy';
 import multer from 'multer';
-import path from "path";
-import {MySequence} from "./sequence";
+import path from 'path';
+/* import {MySequence} from "./sequence"; */
 
 import {
   AuthenticationComponent,
   registerAuthenticationStrategy,
-} from "@loopback/authentication";
+} from '@loopback/authentication';
 import {FirebaseAuthStrategy} from './auth-strategies/firebase-strategy';
 import {AclInterceptor} from './interceptors/acl.interceptor';
 import {CompanyOwnershipValidation} from './interceptors/company-ownership-validation';
 import {SearchInterceptor} from './interceptors/search.interceptor';
-import {FILE_UPLOAD_SERVICE,STORAGE_DIRECTORY} from './services/FileUpload/keys';
+import {
+  FILE_UPLOAD_SERVICE,
+  STORAGE_DIRECTORY,
+} from './services/FileUpload/keys';
 import {MultipartFormDataBodyParser} from './utils/parser';
-
 
 export {ApplicationConfig};
 
 export class CopoCheioServerApplication extends BootMixin(
-  ServiceMixin(RepositoryMixin(RestApplication))
+  ServiceMixin(RepositoryMixin(RestApplication)),
 ) {
   constructor(options: ApplicationConfig = {}) {
     super(options);
@@ -35,14 +37,14 @@ export class CopoCheioServerApplication extends BootMixin(
     // this.interceptor(AclInterceptor);
 
     // Set up the custom sequence
-    this.sequence(MySequence);
+    /* this.sequence(MySequence); */
 
     // Set up default home page
-    this.static("/", path.join(__dirname, "../public"));
+    this.static('/', path.join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
     this.configure(RestExplorerBindings.COMPONENT).to({
-      path: "/explorer",
+      path: '/explorer',
     });
 
     this.component(RestExplorerComponent);
@@ -61,8 +63,8 @@ export class CopoCheioServerApplication extends BootMixin(
     this.bootOptions = {
       controllers: {
         // Customize ControllerBooter Conventions here
-        dirs: ["controllers"],
-        extensions: [".controller.js"],
+        dirs: ['controllers'],
+        extensions: ['.controller.js'],
         nested: true,
       },
     };
@@ -89,7 +91,7 @@ export class CopoCheioServerApplication extends BootMixin(
           bearerAuth: [],
         },
       ],
-    })
+    });
   }
 
   protected configureFileUpload(destination?: string) {

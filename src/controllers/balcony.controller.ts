@@ -124,7 +124,7 @@ export class BalconyController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Balcony) filter?: Filter<Balcony>,
+    @param.filter(Balcony) filter?: any,
     /*   @param.filter(Balcony, {exclude: 'where'}) filter?: FilterExcludingWhere<Balcony> */
   ): Promise<Balcony> {
     return this.balconyRepository.findById(id, filter);

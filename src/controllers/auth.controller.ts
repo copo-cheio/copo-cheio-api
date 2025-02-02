@@ -1,6 +1,14 @@
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {get, param, post, requestBody} from '@loopback/rest';
+import {
+  get,
+  param,
+  post,
+  Request,
+  requestBody,
+  RestBindings,
+} from '@loopback/rest';
+import fs from 'fs';
 import {
   EventRepository,
   StaffRepository,
@@ -36,9 +44,60 @@ export class AuthController {
       },
     },
   })
-  async test() {
-    console.log(this);
+  async test(@inject(RestBindings.Http.REQUEST) request: Request) {
+    // Log GET request query params and cookies
+    console.log(request);
+    const logEntry = {
+      method: request.method,
+      url: request.url,
+      query: request.query,
+      cookies: request.headers.cookie || 'No cookies',
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log({logEntry});
+
+    fs.appendFileSync('requests.log', JSON.stringify(logEntry, null, 2) + '\n');
+    return {message: 'Logged GET request', data: logEntry};
   }
+
+  /*
+  @get('/auth/login')
+  async logGetRequest(
+    @inject(RestBindings.Http.REQUEST) request: Request
+  ) {
+    // Log GET request query params and cookies
+    const logEntry = {
+      method: request.method,
+      url: request.url,
+      query: request.query,
+      cookies: request.headers.cookie || 'No cookies',
+      timestamp: new Date().toISOString(),
+    };
+
+    fs.appendFileSync('requests.log', JSON.stringify(logEntry, null, 2) + '\n');
+    return {message: 'Logged GET request', data: logEntry};
+  }*/
+  /*
+  @post('/auth/login')
+  async logPostRequest(
+    @inject(RestBindings.Http.REQUEST) request: Request,
+    @requestBody() body: object
+  ) {
+    // Log POST request body and cookies
+    const logEntry = {
+      method: request.method,
+      url: request.url,
+      body: body,
+      cookies: request.headers.cookie || 'No cookies',
+      timestamp: new Date().toISOString(),
+    };
+
+    fs.appendFileSync('requests.log', JSON.stringify(logEntry, null, 2) + '\n');
+    return {message: 'Logged POST request', data: logEntry};
+  }
+*/
+
   @post('/auth/google')
   async googleAuth(
     @requestBody({

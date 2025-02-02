@@ -65,6 +65,7 @@
     "firebase-admin": "^12.4.0",
     "jimp": "^0.22.12",
     "loopback-connector-postgresql": "^7.1.4",
+    "loopback-connector-sqlite3": "^3.0.0",
     "loopback4-soft-delete": "^10.0.2",
     "minio": "^8.0.1",
     "multer": "^1.4.5-lts.1",
