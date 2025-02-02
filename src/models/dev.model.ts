@@ -22,10 +22,9 @@ export class Dev extends Base {
   action: string;
 
   @property({
-    type: 'boolean',
-    required: true,
+    type: 'object',
   })
-  data: boolean;
+  data: any;
 
   constructor(data?: Partial<Dev>) {
     super(data);
