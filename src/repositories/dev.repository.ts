@@ -2,6 +2,7 @@ import {Getter, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {PostgresSqlDataSource} from '../datasources';
 import {Dev, DevRelations} from '../models';
+import {createTimeline} from '../services/dev/dev.utils';
 import {PushNotificationService} from '../services/push-notification.service';
 import {BalconyRepository} from './balcony.repository';
 import {BaseRepository} from './base.repository.base';
@@ -31,14 +32,14 @@ export class DevRepository extends BaseRepository<
     private pushNotificationService: PushNotificationService,
   ) {
     super(Dev, dataSource);
-
+    try {
+      this.init();
+    } catch (ex) {
+      console.log(ex);
+    }
     //console.log('fbi', this.findByAction);
   }
 
-  async getUserOrder(app: any, refId: string, extraParam?: string) {
-    if (extraParam) refId = extraParam;
-    return this.findByAction(app, 'user-order', refId);
-  }
   async userOrderPaymentSuccess(app: string, refId: string, data: any = {}) {
     let record: any = await this.getUserOrder(app, refId);
     const action = 'user-order';
@@ -134,6 +135,7 @@ export class DevRepository extends BaseRepository<
         {
           ...record.data,
           id: record.id,
+          orderId: record.id,
           order: {...record.data.order, id: record.id},
         },
       ),
@@ -160,11 +162,12 @@ export class DevRepository extends BaseRepository<
       ...userOrders,
       data: [...userOrders.data, record],
     });
+
+    await this.createNewOrder(data.placeId, data.balconyId, record.id, refId);
     return record;
   }
 
   async updateOrder(app: any, refId: string, data: any) {
-    /* const order = parseCreateOrder(data); */
     const balconyOrders = await this.findByAction(
       app,
       'balcony-orders',
@@ -184,23 +187,19 @@ export class DevRepository extends BaseRepository<
   async checkIn(app: any, refId: any, data: any) {
     // Is signed up?
 
+    data.active = true;
+
     if (app === 'staff') {
-      const orders = await this.findOrCreateByAction(
+      await this.findOrCreateByAction(
         app,
         'balcony-orders',
         data.balconyId,
         [],
       );
-      data = {...data, orders};
     } else {
-      const orders = await this.findOrCreateByAction(
-        app,
-        'user-orders',
-        refId,
-        [],
-      );
+      await this.findOrCreateByAction(app, 'user-orders', refId, []);
       const order = await this.findByAction(app, 'user-order', refId);
-      data = {...data, orders, order};
+      data = {...data, order};
     }
     return this.findOrCreateThenUpdateByAction(app, 'check-in', refId, data);
   }
@@ -209,14 +208,17 @@ export class DevRepository extends BaseRepository<
     // Is signed up?
 
     const record = await this.findByAction(app, refId, 'check-in');
-    if (record) {
-      await this.deleteById(record.id);
-    }
+    await this.updateById(record.id, {
+      ...record,
+      data: {...record.data, active: false},
+    });
     return {success: true};
   }
 
   async signIn(app: any, refId: any, data: any) {
     // Is signed up?
+
+    data.active = true;
     let record = await this.findOrCreateByAction(app, 'sign-up', refId, data);
     record = await this.findOrCreateThenUpdateByAction(
       app,
@@ -232,7 +234,10 @@ export class DevRepository extends BaseRepository<
     // Is signed up?
     const record = await this.findByAction(app, refId, 'sign-in');
     if (record) {
-      await this.deleteById(record.id);
+      await this.updateById(record.id, {
+        ...record,
+        data: {...record.data, active: false},
+      });
     }
     return {success: true};
   }
@@ -283,41 +288,60 @@ export class DevRepository extends BaseRepository<
     const record: any = await this.create(payload);
     return record;
   }
-}
 
-function parseCreateOrder(data: any = {}, refId: string) {
-  return {...data, user: {id: refId}};
-}
+  async getUserOrder(app: any, refId: string, extraParam?: string) {
+    if (extraParam) refId = extraParam;
+    return this.findByAction(app, 'user-order', refId);
+  }
 
-function createTimeline(
-  orderId: string,
-  status: string,
-  staffId: string = 'e5ed35ae-f951-4a70-a129-e298a92c07cc',
-) {
-  return {
-    id: '12ab87d2-73ff-4a79-872c-89390b4cde84',
-    created_at: '2024-11-12T19:25:34.975Z',
-    updated_at: '2024-11-12T19:25:34.975Z',
-    orderId: orderId,
-    action: status,
-    title: status,
-    staffId: staffId,
-    timelineKey: status,
-    staff: {
-      deleted: false,
-      deletedOn: null,
-      deletedBy: null,
-      id: staffId,
-      created_at: '2024-09-30T04:30:23.982Z',
-      updated_at: '2024-09-30T04:30:23.982Z',
-      name: 'Filipe',
-      avatar:
-        'https://lh3.googleusercontent.com/a/ACg8ocI-GCGkmacL9DIKSmik1s-asg3Tib0F62HU4s0VfbmmgFwA9g=s96-c',
-      email: 'pihh.backup@gmail.com',
-      firebaseUserId: 'IrU8vmqxK8R9qcp1EP2Yl4Ddvx92',
-      latitude: '38.5061208',
-      longitude: '-9.1559578',
-      isDeleted: false,
-    },
-  };
+  async getUserOrders(refId: string) {
+    return this.findOrCreateByAction('user', 'user-orders', refId, []);
+  }
+  async getBalconyOrders(balconyId: string, a?: any, b?: any) {
+    const app = 'staff';
+    const action = 'balcony-orders';
+    balconyId = b ? b : balconyId;
+    return this.findOrCreateByAction(app, action, balconyId, []);
+  }
+
+  async createNewOrder(
+    placeId: string,
+    balconyId: string,
+    orderId: string,
+    userId: string,
+  ) {
+    const orders = await this.findById(this.systemOrdersId);
+    const order = {placeId, balconyId, orderId, userId};
+    await this.updateById(orders.id, {
+      ...orders,
+      data: [...orders.data, order],
+    });
+  }
+
+  async getOrderFromSystemOrders(orderId: string) {
+    const systemOrders = await this.getSystemOrders();
+    const systemOrder = systemOrders.find((o: any) => o.orderId == orderId);
+    const balconyOrders = await this.getBalconyOrders(systemOrder.balconyId);
+    const order = balconyOrders.find((o: any) => o.orderId == orderId);
+    return order;
+  }
+  async getSystemOrders() {
+    const orders = await this.findById(this.systemOrdersId);
+    return orders.data;
+  }
+
+  private systemOrdersId: string;
+  async init() {
+    try {
+      const systemOrders = await this.findOrCreateByAction(
+        'system',
+        'orders',
+        'system',
+        [],
+      );
+      this.systemOrdersId = systemOrders.id;
+    } catch (ex) {
+      console.log(ex);
+    }
+  }
 }

@@ -12,7 +12,9 @@ const ACTIONS: any = {
   'check-out': 'checkIn',
   'create-user-order': 'createUserOrder',
   'user-order': 'getUserOrder',
+  'find-order': 'getOrderFromSystemOrders',
   'payment-success': 'userOrderPaymentSuccess',
+  'balcony-orders': 'getBalconyOrders',
 };
 
 export class DevController {
@@ -20,6 +22,13 @@ export class DevController {
     @repository(DevRepository) public devRepository: DevRepository | any,
   ) {}
 
+  @get('/dev/order/{id}')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async getOrder(@param.path.string('id') id: string): Promise<any> {
+    return this.devRepository.getOrderFromSystemOrders(id);
+  }
   @get('/dev/{app}/{action}/{refId}')
   @response(200, {
     description: 'Array of available models',
