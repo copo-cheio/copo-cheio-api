@@ -1,4 +1,4 @@
-import {inject} from "@loopback/core";
+import {inject} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -7,7 +7,7 @@ import {
   IsolationLevel,
   repository,
   Where,
-} from "@loopback/repository";
+} from '@loopback/repository';
 import {
   del,
   get,
@@ -18,20 +18,20 @@ import {
   put,
   requestBody,
   response,
-} from "@loopback/rest";
-import {PlaceQueryFull,PlacesQuery} from "../blueprints/place.blueprint";
-import {FilterByTags} from "../blueprints/shared/tag.include";
-import {Place} from "../models";
+} from '@loopback/rest';
+import {PlaceQueryFull, PlacesQuery} from '../blueprints/place.blueprint';
+import {FilterByTags} from '../blueprints/shared/tag.include';
+import {Place} from '../models';
 import {
   ContactsRepository,
   OpeningHoursRepository,
   PlaceRepository,
   PlaylistRepository,
-} from "../repositories";
-import {PlaceService} from "../services/place.service";
+} from '../repositories';
+import {PlaceService} from '../services/place.service';
 export class PlaceController {
   constructor(
-    @inject("services.PlaceService")
+    @inject('services.PlaceService')
     protected placeService: PlaceService,
     @repository(PlaceRepository)
     public placeRepository: PlaceRepository,
@@ -40,24 +40,24 @@ export class PlaceController {
     @repository(ContactsRepository)
     public contactsRepository: ContactsRepository,
     @repository(PlaylistRepository)
-    public playlistRepository: PlaylistRepository
+    public playlistRepository: PlaylistRepository,
   ) {}
 
-  @get("/places/nearby")
+  @get('/places/nearby')
   async findNearbyPlaces(
-    @param.query.number("lat") lat: number,
-    @param.query.number("lon") lon: number
+    @param.query.number('lat') lat: number,
+    @param.query.number('lon') lon: number,
   ) {
     const results = await this.placeRepository.findByDistance(
       lat || 0,
-      lon || 0
+      lon || 0,
     );
 
     const _filter = {
       ...PlacesQuery,
       where: {
         or: results.map((r: any) => {
-          return { id: r.id };
+          return {id: r.id};
         }),
       },
       // sort:["distance DESC"]
@@ -66,27 +66,27 @@ export class PlaceController {
     return this.placeRepository.find(_filter);
   }
 
-  @get("/places/current-event/{id}")
+  @get('/places/current-event/{id}')
   @response(200, {
-    description: "Place model instance",
+    description: 'Place model instance',
     content: {
-      "application/json": {
-        schema: getModelSchemaRef(Place, { includeRelations: true }),
+      'application/json': {
+        schema: getModelSchemaRef(Place, {includeRelations: true}),
       },
     },
   })
   async findCurrentEvent(
-    @param.path.string("id") id: string,
-    @param.filter(Place, { exclude: "where" })
-    filter?: FilterExcludingWhere<Place>
+    @param.path.string('id') id: string,
+    @param.filter(Place, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Place>,
   ): Promise<any> {
     return this.placeService.findCurrentEvent(id);
   }
 
-  @post("/places")
+  @post('/places')
   @response(200, {
-    description: "Place model instance",
-    content: { "application/json": { schema: getModelSchemaRef(Place) } },
+    description: 'Place model instance',
+    content: {'application/json': {schema: getModelSchemaRef(Place)}},
   })
   async create(
     @requestBody({
@@ -99,16 +99,16 @@ export class PlaceController {
         // },
       },
     })
-    place: any
+    place: any,
   ): Promise<any> {
     const transaction = await this.placeRepository.dataSource.beginTransaction(
-      IsolationLevel.SERIALIZABLE
+      IsolationLevel.SERIALIZABLE,
     );
     try {
       const openingHours = place?.openingHours || [];
       const contacts = place.contacts || {};
-      if(!place.addressId ) throw "Address required"
-      place.coverId = place.coverId || "00000000-0000-0000-0000-000000000001"
+      if (!place.addressId) throw 'Address required';
+      place.coverId = place.coverId || '00000000-0000-0000-0000-000000000001';
       // const coverId = place.coverId || "";
       // const playlist = place.playlist || {};
       // const address = place.address || {};
@@ -117,36 +117,39 @@ export class PlaceController {
       delete place.playlist;
       delete place.cover;
       delete place.address;
-      if(!place.playlistId){
-        let playlistRecord = await this.playlistRepository.create({name: place.name+' playlist', tagIds:[]})
-        place.playlistId = playlistRecord.id
+      if (!place.playlistId) {
+        const playlistRecord = await this.playlistRepository.create({
+          name: place.name + ' playlist',
+          tagIds: [],
+        });
+        place.playlistId = playlistRecord.id;
       }
-
 
       const record: any = await this.placeRepository.create(place);
-      for (let openingHour of openingHours || []) {
-
-          await this.openingHourRepository.create({
-            dayofweek: openingHour.dayofweek,
-            openhour: openingHour.openhour,
-            closehour: openingHour.closehour,
-            placeId: record.id,
-            active:openingHour.open || openingHour.active || false
-          });
-
+      for (const openingHour of openingHours || []) {
+        await this.openingHourRepository.create({
+          dayofweek: openingHour.dayofweek,
+          openhour: openingHour.openhour,
+          closehour: openingHour.closehour,
+          placeId: record.id,
+          active: openingHour.open || openingHour.active || false,
+        });
       }
       const placeContactsPayload: any = {
-        email: contacts?.email || "",
-        phone: contacts?.phone || "",
-        website: contacts?.website || "",
-        social_facebook: contacts?.social_facebook || "",
-        social_instagram: contacts?.social_instagram || "",
+        email: contacts?.email || '',
+        phone: contacts?.phone || '',
+        website: contacts?.website || '',
+        social_facebook: contacts?.social_facebook || '',
+        social_instagram: contacts?.social_instagram || '',
         social_threads: contacts?.social_threads,
         refId: record.id,
       };
       await this.contactsRepository.create(placeContactsPayload);
       await this.placeService.findOrCreateCheckInQrCode(record.id);
-      const result = await this.placeRepository.findById(record.id, PlaceQueryFull);
+      const result = await this.placeRepository.findById(
+        record.id,
+        PlaceQueryFull,
+      );
       await transaction.commit();
       return result;
     } catch (ex) {
@@ -155,31 +158,29 @@ export class PlaceController {
     }
   }
 
-  @get("/places/count")
+  @get('/places/count')
   @response(200, {
-    description: "Place model count",
-    content: { "application/json": { schema: CountSchema } },
+    description: 'Place model count',
+    content: {'application/json': {schema: CountSchema}},
   })
   async count(@param.where(Place) where?: Where<Place>): Promise<Count> {
     return this.placeRepository.count(where);
   }
 
-  @get("/places")
+  @get('/places')
   @response(200, {
-    description: "Array of Place model instances",
+    description: 'Array of Place model instances',
     content: {
-      "application/json": {
+      'application/json': {
         schema: {
-          type: "array",
-          items: getModelSchemaRef(Place, { includeRelations: true }),
+          type: 'array',
+          items: getModelSchemaRef(Place, {includeRelations: true}),
         },
       },
     },
   })
   async find(@param.filter(Place) filter?: Filter<Place>) {
-    return this.placeRepository.find(
-      FilterByTags({ ...filter, ...PlacesQuery })
-    );
+    return this.placeRepository.find(FilterByTags({...filter, ...PlacesQuery}));
   }
 
   // @patch("/places")
@@ -202,48 +203,66 @@ export class PlaceController {
   //   return this.placeRepository.updateAll(place, where);
   // }
 
-  @get("/places/{id}")
+  @get('/places/{id}')
   @response(200, {
-    description: "Place model instance",
+    description: 'Place model instance',
     content: {
-      "application/json": {
-        schema: getModelSchemaRef(Place, { includeRelations: true }),
+      'application/json': {
+        schema: getModelSchemaRef(Place, {includeRelations: true}),
       },
     },
   })
   async findById(
-    @param.path.string("id") id: string,
-    @param.filter(Place, { exclude: "where" })
-    filter?: FilterExcludingWhere<Place>
+    @param.path.string('id') id: string,
+    @param.filter(Place, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Place>,
   ): Promise<Place> {
     return this.placeRepository.findById(id, filter);
   }
+  @get('/places/list/{id}')
+  @response(200, {
+    description: 'Place model instance',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(Place, {includeRelations: true}),
+      },
+    },
+  })
+  async findByIds(
+    @param.path.string('id') id: string,
+    @param.filter(Place, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Place>,
+  ): Promise<any> {
+    return this.placeRepository.findAll({
+      ...PlacesQuery,
+      where: {id: {inq: JSON.parse(id)}},
+    });
+  }
 
   // xx
-  @get("/places/{id}/full")
+  @get('/places/{id}/full')
   @response(200, {
-    description: "Place model instance with all dependencies",
+    description: 'Place model instance with all dependencies',
     content: {
-      "application/json": {
-        schema: getModelSchemaRef(Place, { includeRelations: true }),
+      'application/json': {
+        schema: getModelSchemaRef(Place, {includeRelations: true}),
       },
     },
   })
   async findByIdFull(
-    @param.path.string("id") id: string,
-    @param.filter(Place, { exclude: "where" })
-    filter?: FilterExcludingWhere<Place>
+    @param.path.string('id') id: string,
+    @param.filter(Place, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Place>,
   ): Promise<Place> {
     return this.placeRepository.findById(id, PlaceQueryFull);
-
   }
 
-  @patch("/places/{id}")
+  @patch('/places/{id}')
   @response(204, {
-    description: "Place PATCH success",
+    description: 'Place PATCH success',
   })
   async updateById(
-    @param.path.string("id") id: string,
+    @param.path.string('id') id: string,
     @requestBody({
       content: {
         // "application/json": {
@@ -251,13 +270,12 @@ export class PlaceController {
         // },
       },
     })
-    place: any
+    place: any,
   ): Promise<void> {
-
     const openingHours: any = place.openingHours;
     delete place.openingHours;
-    if(Array.isArray(openingHours)){
-      await this.placeService.updatePlaceOpeningHours(id,openingHours)
+    if (Array.isArray(openingHours)) {
+      await this.placeService.updatePlaceOpeningHours(id, openingHours);
     }
     const record: any = await this.placeRepository.updateById(id, place);
     // const record:any = await this.placeRepository.create(place);
@@ -265,22 +283,22 @@ export class PlaceController {
     return record;
   }
 
-  @put("/places/{id}")
+  @put('/places/{id}')
   @response(204, {
-    description: "Place PUT success",
+    description: 'Place PUT success',
   })
   async replaceById(
-    @param.path.string("id") id: string,
-    @requestBody() place: Place
+    @param.path.string('id') id: string,
+    @requestBody() place: Place,
   ): Promise<void> {
     await this.placeRepository.replaceById(id, place);
   }
 
-  @del("/places/{id}")
+  @del('/places/{id}')
   @response(204, {
-    description: "Place DELETE success",
+    description: 'Place DELETE success',
   })
-  async deleteById(@param.path.string("id") id: string): Promise<void> {
+  async deleteById(@param.path.string('id') id: string): Promise<void> {
     await this.placeRepository.deleteById(id);
   }
 }

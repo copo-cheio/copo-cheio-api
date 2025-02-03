@@ -90,7 +90,7 @@ export class BalconyController {
   async find(
     @param.filter(Balcony) filter?: Filter<Balcony>,
   ): Promise<Balcony[]> {
-    return this.balconyRepository.find(filter);
+    return this.balconyRepository.find(BalconyFullQuery);
   }
 
   @patch('/balconies')
