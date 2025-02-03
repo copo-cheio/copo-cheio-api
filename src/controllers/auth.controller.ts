@@ -8,7 +8,7 @@ import {
   requestBody,
   RestBindings,
 } from '@loopback/rest';
-import fs from 'fs';
+
 import {
   EventRepository,
   StaffRepository,
@@ -17,6 +17,7 @@ import {
 } from '../repositories';
 import {AuthService, SpotifyService} from '../services';
 import {UserService} from '../services/user.service';
+import {logRequest} from '../utils/dev';
 
 export class AuthController {
   constructor(
@@ -44,40 +45,21 @@ export class AuthController {
       },
     },
   })
-  async test(@inject(RestBindings.Http.REQUEST) request: Request) {
-    // Log GET request query params and cookies
-    console.log(request);
-    const logEntry = {
-      method: request.method,
-      url: request.url,
-      query: request.query,
-      cookies: request.headers.cookie || 'No cookies',
-      timestamp: new Date().toISOString(),
-    };
-
-    console.log({logEntry});
-
-    fs.appendFileSync('requests.log', JSON.stringify(logEntry, null, 2) + '\n');
-    return {message: 'Logged GET request', data: logEntry};
-  }
-
-  /*
-  @get('/auth/login')
-  async logGetRequest(
-    @inject(RestBindings.Http.REQUEST) request: Request
+  async testGetFirebaseAuthHandler(
+    @inject(RestBindings.Http.REQUEST) request: Request,
   ) {
     // Log GET request query params and cookies
-    const logEntry = {
-      method: request.method,
-      url: request.url,
-      query: request.query,
-      cookies: request.headers.cookie || 'No cookies',
-      timestamp: new Date().toISOString(),
-    };
+    logRequest('[get]__auth.handler', request);
+  }
 
-    fs.appendFileSync('requests.log', JSON.stringify(logEntry, null, 2) + '\n');
-    return {message: 'Logged GET request', data: logEntry};
-  }*/
+  @post('/__/auth/handler')
+  async testPostFirebaseAuthHandler(
+    @inject(RestBindings.Http.REQUEST) request: Request,
+    @requestBody() body: object,
+  ) {
+    logRequest('[post]__auth.handler', request, body);
+  }
+
   /*
   @post('/auth/login')
   async logPostRequest(
