@@ -10,6 +10,9 @@ const ACTIONS: any = {
   'check-in': 'checkIn',
   'sign-out': 'signOut',
   'check-out': 'checkIn',
+  'create-user-order': 'createUserOrder',
+  'user-order': 'getUserOrder',
+  'payment-success': 'userOrderPaymentSuccess',
 };
 
 export class DevController {
