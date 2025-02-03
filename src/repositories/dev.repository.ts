@@ -301,6 +301,7 @@ export class DevRepository extends BaseRepository<
     const app = 'staff';
     const action = 'balcony-orders';
     balconyId = b ? b : balconyId;
+
     return this.findOrCreateByAction(app, action, balconyId, []);
   }
 
@@ -320,13 +321,21 @@ export class DevRepository extends BaseRepository<
 
   async getOrderFromSystemOrders(orderId: string) {
     const systemOrders = await this.getSystemOrders();
+    console.log({systemOrders});
     const systemOrder = systemOrders.find((o: any) => o.orderId == orderId);
+    console.log({systemOrder});
     const balconyOrders = await this.getBalconyOrders(systemOrder.balconyId);
-    const order = balconyOrders.find((o: any) => o.orderId == orderId);
+    const order = balconyOrders.data.find((o: any) => o.orderId == orderId);
     return order;
   }
   async getSystemOrders() {
-    const orders = await this.findById(this.systemOrdersId);
+    //await this.findById(this.systemOrdersId);
+    const orders = await this.findOrCreateByAction(
+      'system',
+      'orders',
+      'system',
+      [],
+    );
     return orders.data;
   }
 
