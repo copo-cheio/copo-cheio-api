@@ -15,6 +15,7 @@ const ACTIONS: any = {
   'find-order': 'getOrderFromSystemOrders',
   'payment-success': 'userOrderPaymentSuccess',
   'balcony-orders': 'getBalconyOrders',
+  'update-order-status': 'onUpdateOrderStatus',
 };
 
 export class DevController {

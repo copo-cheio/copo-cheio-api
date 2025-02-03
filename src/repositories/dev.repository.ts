@@ -40,6 +40,11 @@ export class DevRepository extends BaseRepository<
     //console.log('fbi', this.findByAction);
   }
 
+  async onUpdateOrderStatus(app: string, refId: string, data: any = {}) {
+    const order = await this.getOrderFromSystemOrders(refId);
+
+    return {order, data};
+  }
   async userOrderPaymentSuccess(app: string, refId: string, data: any = {}) {
     let record: any = await this.getUserOrder(app, refId);
     const action = 'user-order';
@@ -329,7 +334,7 @@ export class DevRepository extends BaseRepository<
     return order;
   }
   async getSystemOrders() {
-    //await this.findById(this.systemOrdersId);
+    //await this.findById(this.systemOrdersId);´
     const orders = await this.findOrCreateByAction(
       'system',
       'orders',
