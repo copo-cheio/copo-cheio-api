@@ -178,6 +178,36 @@ export class DevRepository extends BaseRepository<
     const status = data.status;
     const staff = await this.getStaff(data.staffId);
     const balconyStaff = await this.getBalconyStaff(order.balconyId);
+    const payload = {
+      action: 'ORDER_UPDATE',
+      payload: {
+        id: refId,
+        status: status,
+        balcony: {
+          id: order.balconyId,
+          name: 'Test place balcony #1',
+        },
+        place: {
+          id: order.placeId,
+          name: 'Test place',
+        },
+      },
+    };
+    const staffPayload = Object.assign({}, payload);
+    staffPayload.action = 'ORDER_RECIEVED';
+
+    await this.notify(
+      'user update',
+      'user order updated',
+      user.pushNotificationToken,
+      payload,
+    );
+    await this.notify(
+      'staff update',
+      'staff order updated',
+      staff.pushNotificationToken,
+      staffPayload,
+    );
     return {order, user, status, staff, balconyStaff};
 
     /* const balconyOrder = balconyOrders.filter((o: any) => o.id == refId)[0];
@@ -189,6 +219,25 @@ export class DevRepository extends BaseRepository<
     const userOrder = balconyOrders.filter((o: any) => o.id == refId)[0];
 
     return {balconyOrder, balconyOrders, userOrder, userOrders, data}; */
+  }
+
+  async notify(title, body, token, payloadData) {
+    //const title = 'test single notification';
+    //const body = 'Body for the single notification';
+    // Define notification payload
+    // const payload: admin.messaging.Message = {
+
+    // const payload: any = {
+    const notification = {
+      title: title,
+      body: body,
+    };
+
+    return this.pushNotificationService.sendPushNotification(
+      token,
+      notification,
+      payloadData,
+    );
   }
 
   async checkIn(app: any, refId: any, data: any) {
