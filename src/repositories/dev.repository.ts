@@ -173,12 +173,14 @@ export class DevRepository extends BaseRepository<
   }
 
   async updateOrder(app: any, refId: string, data: any) {
-    const balconyOrders = await this.findByAction(
-      app,
-      'balcony-orders',
-      data.balconyId,
-    );
-    const balconyOrder = balconyOrders.filter((o: any) => o.id == refId)[0];
+    const order = await this.getOrder(refId);
+    const user = await this.getUser(order.userId);
+    const status = data.status;
+    const staff = await this.getStaff(data.staffId);
+    const balconyStaff = await this.getBalconyStaff(order.balconyId);
+    return {order, user, status, staff, balconyStaff};
+
+    /* const balconyOrder = balconyOrders.filter((o: any) => o.id == refId)[0];
     const userOrders = await this.findByAction(
       'user',
       'user-orders',
@@ -186,7 +188,7 @@ export class DevRepository extends BaseRepository<
     );
     const userOrder = balconyOrders.filter((o: any) => o.id == refId)[0];
 
-    return {balconyOrder, balconyOrders, userOrder, userOrders, data};
+    return {balconyOrder, balconyOrders, userOrder, userOrders, data}; */
   }
 
   async checkIn(app: any, refId: any, data: any) {
@@ -324,11 +326,93 @@ export class DevRepository extends BaseRepository<
     });
   }
 
+  /**
+   *
+   * @param app
+   * @param uid
+   * @returns
+   * {
+  "id": "2f6fe1ac-913d-4984-8da9-c6721f9ca238",
+  "uid": "o7KsXv5p00dVSbSQZJY5MWmLLky1",
+  "displayName": "Filipe Sá",
+  "photoUrl": "https://lh3.googleusercontent.com/a/ACg8ocLmDH7RUnhFFlwB5GPsV9WdSaJXdfP50-kuVk1bvH4bJwfuPjY=s96-c",
+  "pushNotificationToken": "dF2RNqqvzh_X9_eJAByd8I:APA91bFuOyIV4mnSi9u6YQ6nnFNPH12YZwGIRM9MP02kHQbCBk7XMaSKNba2iNjuQi4aWUhW9_zmofqebCI5ugukOR5gR45QlhOQ0lCZULSARD6GRCDzB7I"
+}
+   */
+  async getMembers(app, uids) {
+    const records = await this.findAll({
+      where: {app: app, refId: {inq: uids}, action: 'sign-in'},
+    });
+    return records.map(record => {
+      return {
+        id: record.id,
+        uid: record.refId,
+        displayName: record.data.displayName,
+        photoUrl: record.data.photoUrl,
+        pushNotificationToken: record.data.pushNotificationToken,
+      };
+    });
+  }
+  async getMember(app, uid) {
+    const record = await this.findOne({
+      where: {app: app, refId: uid, action: 'sign-in'},
+    });
+    const user = {
+      id: record.id,
+      uid: record.refId,
+      displayName: record.data.displayName,
+      photoUrl: record.data.photoUrl,
+      pushNotificationToken: record.data.pushNotificationToken,
+    };
+    return user;
+  }
+  async getUser(uid) {
+    return this.getMember('user', uid);
+  }
+  async getStaff(uid) {
+    return this.getMember('staff', uid);
+  }
+
+  async getBalconyStaff(balconyId) {
+    const allStaff = await this.findAll({
+      where: {app: 'staff', action: 'check-in'},
+    });
+    const activeStaff = allStaff.filter(
+      staff => staff.data.active && staff.data.balconyId == balconyId,
+    );
+    const currentStaff = await this.getMembers(
+      'staff',
+      activeStaff.map(s => s.refId),
+    );
+    return currentStaff;
+  }
+
+  async getOrder(orderId) {
+    const systemOrders = await this.findOne({
+      where: {app: 'system', refId: 'system', action: 'orders'},
+    });
+    const systemOrder = systemOrders.data.find(
+      order => order.orderId == orderId,
+    );
+    const user = await this.getUser(systemOrder.userId);
+    const balconyOrders = await this.findOne({
+      where: {
+        app: 'staff',
+        refId: systemOrder.balconyId,
+        action: 'balcony-orders',
+      },
+    });
+    const balconyOrder = balconyOrders.data.find(
+      order => order.orderId == orderId,
+    );
+    return balconyOrder;
+
+    //"orderId":"0b2811f2-aa86-4486-8e85-6046490c40e6","action":"ONHOLD","title":"ONHOLD","staffId":"e5ed35ae-f951-4a70-a129-e298a92c07cc","timelineKey":"ONHOLD","staff":{"deleted":false,"deletedOn":null,"deletedBy":null,"id":"e5ed35ae-f951-4a70-a129-e298a92c07cc","created_at":"2024-09-30T04:30:23.982Z","updated_at":"
+  }
+
   async getOrderFromSystemOrders(orderId: string) {
     const systemOrders = await this.getSystemOrders();
-    console.log({systemOrders});
     const systemOrder = systemOrders.find((o: any) => o.orderId == orderId);
-    console.log({systemOrder});
     const balconyOrders = await this.getBalconyOrders(systemOrder.balconyId);
     const order = balconyOrders.data.find((o: any) => o.orderId == orderId);
     return order;
@@ -359,3 +443,14 @@ export class DevRepository extends BaseRepository<
     }
   }
 }
+
+// getBalconyOrders Where balconyId = 09f763fa-eea6-48b1-bb6b-fd8cfd69b069
+// Get staff from that balcony
+// Find all staff where active = true
+
+/*
+
+balconyOrders = this.devRepository.findOne({where:{app:'staff',refId:'09f763fa-eea6-48b1-bb6b-fd8cfd69b069',action:'balcony-orders'}})"
+orders = this.devRepository.findOne({where:{app:'system',refId:'system',action:'orders'}})
+order = this.devRepository.getOrder('0b2811f2-aa86-4486-8e85-6046490c40e6')
+*/

