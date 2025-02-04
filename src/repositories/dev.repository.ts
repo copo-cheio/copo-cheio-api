@@ -11,6 +11,19 @@ import {OrderRepository} from './order.repository';
 import {PlaceRepository} from './place.repository';
 import {UserRepository} from './user.repository';
 
+const generateTimeline = (status, orderId, staffId, staff) => {
+  return {
+    id: '12ab87d2-73ff-4a79-872c-89390b4cde84',
+    created_at: new Date().toISOString(),
+
+    orderId: orderId,
+    action: status,
+    title: status,
+    staffId: staffId,
+    timelineKey: status,
+    staff: staff,
+  };
+};
 export class DevRepository extends BaseRepository<
   Dev,
   typeof Dev.prototype.id,
@@ -49,6 +62,79 @@ export class DevRepository extends BaseRepository<
 
     return {order, data}; */
   }
+
+  async updateOrder(app: any, refId: string, data: any) {
+    const status = data.status;
+    const systemOrder = await this.findByIdInList(
+      () => this.findByAction('system', 'orders', 'system'),
+      refId,
+      'orderId',
+    );
+    const systemOrderIndex = systemOrder.index;
+    const {placeId, balconyId, orderId, userId} = systemOrder.item;
+    const balconyOrder = await this.findByIdInList(
+      () => this.findByAction('staff', 'balcony-orders', balconyId),
+      orderId,
+    );
+    const userOrders = await this.findByIdInList(
+      () => this.findByAction('user', 'user-orders', userId),
+      orderId,
+    );
+
+    const staff = await this.getStaff(data.staffId);
+    const user = await this.getUser(userId);
+    const balconyOrderIndex = balconyOrder.index;
+    const order = balconyOrder.item;
+    order.status = status;
+    order.order.order.timeline.push(
+      generateTimeline(status, orderId, data.staffId, staff),
+    );
+    const userOrder = await this.findOrCreateThenUpdateByAction(
+      'user',
+      'user-order',
+      userId,
+      order,
+    );
+    const bo = await this.getBalconyOrders(balconyId);
+    bo.data[balconyOrderIndex] = order;
+    await this.updateById(bo.id, {...bo, data: bo.data});
+    const uo = await this.getUserOrders(userId);
+    uo.data[userOrder.index] = order;
+    await this.updateById(uo.id, {...uo, data: uo.data});
+
+    const payload = {action: 'ORDER_UPDATE', payload: {status}, level: 1};
+
+    const staffPayload = {action: 'ORDER_RECIEVED', payload: {order: {}}};
+
+    await this.notify(
+      'user update',
+      'user order updated',
+      user.pushNotificationToken,
+      payload,
+    );
+
+    /*   await this.notify(
+      'staff new order',
+      'staff order updated',
+      staff.pushNotificationToken,
+      payload,
+    );
+   */
+    const balconyStaff = await this.getBalconyStaff(order.balconyId);
+
+    for (const s of balconyStaff || []) {
+      if (s?.pushNotificationToken) {
+        await this.notify(
+          'staff update',
+          'staff order updated',
+          s.pushNotificationToken,
+          staffPayload,
+        );
+      }
+    }
+    return {order};
+  }
+
   async userOrderPaymentSuccess(app: string, refId: string, data: any = {}) {
     let record: any = await this.getUserOrder(app, refId);
     const action = 'user-order';
@@ -99,12 +185,28 @@ export class DevRepository extends BaseRepository<
         return o;
       }),
     });
-
+    const status = 'ONHOLD';
+    const balconyStaff = await this.getBalconyStaff(record.data.balconyId);
+    console.log({balconyStaff});
+    const staffPayload = {action: 'ORDER_RECIEVED', payload: {order: {}}};
+    for (const s of balconyStaff || []) {
+      console.log({s});
+      if (s?.pushNotificationToken) {
+        await this.notify(
+          'staff ',
+          'staff new order',
+          s.pushNotificationToken,
+          staffPayload,
+        );
+      }
+    }
     return record;
   }
   async createUserOrder(app: string, refId: string, data: any = {}) {
     const order = data;
     const status = data.status;
+    const user = await this.getUser(refId);
+
     let record: any = await this.getUserOrder(app, refId);
     if (record?.id) {
       await this.deleteByIdHard(record.id);
@@ -123,10 +225,11 @@ export class DevRepository extends BaseRepository<
           id: record.id,
           orderId: record.id,
           order: {...record.data.order, id: record.id},
+          created_at: new Date().toISOString(),
         },
       ),
     );
-    const user = await this.getUser(refId);
+
     const userOrders = await this.findOrCreateByAction(
       'user',
       'user-orders',
@@ -151,75 +254,25 @@ export class DevRepository extends BaseRepository<
     });
 
     await this.createNewOrder(data.placeId, data.balconyId, record.id, refId);
-
-    /*     await this.notify(
-      'staff update',
-      'staff order updated',
-      staff.pushNotificationToken,
-      staffPayload,
-    ); */
-    return record;
-  }
-
-  async updateOrder(app: any, refId: string, data: any) {
-    const order = await this.getOrder(refId);
-
-    const user = await this.getUser(order.userId);
-    const status = data.status;
-    const staff = await this.getStaff(data.staffId);
     const balconyStaff = await this.getBalconyStaff(order.balconyId);
-    order.status = status;
-    console.log({user, status, staff});
 
     const payload = {action: 'ORDER_UPDATE', payload: {status}, level: 1};
 
-    const staffPayload = Object.assign({}, payload);
-    staffPayload.action = 'ORDER_RECIEVED';
-
-    await this.notify(
-      'user update',
-      'user order updated',
-      user.pushNotificationToken,
-      payload,
-    );
-
-    await this.notify(
-      'user update',
-      'user order updated',
-      user.pushNotificationToken,
-      payload,
-    );
-    console.log({balconyStaff});
+    const staffPayload = {action: 'ORDER_RECIEVED', payload: {order: {}}};
     for (const s of balconyStaff || []) {
       if (s?.pushNotificationToken) {
         await this.notify(
-          'staff update',
-          'staff order updated',
+          'staff ',
+          'staff new order',
           s.pushNotificationToken,
           staffPayload,
         );
       }
     }
-    return {order, user, status, staff, balconyStaff};
-
-    /* const balconyOrder = balconyOrders.filter((o: any) => o.id == refId)[0];
-    const userOrders = await this.findByAction(
-      'user',
-      'user-orders',
-      balconyOrder.user.id,
-    );
-    const userOrder = balconyOrders.filter((o: any) => o.id == refId)[0];
-
-    return {balconyOrder, balconyOrders, userOrder, userOrders, data}; */
+    return record;
   }
 
   async notify(title, body, token, payloadData) {
-    //const title = 'test single notification';
-    //const body = 'Body for the single notification';
-    // Define notification payload
-    // const payload: admin.messaging.Message = {
-
-    // const payload: any = {
     const notification = {
       title: title,
       body: body,
@@ -362,6 +415,7 @@ export class DevRepository extends BaseRepository<
   ) {
     const orders = await this.findById(this.systemOrdersId);
     const order = {placeId, balconyId, orderId, userId};
+    console.log(orders);
     await this.updateById(orders.id, {
       ...orders,
       data: [...orders.data, order],
@@ -470,6 +524,15 @@ export class DevRepository extends BaseRepository<
       [],
     );
     return orders.data;
+  }
+
+  async findByIdInList(listFn, itemId, key = 'id') {
+    const record = await listFn();
+
+    const records = record.data;
+    const index = records.findIndex(r => r[key] == itemId);
+    const item = records[index];
+    return {index, item, record};
   }
 
   private systemOrdersId: string;
