@@ -111,6 +111,7 @@ export class PushNotificationService {
     try {
       // @ts-ignore
       data = this.parseData(data);
+      console.log({token, notification, data});
       await admin.messaging().send({
         token: token,
         notification,
@@ -121,7 +122,7 @@ export class PushNotificationService {
       console.log('Successfully sent message.');
     } catch (error) {
       console.warn(error);
-      debugger;
+
       // console.error('Error sending message:', error);
       // throw error;
     }

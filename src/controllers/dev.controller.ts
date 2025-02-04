@@ -51,7 +51,9 @@ export class DevController {
     @param.path.string('action') action: string,
     @param.path.string('refId') refId: string,
   ): Promise<any> {
-    return this.devRepository[ACTIONS[action]](app, action, refId);
+    console.log('GET', {app, refId, action});
+    //this.dummyActionMiddleware(app, refId, action);
+    return this.devRepository[ACTIONS[action]](app, refId);
   }
 
   @post('/dev/{app}/{action}/{refId}')
@@ -65,6 +67,17 @@ export class DevController {
     @requestBody({})
     data: any,
   ): Promise<any> {
+    console.log('POST', {app, refId, action, data});
+    this.dummyActionMiddleware(app, refId, action);
     return this.devRepository[ACTIONS[action]](app, refId, data);
+  }
+
+  dummyActionMiddleware(app: string, action: string, refId: string) {
+    const validations = [app, action, refId];
+    for (const validation of validations) {
+      if (!validation || validation == 'undefined') {
+        throw Object.assign(new Error('missing input'), {code: 402});
+      }
+    }
   }
 }

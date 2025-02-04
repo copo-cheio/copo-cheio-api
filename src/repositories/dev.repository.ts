@@ -41,9 +41,13 @@ export class DevRepository extends BaseRepository<
   }
 
   async onUpdateOrderStatus(app: string, refId: string, data: any = {}) {
-    const order = await this.getOrderFromSystemOrders(refId);
+    console.log({app, refId, data});
+    const result = await this.updateOrder(app, refId, data);
 
-    return {order, data};
+    return result;
+    /*     const order = await this.getOrderFromSystemOrders(refId);
+
+    return {order, data}; */
   }
   async userOrderPaymentSuccess(app: string, refId: string, data: any = {}) {
     let record: any = await this.getUserOrder(app, refId);
@@ -96,34 +100,11 @@ export class DevRepository extends BaseRepository<
       }),
     });
 
-    const title = 'test multicast notification';
-    const body = 'Body for the multicast notification';
-    // const tokens = _tokens.replace(/[\[\]']+/g, "").split(",");
-    // console.log({ tokens, isArray: Array.isArray(tokens), body });
-    // Define notification payload
-    // const payload: any = {
-    //   //} admin.messaging.MessagingPayload = {
-    //   notification: {
-    //     title: title,
-    //     body: body,
-    //   },
-    // };
-
-    /*    const notifyUser = ()=>{
-
-      // Call Firebase service to send push notifications to multiple devices
-      const {notification, data} = JSON.parse(payload);
-      return this.pushNotificationService.sendPushNotification(
-        token,
-        notification || {title, body},
-        data || {},
-      );
-    } */
     return record;
   }
   async createUserOrder(app: string, refId: string, data: any = {}) {
     const order = data;
-
+    const status = data.status;
     let record: any = await this.getUserOrder(app, refId);
     if (record?.id) {
       await this.deleteByIdHard(record.id);
@@ -145,6 +126,7 @@ export class DevRepository extends BaseRepository<
         },
       ),
     );
+    const user = await this.getUser(refId);
     const userOrders = await this.findOrCreateByAction(
       'user',
       'user-orders',
@@ -169,30 +151,28 @@ export class DevRepository extends BaseRepository<
     });
 
     await this.createNewOrder(data.placeId, data.balconyId, record.id, refId);
+
+    /*     await this.notify(
+      'staff update',
+      'staff order updated',
+      staff.pushNotificationToken,
+      staffPayload,
+    ); */
     return record;
   }
 
   async updateOrder(app: any, refId: string, data: any) {
     const order = await this.getOrder(refId);
+
     const user = await this.getUser(order.userId);
     const status = data.status;
     const staff = await this.getStaff(data.staffId);
     const balconyStaff = await this.getBalconyStaff(order.balconyId);
-    const payload = {
-      action: 'ORDER_UPDATE',
-      payload: {
-        id: refId,
-        status: status,
-        balcony: {
-          id: order.balconyId,
-          name: 'Test place balcony #1',
-        },
-        place: {
-          id: order.placeId,
-          name: 'Test place',
-        },
-      },
-    };
+    order.status = status;
+    console.log({user, status, staff});
+
+    const payload = {action: 'ORDER_UPDATE', payload: {status}, level: 1};
+
     const staffPayload = Object.assign({}, payload);
     staffPayload.action = 'ORDER_RECIEVED';
 
@@ -202,12 +182,24 @@ export class DevRepository extends BaseRepository<
       user.pushNotificationToken,
       payload,
     );
+
     await this.notify(
-      'staff update',
-      'staff order updated',
-      staff.pushNotificationToken,
-      staffPayload,
+      'user update',
+      'user order updated',
+      user.pushNotificationToken,
+      payload,
     );
+    console.log({balconyStaff});
+    for (const s of balconyStaff || []) {
+      if (s?.pushNotificationToken) {
+        await this.notify(
+          'staff update',
+          'staff order updated',
+          s.pushNotificationToken,
+          staffPayload,
+        );
+      }
+    }
     return {order, user, status, staff, balconyStaff};
 
     /* const balconyOrder = balconyOrders.filter((o: any) => o.id == refId)[0];
@@ -286,9 +278,10 @@ export class DevRepository extends BaseRepository<
     return record;
   }
 
-  async signOut(app: any, refId: any, data: any) {
+  async signOut(app: any, refId: any) {
     // Is signed up?
-    const record = await this.findByAction(app, refId, 'sign-in');
+    const record = await this.findByAction(app, 'sign-in', refId);
+
     if (record) {
       await this.updateById(record.id, {
         ...record,
@@ -353,7 +346,7 @@ export class DevRepository extends BaseRepository<
   async getUserOrders(refId: string) {
     return this.findOrCreateByAction('user', 'user-orders', refId, []);
   }
-  async getBalconyOrders(balconyId: string, a?: any, b?: any) {
+  async getBalconyOrders(balconyId: string, b?: any) {
     const app = 'staff';
     const action = 'balcony-orders';
     balconyId = b ? b : balconyId;
@@ -403,6 +396,7 @@ export class DevRepository extends BaseRepository<
     });
   }
   async getMember(app, uid) {
+    console.log(app, uid, 'getMember');
     const record = await this.findOne({
       where: {app: app, refId: uid, action: 'sign-in'},
     });
@@ -443,6 +437,7 @@ export class DevRepository extends BaseRepository<
     const systemOrder = systemOrders.data.find(
       order => order.orderId == orderId,
     );
+
     const user = await this.getUser(systemOrder.userId);
     const balconyOrders = await this.findOne({
       where: {
