@@ -16,6 +16,7 @@ const ACTIONS: any = {
   'payment-success': 'userOrderPaymentSuccess',
   'balcony-orders': 'getBalconyOrders',
   'update-order-status': 'onUpdateOrderStatus',
+  'validate-order': 'validateOrder',
 };
 
 export class DevController {

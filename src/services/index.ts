@@ -14,3 +14,4 @@ export * from './email.service';
 export * from './product.service';
 export * from './spotify.service';
 export * from './dev.service';
+export * from './encryption.service';

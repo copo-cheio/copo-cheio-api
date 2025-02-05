@@ -19,6 +19,7 @@ import {FirebaseAuthStrategy} from './auth-strategies/firebase-strategy';
 import {AclInterceptor} from './interceptors/acl.interceptor';
 import {CompanyOwnershipValidation} from './interceptors/company-ownership-validation';
 import {SearchInterceptor} from './interceptors/search.interceptor';
+import {EncryptionProvider} from './services';
 import {
   FILE_UPLOAD_SERVICE,
   STORAGE_DIRECTORY,
@@ -53,6 +54,7 @@ export class CopoCheioServerApplication extends BootMixin(
 
     this.bind('services.ACL').toProvider(AclInterceptor);
     this.bind('services.Search').toProvider(SearchInterceptor);
+    this.bind('services.EncryptionProvider').toClass(EncryptionProvider);
 
     // Configure Uploader
     this.bodyParser(MultipartFormDataBodyParser);

@@ -1,7 +1,9 @@
 import {Getter, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
+import {v7} from 'uuid';
 import {PostgresSqlDataSource} from '../../datasources';
 import {Dev, DevRelations} from '../../models/v1';
+import {EncryptionProvider, QrFactoryService} from '../../services';
 import {createTimeline} from '../../services/dev/dev.utils';
 import {PushNotificationService} from '../../services/push-notification.service';
 import {BalconyRepository} from './balcony.repository';
@@ -43,6 +45,9 @@ export class DevRepository extends BaseRepository<
     private getOrderRepository: Getter<OrderRepository>,
     @inject('services.PushNotificationService')
     private pushNotificationService: PushNotificationService,
+    @inject('services.EncryptionProvider')
+    public encriptionService: EncryptionProvider,
+    @inject('services.QrFactoryService') public qrService: QrFactoryService,
   ) {
     super(Dev, dataSource);
     try {
@@ -63,6 +68,45 @@ export class DevRepository extends BaseRepository<
     return {order, data}; */
   }
 
+  async validateOrder(app: string, refId: string, data: any = {}) {
+    const systemOrder = await this.findByIdInList(
+      () => this.findByAction('system', 'orders', 'system'),
+      refId,
+      'orderId',
+    );
+    const code = systemOrder.item.code;
+    const decription = await this.encriptionService.comparePassword(
+      data.code,
+      code,
+    );
+    if (decription) {
+      await this.updateOrder('staff', refId, {
+        status: 'COMPLETE',
+        staffId: data.staffId,
+      });
+      return this.getOrder(refId);
+    }
+    return {app, refId, data, decription};
+  }
+
+  async generateOrderQrCode(order: any = {}, status: string) {
+    const code = v7();
+    order.code = await this.encriptionService.hashPassword(code);
+    console.log({orderId: order.orderId, code, encryptedCode: order.code});
+    const payload = {
+      action: 'VALIDATE_ORDER',
+      type: 'order',
+      code: code,
+      refId: order.orderId,
+    };
+    const qrCode = await this.qrService.generateAndUploadQrCode(
+      payload,
+      order.orderId,
+      'qr code for dev order',
+    );
+    return {order, qrCode};
+  }
+
   async updateOrder(app: any, refId: string, data: any) {
     const status = data.status;
     const systemOrder = await this.findByIdInList(
@@ -70,9 +114,28 @@ export class DevRepository extends BaseRepository<
       refId,
       'orderId',
     );
-
     const systemOrderIndex = systemOrder.index;
-    console.log({systemOrderIndex});
+    let qrCode: any = null;
+    if (status == 'READY') {
+      const updatedSystemOrder: any = await this.generateOrderQrCode(
+        systemOrder.item,
+        status,
+      );
+      const systemOrders = await this.findByAction(
+        'system',
+        'orders',
+        'system',
+      );
+      systemOrders.data[systemOrder.index] = {...updatedSystemOrder.order};
+
+      await this.updateById(systemOrders.id, {
+        ...systemOrders,
+        data: [...systemOrders.data],
+      });
+
+      qrCode = updatedSystemOrder.qrCode;
+    }
+
     const {placeId, balconyId, orderId, userId} = systemOrder.item;
     const balconyOrder = await this.findByIdInList(
       () => this.findByAction('staff', 'balcony-orders', balconyId),
@@ -85,6 +148,9 @@ export class DevRepository extends BaseRepository<
     const balconyOrderIndex = balconyOrder.index;
     const order = balconyOrder.item;
     order.status = status;
+    if (qrCode) {
+      order.qrCode = qrCode;
+    }
     order.timeline.push(generateTimeline(status, orderId, data.staffId, staff));
     const userOrder = await this.findOrCreateThenUpdateByAction(
       'user',
