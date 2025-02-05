@@ -1,19 +1,22 @@
-import { /* inject, */ BindingScope,inject,injectable} from "@loopback/core";
-import {repository} from "@loopback/repository";
-import {BalconyFullQuery} from "../../blueprints/balcony.blueprint";
-import {PlaceQueryFull} from "../../blueprints/place.blueprint";
+import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {BalconyFullQuery} from '../../blueprints/balcony.blueprint';
+import {PlaceQueryFull} from '../../blueprints/place.blueprint';
 import {
   ActivityRepository,
   BalconyRepository,
   EventRepository,
   PlaceRepository,
-} from "../../repositories";
-import {PlaceService} from "../place.service";
-import {PUSH_NOTIFICATION_SUBSCRIPTIONS,PushNotificationService} from '../push-notification.service';
+} from '../../repositories/v1';
+import {PlaceService} from '../place.service';
+import {
+  PUSH_NOTIFICATION_SUBSCRIPTIONS,
+  PushNotificationService,
+} from '../push-notification.service';
 
-const SUBSCRIPTIONS =PUSH_NOTIFICATION_SUBSCRIPTIONS.checkIn
+const SUBSCRIPTIONS = PUSH_NOTIFICATION_SUBSCRIPTIONS.checkIn;
 
-@injectable({ scope: BindingScope.TRANSIENT })
+@injectable({scope: BindingScope.TRANSIENT})
 export class ActivityService {
   constructor(
     @repository(PlaceRepository)
@@ -24,10 +27,10 @@ export class ActivityService {
     public activityRepository: ActivityRepository,
     @repository(BalconyRepository)
     public balconyRepository: BalconyRepository,
-    @inject("services.PlaceService")
+    @inject('services.PlaceService')
     protected placeService: PlaceService,
-    @inject("services.PushNotificationService")
-    protected pushNotificationService: PushNotificationService
+    @inject('services.PushNotificationService')
+    protected pushNotificationService: PushNotificationService,
   ) {}
 
   /**
@@ -39,8 +42,8 @@ export class ActivityService {
   async checkIn(
     userId: string,
     placeId: string,
-    role: string = "user",
-    config: any = {}
+    role: string = 'user',
+    config: any = {},
   ) {
     try {
       // let {userId,placeId,eventId } = params;
@@ -49,22 +52,21 @@ export class ActivityService {
       let checkIn: any;
       let menu: any;
 
-
       place = await this.placeRepository.findById(placeId, PlaceQueryFull);
       event = await this.placeService.findCurrentEvent(placeId);
 
-      let eventId = event.id;
-      const balconyId = config.balconyId || place.balconies[0].id
+      const eventId = event.id;
+      const balconyId = config.balconyId || place.balconies[0].id;
 
       const payload: any = {
         // type: "on",
         userId,
         placeId,
         eventId,
-        action: "check-in",
+        action: 'check-in',
         complete: false,
 
-        role: role || "user",
+        role: role || 'user',
       };
       if (config?.balconyId) {
         payload.balconyId = config.balconyId;
@@ -73,10 +75,15 @@ export class ActivityService {
         payload.job = config.job;
       }
 
-
-      checkIn = await this.activityRepository.findOne({ where: payload });
+      checkIn = await this.activityRepository.findOne({where: payload});
       if (checkIn) {
-        await this.unsubscribePushNotifications(userId,role,placeId,eventId,balconyId )
+        await this.unsubscribePushNotifications(
+          userId,
+          role,
+          placeId,
+          eventId,
+          balconyId,
+        );
         await this.activityRepository.updateById(checkIn.id, {
           complete: true,
         });
@@ -84,11 +91,17 @@ export class ActivityService {
 
       checkIn = await this.activityRepository.create(payload);
 
-      await this.subscribeToPushNotifications(userId,role,placeId,eventId,balconyId)
+      await this.subscribeToPushNotifications(
+        userId,
+        role,
+        placeId,
+        eventId,
+        balconyId,
+      );
 
       menu = await this.balconyRepository.findById(
         payload.balconyId || place.balconies[0].id,
-        BalconyFullQuery
+        BalconyFullQuery,
       );
 
       return {
@@ -96,7 +109,7 @@ export class ActivityService {
         place,
         event,
         refId: checkIn.id,
-        balcony:menu,
+        balcony: menu,
         menu: menu.menu,
       };
     } catch (ex) {
@@ -104,14 +117,32 @@ export class ActivityService {
     }
   }
 
-  async subscribeToPushNotifications(userId:string,role:string,placeId:string,eventId:string,balconyId:string){
-    for(let subscription of SUBSCRIPTIONS[role]){
-      await this.pushNotificationService.subscribeToTopic(userId,subscription(placeId,eventId,balconyId))
+  async subscribeToPushNotifications(
+    userId: string,
+    role: string,
+    placeId: string,
+    eventId: string,
+    balconyId: string,
+  ) {
+    for (const subscription of SUBSCRIPTIONS[role]) {
+      await this.pushNotificationService.subscribeToTopic(
+        userId,
+        subscription(placeId, eventId, balconyId),
+      );
     }
   }
-  async unsubscribePushNotifications(userId:string,role:string,placeId:string,eventId:string,balconyId:string){
-    for(let subscription of SUBSCRIPTIONS[role]){
-      await this.pushNotificationService.unSubscribeFromTopic(userId,subscription(placeId,eventId,balconyId))
+  async unsubscribePushNotifications(
+    userId: string,
+    role: string,
+    placeId: string,
+    eventId: string,
+    balconyId: string,
+  ) {
+    for (const subscription of SUBSCRIPTIONS[role]) {
+      await this.pushNotificationService.unSubscribeFromTopic(
+        userId,
+        subscription(placeId, eventId, balconyId),
+      );
     }
   }
 

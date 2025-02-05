@@ -1,0 +1,29 @@
+import {repository} from '@loopback/repository';
+import {get, getModelSchemaRef, param} from '@loopback/rest';
+import {EventInstance, Team} from '../../models/v1';
+import {EventInstanceRepository} from '../../repositories/v1';
+
+export class EventInstanceTeamController {
+  constructor(
+    @repository(EventInstanceRepository)
+    public eventInstanceRepository: EventInstanceRepository,
+  ) {}
+
+  @get('/event-instances/{id}/team', {
+    responses: {
+      '200': {
+        description: 'Team belonging to EventInstance',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(Team),
+          },
+        },
+      },
+    },
+  })
+  async getTeam(
+    @param.path.string('id') id: typeof EventInstance.prototype.id,
+  ): Promise<Team> {
+    return this.eventInstanceRepository.team(id);
+  }
+}

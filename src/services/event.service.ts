@@ -1,19 +1,19 @@
-import { /* inject, */ BindingScope,inject,injectable} from "@loopback/core";
-import {repository} from "@loopback/repository";
-import {BaseEventsQuery,EventsQuery} from "../blueprints/event.blueprint";
-import {Event,EventInstance} from "../models";
+import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {BaseEventsQuery, EventsQuery} from '../blueprints/event.blueprint';
+import {Event, EventInstance} from '../models/v1';
 import {
   ContactsRepository,
   EventInstanceRepository,
   EventRepository,
   PlaceRepository,
   PlaylistRepository,
-} from "../repositories";
-import {transactionWrapper} from "../shared/database";
-import {getDistanceFromLatLonInKm} from "../utils/query";
-import {AddressService} from "./address.service";
+} from '../repositories/v1';
+import {transactionWrapper} from '../shared/database';
+import {getDistanceFromLatLonInKm} from '../utils/query';
+import {AddressService} from './address.service';
 
-@injectable({ scope: BindingScope.TRANSIENT })
+@injectable({scope: BindingScope.TRANSIENT})
 export class EventService {
   constructor(
     @repository(EventRepository) public eventRepository: EventRepository,
@@ -25,8 +25,8 @@ export class EventService {
     public eventInstanceRepository: EventInstanceRepository,
     @repository(PlaceRepository)
     public placeRepository: PlaceRepository,
-    @inject("services.AddressService")
-    protected addressService: AddressService
+    @inject('services.AddressService')
+    protected addressService: AddressService,
   ) {}
 
   /*
@@ -34,9 +34,9 @@ export class EventService {
    */
 
   async queryLoop(callbackFn: any) {
-    let eventIds: any = [];
+    const eventIds: any = [];
     let keepRunning = true;
-    let records: any = [];
+    const records: any = [];
     let i = 0;
     while (keepRunning) {
       if (i >= 100) break;
@@ -58,29 +58,27 @@ export class EventService {
     return records;
   }
 
-  async getDistinctEventIds(mode: string = "upcoming") {
+  async getDistinctEventIds(mode: string = 'upcoming') {
     const startDate = new Date().toISOString();
     const params = [startDate];
     const query = `SELECT DISTINCT ON (eventid) id,eventid, endDate,startDate, latitude,longitude
-FROM eventinstance WHERE endDate >= $i 
+FROM eventinstance WHERE endDate >= $i
 ORDER BY eventid,startdate ASC;
 `;
 
-    const distinctEventsIds = await this.eventInstanceRepository.dataSource.execute(
-      query,
-      params
-    );
+    const distinctEventsIds =
+      await this.eventInstanceRepository.dataSource.execute(query, params);
     const distinctEventsInstanceIds = distinctEventsIds.map(
-      (deid: any) => deid.id
+      (deid: any) => deid.id,
     );
-    return await this.eventInstanceRepository.findAll({
+    return this.eventInstanceRepository.findAll({
       where: {
         id: distinctEventsInstanceIds,
       },
-      order: ["startDate ASC"],
+      order: ['startDate ASC'],
       include: [
         {
-          relation: "event",
+          relation: 'event',
           scope: {
             ...EventsQuery,
           },
@@ -95,22 +93,20 @@ ORDER BY eventid,startdate ASC;
     FROM eventinstance WHERE startDate >= $1 and deleted = false
     ORDER BY eventid,startDate ASC;`;
 
-    const distinctEventsIds = await this.eventInstanceRepository.dataSource.execute(
-      query,
-      params
-    );
+    const distinctEventsIds =
+      await this.eventInstanceRepository.dataSource.execute(query, params);
 
     const distinctEventsInstanceIds = distinctEventsIds.map(
-      (deid: any) => deid.id
+      (deid: any) => deid.id,
     );
     return this.eventInstanceRepository.findAll({
       where: {
-        id: { inq: distinctEventsInstanceIds },
+        id: {inq: distinctEventsInstanceIds},
       },
-      order: ["startDate ASC"],
+      order: ['startDate ASC'],
       include: [
         {
-          relation: "event",
+          relation: 'event',
           scope: {
             ...BaseEventsQuery,
           },
@@ -142,15 +138,15 @@ ORDER BY eventid,startdate ASC;
     const callbackFn = (eventIds: any = []) =>
       this.eventInstanceRepository.findOne({
         where: {
-          startDate: { lte: currentDateTime },
-          endDate: { gte: currentDateTime },
-          eventId: { nin: eventIds },
+          startDate: {lte: currentDateTime},
+          endDate: {gte: currentDateTime},
+          eventId: {nin: eventIds},
         },
 
-        order: ["startDate ASC"],
+        order: ['startDate ASC'],
         include: [
           {
-            relation: "event",
+            relation: 'event',
             scope: {
               ...EventsQuery,
             },
@@ -166,18 +162,16 @@ ORDER BY eventid,startdate ASC;
     // @param.query.number('longitude')
     userLongitude: number,
     // @param.query.number('radius')
-    radius: number = 100000000000000 // Default radius in kilometers
+    radius: number = 100000000000000, // Default radius in kilometers
   ): Promise<EventInstance[]> {
-
-
-    const upcomingEvents = await this.upcomming()
+    const upcomingEvents = await this.upcomming();
     // Filter the events based on proximity (calculate distance using Haversine)
     const nearbyEvents = upcomingEvents.filter((event: any) => {
       const distance = getDistanceFromLatLonInKm(
         userLatitude,
         userLongitude,
         event?.event?.address?.latitude || event?.latitude,
-        event?.event?.address?.longitude || event?.longitude
+        event?.event?.address?.longitude || event?.longitude,
       );
 
       return distance <= radius; // Return events within the specified radius
@@ -187,17 +181,17 @@ ORDER BY eventid,startdate ASC;
   }
 
   async createInstance(event: Event) {
-    return await this.createOrUpdateRecurringInstances(
+    return this.createOrUpdateRecurringInstances(
       event,
-      "none",
-      event.endDate.toISOString()
+      'none',
+      event.endDate.toISOString(),
     );
   }
 
   async parseEventInstanceData(
     event: Event,
     recurrenceType: string,
-    recurrenceEndDate: string | undefined
+    recurrenceEndDate: string | undefined,
   ) {
     // const eventInstances = [];
     const startDate = new Date(event.startDate);
@@ -207,7 +201,7 @@ ORDER BY eventid,startdate ASC;
       : new Date(event.endDate);
 
     // Frequency calculation (e.g., 7 days for weekly, 14 days for biweekly, etc.)
-    const RECURRENCE_INTERVALS = ["none", "daily", "weekly", "biweekly"];
+    const RECURRENCE_INTERVALS = ['none', 'daily', 'weekly', 'biweekly'];
     const recurrenceInterval = {
       none: 1000000,
       daily: 1,
@@ -217,8 +211,8 @@ ORDER BY eventid,startdate ASC;
 
     if (RECURRENCE_INTERVALS.indexOf(recurrenceType) == -1) return {}; // If the event is not recurring, exit.
 
-    let currentStartDate = new Date(startDate);
-    let currentEndDate = new Date(endDate);
+    const currentStartDate = new Date(startDate);
+    const currentEndDate = new Date(endDate);
 
     currentStartDate.setSeconds(0);
     currentStartDate.setMilliseconds(0);
@@ -232,8 +226,8 @@ ORDER BY eventid,startdate ASC;
     const address = await this.addressService.findById(place.addressId);
 
     const coordinates = {
-      latitude: parseFloat("" + address.latitude),
-      longitude: parseFloat("" + address.longitude),
+      latitude: parseFloat('' + address.latitude),
+      longitude: parseFloat('' + address.longitude),
     };
 
     return {
@@ -250,9 +244,9 @@ ORDER BY eventid,startdate ASC;
       let startDay: any = new Date(eI.startDate);
       startDay =
         startDay.getFullYear() +
-        "-" +
+        '-' +
         startDay.getMonth() +
-        "-" +
+        '-' +
         startDay.getDate();
       return {
         id: eI.id,
@@ -264,7 +258,7 @@ ORDER BY eventid,startdate ASC;
   async createRecurringInstances(
     event: Event,
     recurrenceType: string,
-    recurrenceEndDate: string | undefined
+    recurrenceEndDate: string | undefined,
   ) {
     const eventInstances = [];
     const newEventInstances = [];
@@ -295,7 +289,7 @@ ORDER BY eventid,startdate ASC;
             },
           ],
         },
-      }
+      },
     );
     currentEventInstances = this.parseStartDates(currentEventInstances);
     deleteEventInstances = currentEventInstances.map((e: any) => e.id);
@@ -309,7 +303,7 @@ ORDER BY eventid,startdate ASC;
     }: any = await this.parseEventInstanceData(
       event,
       recurrenceType,
-      recurrenceEndDate
+      recurrenceEndDate,
     );
 
     while (currentEndDate < currentRecurrenceEndDate) {
@@ -330,9 +324,9 @@ ORDER BY eventid,startdate ASC;
         eventId: event.id!,
       };
 
-      let newStartDate = this.parseStartDates([eventInstance])[0];
-      let hasRecord = currentEventInstances.find(
-        (cEI: any) => cEI.startDay == newStartDate.startDay
+      const newStartDate = this.parseStartDates([eventInstance])[0];
+      const hasRecord = currentEventInstances.find(
+        (cEI: any) => cEI.startDay == newStartDate.startDay,
       );
 
       if (hasRecord) {
@@ -341,7 +335,7 @@ ORDER BY eventid,startdate ASC;
         updateEventInstances.push(eventInstance);
         deleteEventInstances.splice(
           deleteEventInstances.indexOf(hasRecord.id),
-          1
+          1,
         );
       } else {
         newEventInstances.push(eventInstance);
@@ -360,15 +354,15 @@ ORDER BY eventid,startdate ASC;
       await this.eventInstanceRepository.createAll(newEventInstances);
     }
     // Update existing instances so it doesnt loose dats
-    for (let updateInstance of updateEventInstances) {
-      let id = updateInstance.id;
+    for (const updateInstance of updateEventInstances) {
+      const id = updateInstance.id;
       delete updateInstance.id;
-      console.log("update", { id, updateInstance });
+      console.log('update', {id, updateInstance});
       await this.eventInstanceRepository.forceUpdateById(id, updateInstance);
       // await this.eventInstanceRepository.updateAll( updateInstance,{and: [{id}, {or:[{deleted:true},{deleted:false}]}]});
     }
     // Delete all the prev instances
-    for (let deleteInstanceId of deleteEventInstances) {
+    for (const deleteInstanceId of deleteEventInstances) {
       await this.eventInstanceRepository.deleteIfExistsById(deleteInstanceId);
     }
   }
@@ -376,12 +370,12 @@ ORDER BY eventid,startdate ASC;
   async createOrUpdateRecurringInstances(
     event: Event,
     recurrenceType: string,
-    recurrenceEndDate: string | undefined
+    recurrenceEndDate: string | undefined,
   ) {
     return this.createRecurringInstances(
       event,
       recurrenceType,
-      recurrenceEndDate
+      recurrenceEndDate,
     );
   }
 
@@ -392,7 +386,7 @@ ORDER BY eventid,startdate ASC;
         let place: any;
         let address: any;
         let playlist: any;
-        let contacts: any = eventData?.contacts || {};
+        const contacts: any = eventData?.contacts || {};
 
         if (eventData.placeId) {
           place = await this.placeRepository.findById(eventData.placeId);
@@ -400,17 +394,17 @@ ORDER BY eventid,startdate ASC;
         } else {
           address = await this.addressService.findOrCreate(
             eventData.address,
-            eventData.coordinates
+            eventData.coordinates,
           );
           place = await this.placeRepository.findOne({
-            where: { addressId: address.id },
+            where: {addressId: address.id},
           });
         }
         if (!eventData.playlistId) {
           playlist = await this.playlistRepository.create({
-            name: "Playlist",
-            description: "",
-            url: "",
+            name: 'Playlist',
+            description: '',
+            url: '',
             tagIds: [],
           });
 
@@ -424,20 +418,20 @@ ORDER BY eventid,startdate ASC;
         eventData.addressId = address.id;
         eventData.placeId = place?.id; //|| "adc41def-3c60-4995-8365-f2a8a1990f96";
         eventData.tagIds = eventData.tagIds || [];
-        eventData.type = eventData.recurrenceType == "none" ? "once" : "repeat";
+        eventData.type = eventData.recurrenceType == 'none' ? 'once' : 'repeat';
         eventData.coverId =
-          eventData.coverId || "00000000-0000-0000-0000-000000000001";
+          eventData.coverId || '00000000-0000-0000-0000-000000000001';
         eventData.scheduleId =
-          eventData.scheduleId || "6f8f032c-3761-4012-a4cb-2f1bd81ba741";
+          eventData.scheduleId || '6f8f032c-3761-4012-a4cb-2f1bd81ba741';
 
         const event: any = await this.eventRepository.create(eventData);
 
         // Handle recurrence logic
-        if (eventData.recurrenceType && eventData.recurrenceType !== "none") {
+        if (eventData.recurrenceType && eventData.recurrenceType !== 'none') {
           await this.createRecurringInstances(
             event,
             eventData.recurrenceType,
-            eventData.recurrenceEndDate
+            eventData.recurrenceEndDate,
           );
         } else {
           await this.createInstance(event);
@@ -446,21 +440,23 @@ ORDER BY eventid,startdate ASC;
         await this.contactRepository.createRecord(event.id, contacts);
 
         return event;
-      }
+      },
     );
   }
   async edit(id: string, eventData: Partial<any>): Promise<Event> {
     return transactionWrapper(
       this.eventRepository,
       async (transaction: any) => {
-        let currentEvent: any = this.eventRepository.findById(id);
-        let currentPlace: any = this.placeRepository.findById(
-          currentEvent.placeId
+        const currentEvent: any = this.eventRepository.findById(id);
+        const currentPlace: any = this.placeRepository.findById(
+          currentEvent.placeId,
         );
 
         eventData.addressId = currentPlace.addressId;
         if (eventData.placeId && eventData.placeId !== currentEvent.placeId) {
-          let newPlace: any = this.placeRepository.findById(eventData.placeId);
+          const newPlace: any = this.placeRepository.findById(
+            eventData.placeId,
+          );
           eventData.addressId = newPlace.addressId;
         }
 
@@ -468,7 +464,7 @@ ORDER BY eventid,startdate ASC;
         delete eventData.coordinates;
 
         await this.eventRepository.updateById(id, eventData);
-        let event = await this.eventRepository.findById(id);
+        const event = await this.eventRepository.findById(id);
 
         if (
           eventData.recurrenceType ||
@@ -479,12 +475,12 @@ ORDER BY eventid,startdate ASC;
           await this.createOrUpdateRecurringInstances(
             event,
             event.recurrenceType,
-            event.recurrenceEndDate
+            event.recurrenceEndDate,
           );
         }
 
         return event;
-      }
+      },
     );
   }
 }

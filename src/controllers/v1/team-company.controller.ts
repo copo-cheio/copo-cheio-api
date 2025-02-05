@@ -1,0 +1,29 @@
+import {repository} from '@loopback/repository';
+import {TeamRepository} from '../../repositories/v1';
+
+export class TeamCompanyController {
+  constructor(
+    @repository(TeamRepository)
+    public teamRepository: TeamRepository,
+  ) {}
+
+  /*
+  @get('/teams/{id}/company', {
+    responses: {
+      '200': {
+        description: 'Company belonging to Team',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(Company),
+          },
+        },
+      },
+    },
+  })
+  async getCompany(
+    @param.path.string('id') id: typeof Team.prototype.id,
+  ): Promise<Company> {
+    return this.teamRepository.company(id);
+  }
+  */
+}

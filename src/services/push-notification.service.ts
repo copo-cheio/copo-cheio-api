@@ -1,8 +1,8 @@
 import {injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {admin} from '../firebase-config';
-import {Credential} from '../models/credential.model';
-import {CredentialRepository, UserRepository} from '../repositories';
+import {Credential} from '../models/v1/credential.model';
+import {CredentialRepository, UserRepository} from '../repositories/v1';
 
 export const PUSH_NOTIFICATION_SUBSCRIPTIONS: any = {
   checkIn: {

@@ -1,0 +1,150 @@
+import {
+  Count,
+  CountSchema,
+  Filter,
+  FilterExcludingWhere,
+  repository,
+  Where,
+} from '@loopback/repository';
+import {
+  del,
+  get,
+  getModelSchemaRef,
+  param,
+  patch,
+  post,
+  put,
+  requestBody,
+  response,
+} from '@loopback/rest';
+import {Region} from '../../models/v1';
+import {RegionRepository} from '../../repositories/v1';
+
+export class RegionController {
+  constructor(
+    @repository(RegionRepository)
+    public regionRepository: RegionRepository,
+  ) {}
+
+  @post('/regions')
+  @response(200, {
+    description: 'Region model instance',
+    content: {'application/json': {schema: getModelSchemaRef(Region)}},
+  })
+  async create(
+    @requestBody({
+      content: {
+        'application/json': {
+          exclude: ['id', 'updated_at', 'created_at'],
+          schema: getModelSchemaRef(Region, {
+            title: 'NewRegion',
+            exclude: ['id', 'updated_at', 'created_at'],
+          }),
+        },
+      },
+    })
+    region: Omit<Region, 'id'>,
+  ): Promise<Region> {
+    return this.regionRepository.create(region);
+  }
+
+  @get('/regions/count')
+  @response(200, {
+    description: 'Region model count',
+    content: {'application/json': {schema: CountSchema}},
+  })
+  async count(@param.where(Region) where?: Where<Region>): Promise<Count> {
+    return this.regionRepository.count(where);
+  }
+
+  @get('/regions')
+  @response(200, {
+    description: 'Array of Region model instances',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'array',
+          items: getModelSchemaRef(Region, {includeRelations: true}),
+        },
+      },
+    },
+  })
+  async find(@param.filter(Region) filter?: Filter<Region>): Promise<Region[]> {
+    return this.regionRepository.find(filter);
+  }
+
+  @patch('/regions')
+  @response(200, {
+    description: 'Region PATCH success count',
+    content: {'application/json': {schema: CountSchema}},
+  })
+  async updateAll(
+    @requestBody({
+      content: {
+        'application/json': {
+          exclude: ['id', 'updated_at', 'created_at'],
+          schema: getModelSchemaRef(Region, {partial: true}),
+        },
+      },
+    })
+    region: Region,
+    @param.where(Region) where?: Where<Region>,
+  ): Promise<Count> {
+    return this.regionRepository.updateAll(region, where);
+  }
+
+  @get('/regions/{id}')
+  @response(200, {
+    description: 'Region model instance',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(Region, {includeRelations: true}),
+      },
+    },
+  })
+  async findById(
+    @param.path.string('id') id: string,
+    @param.filter(Region, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Region>,
+  ): Promise<Region> {
+    return this.regionRepository.findById(id, filter);
+  }
+
+  @patch('/regions/{id}')
+  @response(204, {
+    description: 'Region PATCH success',
+  })
+  async updateById(
+    @param.path.string('id') id: string,
+    @requestBody({
+      content: {
+        'application/json': {
+          exclude: ['id', 'updated_at', 'created_at'],
+          schema: getModelSchemaRef(Region, {partial: true}),
+        },
+      },
+    })
+    region: Region,
+  ): Promise<void> {
+    await this.regionRepository.updateById(id, region);
+  }
+
+  @put('/regions/{id}')
+  @response(204, {
+    description: 'Region PUT success',
+  })
+  async replaceById(
+    @param.path.string('id') id: string,
+    @requestBody() region: Region,
+  ): Promise<void> {
+    await this.regionRepository.replaceById(id, region);
+  }
+
+  @del('/regions/{id}')
+  @response(204, {
+    description: 'Region DELETE success',
+  })
+  async deleteById(@param.path.string('id') id: string): Promise<void> {
+    await this.regionRepository.deleteById(id);
+  }
+}
