@@ -61,7 +61,7 @@ export class DevRepository extends BaseRepository<
   async onUpdateOrderStatus(app: string, refId: string, data: any = {}) {
     console.log({app, refId, data});
     const result = await this.updateOrder(app, refId, data);
-
+    await this.updateSystemOrderStatusByOrderId(refId, data.status);
     return result;
     /*     const order = await this.getOrderFromSystemOrders(refId);
 
@@ -69,30 +69,39 @@ export class DevRepository extends BaseRepository<
   }
 
   async validateOrder(app: string, refId: string, data: any = {}) {
+    const response: any = {
+      success: false,
+    };
     const systemOrder = await this.findByIdInList(
       () => this.findByAction('system', 'orders', 'system'),
       refId,
       'orderId',
     );
-    const code = systemOrder.item.code;
-    const decription = await this.encriptionService.comparePassword(
-      data.code,
-      code,
-    );
-    if (decription) {
-      await this.updateOrder('staff', refId, {
-        status: 'COMPLETE',
-        staffId: data.staffId,
-      });
-      return this.getOrder(refId);
+
+    if (systemOrder.item.status == 'READY') {
+      const code = systemOrder.item.code;
+      const decription = await this.encriptionService.comparePassword(
+        data.code,
+        code,
+      );
+      if (decription) {
+        await this.updateOrder('staff', refId, {
+          status: 'COMPLETE',
+          staffId: data.staffId,
+        });
+        await this.updateSystemOrderStatusByOrderId(refId, 'COMPLETE');
+        response.success = true;
+      }
     }
-    return {app, refId, data, decription};
+    response.order = await this.getOrder(refId);
+
+    return response;
   }
 
   async generateOrderQrCode(order: any = {}, status: string) {
     const code = v7();
     order.code = await this.encriptionService.hashPassword(code);
-    console.log({orderId: order.orderId, code, encryptedCode: order.code});
+
     const payload = {
       action: 'VALIDATE_ORDER',
       type: 'order',
@@ -126,7 +135,10 @@ export class DevRepository extends BaseRepository<
         'orders',
         'system',
       );
-      systemOrders.data[systemOrder.index] = {...updatedSystemOrder.order};
+      systemOrders.data[systemOrder.index] = {
+        ...updatedSystemOrder.order,
+        status: status,
+      };
 
       await this.updateById(systemOrders.id, {
         ...systemOrders,
@@ -199,7 +211,19 @@ export class DevRepository extends BaseRepository<
 
     return {order};
   }
-
+  async updateSystemOrderStatusByOrderId(orderId, status) {
+    const systemOrder = await this.findByIdInList(
+      () => this.findByAction('system', 'orders', 'system'),
+      orderId,
+      'orderId',
+    );
+    const systemOrders = await this.findByAction('system', 'orders', 'system');
+    systemOrders.data[systemOrder.index] = {
+      ...systemOrders.data[systemOrder.index],
+      status: status,
+    };
+    return this.updateById(this.systemOrdersId, {...systemOrders});
+  }
   async userOrderPaymentSuccess(app: string, refId: string, data: any = {}) {
     let record: any = await this.getUserOrder(app, refId);
     const action = 'user-order';
@@ -482,6 +506,7 @@ export class DevRepository extends BaseRepository<
       ...orders,
       data: [...orders.data, order],
     });
+    await this.updateSystemOrderStatusByOrderId(orderId, 'WAITING_PAYMENT');
   }
 
   /**
