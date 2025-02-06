@@ -1,6 +1,8 @@
 import {Getter, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {v7} from 'uuid';
+import {BalconySimpleQuery} from '../../blueprints/balcony.blueprint';
+import {BasePlacesQuery} from '../../blueprints/place.blueprint';
 import {PostgresSqlDataSource} from '../../datasources';
 import {Dev, DevRelations} from '../../models/v1';
 import {EncryptionProvider, QrFactoryService} from '../../services';
@@ -56,6 +58,75 @@ export class DevRepository extends BaseRepository<
       console.log(ex);
     }
     //console.log('fbi', this.findByAction);
+  }
+
+  async getUserProfile(app: string, refId: any = {}) {
+    const user = await this.findByAction('user', 'sign-up', refId);
+    const staff = await this.findByAction('staff', 'sign-up', refId);
+    const lastSignInUser = await this.findByAction('user', 'sign-in', refId);
+    const lastSignInStaff = await this.findByAction('staff', 'check-in', refId);
+
+    const placeRepository: any = await this.getPlaceRepository();
+    const balconyRepository: any = await this.getBalconyRepository();
+    const systemOrders: any = await this.getSystemOrders();
+    const userActivity: any = systemOrders.filter(so => so.userId == refId);
+    const userPlaces = await placeRepository.findAll({
+      where: {
+        id: {
+          inq: [...new Set(userActivity.map((ua: any) => ua.placeId))],
+        },
+      },
+      ...BasePlacesQuery,
+    });
+    const response: any = {
+      user: {
+        ...lastSignInUser.data,
+        created_at: user.created_at,
+        places: userPlaces,
+        totalOrders: userActivity.length,
+      },
+    };
+    if (staff) {
+      const balconies = await this.findAll({
+        where: {app: 'staff', action: 'balcony-orders'},
+      });
+      const staffPlaceIds = [];
+      for (const balcony of balconies) {
+        const worksHere = balcony.data.find(b => {
+          return b.staffId == refId;
+        });
+        if (worksHere) {
+          staffPlaceIds.push(balcony.refId);
+        }
+      }
+      const staffBalconies = await balconyRepository.findAll({
+        where: {
+          id: {
+            inq: [...new Set(staffPlaceIds)],
+          },
+        },
+        ...BalconySimpleQuery,
+      });
+      const staffPlaces: any = [];
+
+      response.staff = {
+        ...lastSignInStaff.data,
+        created_at: staff.created_at,
+        places: staffBalconies
+          .filter(b => {
+            const idx = staffPlaces.indexOf(b.placeId);
+            if (idx == -1) {
+              staffPlaces.push(b.placeId);
+              return true;
+            }
+            return false;
+          })
+          .map(b => b.place),
+        balconies: staffBalconies,
+      };
+    }
+
+    return response;
   }
 
   async onUpdateOrderStatus(app: string, refId: string, data: any = {}) {

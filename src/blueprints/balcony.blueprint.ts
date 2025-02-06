@@ -41,6 +41,19 @@ export const BalconySingleQuery: any = {
     IncludeOrders,
   ],
 };
+export const BalconySimpleQuery: any = {
+  ...QueryFilterBaseBlueprint,
+
+  fields: {
+    id: true,
+    name: true,
+    placeId: true,
+    coverId: true,
+
+    description: true,
+  },
+  include: [IncludeCover, IncludePlaceRelation],
+};
 
 // {"include":[{"relation":"orderItems","scope"}]}
 export const BalconyOrdersResponse: any = {

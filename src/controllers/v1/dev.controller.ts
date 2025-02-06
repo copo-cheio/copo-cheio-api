@@ -17,6 +17,7 @@ const ACTIONS: any = {
   'balcony-orders': 'getBalconyOrders',
   'update-order-status': 'onUpdateOrderStatus',
   'validate-order': 'validateOrder',
+  user: 'getUserProfile',
 };
 
 export class DevController {
