@@ -2,7 +2,10 @@ import {Getter, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {v7} from 'uuid';
 import {BalconySimpleQuery} from '../../blueprints/balcony.blueprint';
-import {BasePlacesQuery} from '../../blueprints/place.blueprint';
+import {
+  BasePlacesQuery,
+  PlaceQueryFull,
+} from '../../blueprints/place.blueprint';
 import {PostgresSqlDataSource} from '../../datasources';
 import {Dev, DevRelations} from '../../models/v1';
 import {EncryptionProvider, QrFactoryService} from '../../services';
@@ -559,7 +562,40 @@ export class DevRepository extends BaseRepository<
   }
 
   async getUserOrders(refId: string) {
-    return this.findOrCreateByAction('user', 'user-orders', refId, []);
+    const orders: any = await this.findOrCreateByAction(
+      'user',
+      'user-orders',
+      refId,
+      [],
+    );
+
+    const places: any = {};
+    const placeRepository = await this.getPlaceRepository();
+    const data: any = [];
+    for (const order of orders.data) {
+      if (!order.placeId) {
+        continue;
+      }
+      if (!places.hasOwnProperty(order.placeId)) {
+        const place = await placeRepository.findById(
+          order.placeId,
+          PlaceQueryFull,
+        );
+        places[order.placeId] = {
+          placeId: order.placeId,
+          place: place,
+          items: [],
+        };
+      }
+      places[order.placeId].items.push(order);
+      order.place = places[order.placeId].place;
+      data.push(order);
+    }
+
+    return {
+      ...orders,
+      data: [...data],
+    };
   }
   async getBalconyOrders(balconyId: string, b?: any) {
     const app = 'staff';
