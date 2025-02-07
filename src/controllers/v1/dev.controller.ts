@@ -1,9 +1,12 @@
 // Uncomment these imports to begin using these cool features!
 
+import {authenticate, AuthenticationBindings} from '@loopback/authentication';
+import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {get, param, post, requestBody, response} from '@loopback/rest';
+import {UserProfile} from '@loopback/security';
 import {DevRepository} from '../../repositories/v1';
-
+import {AuthService} from '../../services';
 // import {inject} from '@loopback/core';
 const ACTIONS: any = {
   'sign-in': 'signIn',
@@ -21,10 +24,40 @@ const ACTIONS: any = {
   user: 'getUserProfile',
 };
 
+interface iSignInInput {
+  // Is signed up?
+  app: string;
+  isAuthenticated: boolean;
+  displayName: string;
+  photoUrl: string;
+  uid: string;
+  accessToken: string;
+  pushNotificationToken: string;
+  idToken: string;
+}
 export class DevController {
   constructor(
     @repository(DevRepository) public devRepository: DevRepository | any,
+    @inject('services.AuthService')
+    protected authService: AuthService,
+    @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
+    private currentUser: UserProfile, // Inject the current user profile
   ) {}
+
+  @post('/dev/auth/sign-in')
+  async onSignIn(@requestBody() body: {provider: string; idToken: string}) {
+    return this.authService.loginWithIdToken(body);
+  }
+
+  @get('/dev/private-request')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Activity model instance',
+  })
+  async checkOut(): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
+  Promise<any> {
+    return this.currentUser;
+  }
 
   @post('/dev/execute')
   @response(200, {

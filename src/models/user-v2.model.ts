@@ -25,7 +25,7 @@ export class UserV2 extends Base {
     type: 'string',
     required: true,
   })
-  photoURL: string;
+  photoUrl: string;
 
   @property({
     type: 'string',
