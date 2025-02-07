@@ -187,6 +187,11 @@ export class DevRepository extends BaseRepository<
     return {order, qrCode};
   }
 
+  async onGetUserOrders(app: any, refId: string) {
+    const orders = await this.getUserOrders(refId);
+    return orders.data;
+  }
+
   async updateOrder(app: any, refId: string, data: any) {
     const status = data.status;
     const systemOrder = await this.findByIdInList(

@@ -12,6 +12,7 @@ const ACTIONS: any = {
   'check-out': 'checkIn',
   'create-user-order': 'createUserOrder',
   'user-order': 'getUserOrder',
+  'user-orders': 'onGetUserOrders',
   'find-order': 'getOrderFromSystemOrders',
   'payment-success': 'userOrderPaymentSuccess',
   'balcony-orders': 'getBalconyOrders',
