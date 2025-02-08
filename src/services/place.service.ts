@@ -270,4 +270,36 @@ export class PlaceService {
 
     return this.placeRepository.dataSource.execute(query, params);
   }
+
+  async getTodayActiveHours(placeId: string) {
+    function getEventTimes(schedule) {
+      const today = new Date();
+      const dayOfWeek = today.getDay(); // Current day of the week (0 = Sunday, 6 = Saturday)
+      const eventDay = schedule.dayofweek; // Day of the event (6 = Saturday)
+
+      // Calculate the next event date
+      const eventDate = new Date(today);
+      eventDate.setDate(today.getDate() + ((eventDay - dayOfWeek + 7) % 7)); // Next event day
+      eventDate.setHours(0, 0, 0, 0); // Reset time
+
+      // Set start time
+      const [openHour, openMinute] = schedule.openhour.split(':').map(Number);
+      const startTime = new Date(eventDate);
+      startTime.setHours(openHour, openMinute, 0, 0);
+
+      // Set end time
+      const [closeHour, closeMinute] = schedule.closehour
+        .split(':')
+        .map(Number);
+      const endTime = new Date(eventDate);
+      endTime.setHours(closeHour, closeMinute, 0, 0);
+
+      return {
+        start: startTime.toISOString(),
+        end: endTime.toISOString(),
+      };
+    }
+    const openingHours = await this.getTodayOpeningHours(placeId);
+    return getEventTimes(openingHours?.[0] || openingHours);
+  }
 }

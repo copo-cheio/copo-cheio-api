@@ -6,7 +6,7 @@ import {repository} from '@loopback/repository';
 import {get, param, post, requestBody, response} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 import {DevRepository} from '../../repositories/v1';
-import {AuthService} from '../../services';
+import {AuthService, StaffService} from '../../services';
 // import {inject} from '@loopback/core';
 const ACTIONS: any = {
   'sign-in': 'signIn',
@@ -43,7 +43,19 @@ export class DevController {
     protected authService: AuthService,
     @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
     private currentUser: UserProfile, // Inject the current user profile
+    @inject('services.StaffService')
+    protected staffService: StaffService,
   ) {}
+
+  @get('/dev/current-user')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Activity model instance',
+  })
+  async getCurrentUser(): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
+  Promise<any> {
+    return this.staffService.getUserDetails();
+  }
 
   @post('/dev/auth/sign-in')
   async onSignIn(@requestBody() body: {provider: string; idToken: string}) {
@@ -72,6 +84,13 @@ export class DevController {
     return eval(query);
   }
 
+  @get('/dev/migrate')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async migrate(): Promise<any> {
+    return this.devRepository.migrate();
+  }
   @get('/dev/order/{id}')
   @response(200, {
     description: 'Array of available models',

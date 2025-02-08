@@ -1,8 +1,8 @@
-import {Entity, model, property} from '@loopback/repository';
+import {model} from '@loopback/repository';
+import {Base} from './v1';
 
 @model()
-export class SignInV2 extends Entity {
-
+export class SignInV2 extends Base {
   constructor(data?: Partial<SignInV2>) {
     super(data);
   }

@@ -1,7 +1,7 @@
-import {injectable, /* inject, */ BindingScope} from '@loopback/core';
+import {/* inject, */ BindingScope, injectable} from '@loopback/core';
 
 @injectable({scope: BindingScope.TRANSIENT})
-export class ShoppingCartServiceService {
+export class ShoppingCartService {
   constructor(/* Add @inject to inject parameters */) {}
 
   /*

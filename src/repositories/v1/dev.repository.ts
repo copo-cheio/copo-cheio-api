@@ -69,6 +69,76 @@ export class DevRepository extends BaseRepository<
     //console.log('fbi', this.findByAction);
   }
 
+  async migrate() {
+    const balconyRepository = await this.getBalconyRepository();
+    const menuRepository = await this.getMenuRepository();
+    const stockRepository = await this.getStockRepository();
+    const balconies = await balconyRepository.findAll();
+    const response: any = {
+      menus: {},
+      balconies: {},
+    };
+
+    for (const b of balconies) {
+      if (!response.balconies[b.id]) {
+        response.balconies[b.id] = [];
+      }
+      if (!response.menus[b.menuId]) {
+        response.menus[b.menuId] = [];
+        const ingredientIds = [];
+        const menu = await menuRepository.findById(b.menuId, {
+          include: [
+            {
+              relation: 'products',
+              scope: {
+                include: [
+                  {
+                    relation: 'product',
+                    scope: {
+                      include: [
+                        {relation: 'ingredients'},
+                        {relation: 'options'},
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        });
+        const products = menu.products;
+        for (const p of products) {
+          // @ts-ignore
+          const ingredients = p?.product?.ingredients || [];
+          // @ts-ignore
+          const options = p?.product?.options || [];
+          for (const ingredient of ingredients) {
+            ingredientIds.push(ingredient.ingredientId);
+          }
+          for (const ingredient of options) {
+            ingredientIds.push(ingredient.ingredientId);
+          }
+        }
+        response.menus[b.menuId] = [...new Set(ingredientIds)];
+      }
+      response.balconies[b.id] = response.menus[b.menuId];
+      for (const ing of response.menus[b.menuId]) {
+        const entry = await stockRepository.findOne({
+          where: {balconyId: b.id, ingredientId: ing},
+        });
+        if (!entry) {
+          await stockRepository.create({
+            balconyId: b.id,
+            ingredientId: ing,
+            status: 'IN_STOCK',
+          });
+        }
+      }
+    }
+
+    return response.balconies;
+  }
+
   async getBalconyFull(balconyId) {
     const balconyRepository = await this.getBalconyRepository();
     const balcony: any = await balconyRepository.findById(

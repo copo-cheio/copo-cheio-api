@@ -15,3 +15,6 @@ export * from './product.service';
 export * from './spotify.service';
 export * from './dev.service';
 export * from './encryption.service';
+export * from './staff-service.service';
+export * from './manager-service.service';
+export * from './stock-service.service';

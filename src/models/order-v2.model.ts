@@ -1,31 +1,23 @@
-import {model, property} from '@loopback/repository';
-import {Base} from './v1';
+import {belongsTo, model, property} from '@loopback/repository';
+import {Balcony, Base} from './v1';
 
 @model()
 export class OrderV2 extends Base {
   @property({
-    type: 'number',
+    type: 'string',
     required: true,
+    defaultValue: 'WAITING_PAYMENT',
   })
-  productCount: number;
+  status: string;
 
   @property({
-    type: 'number',
-    required: true,
+    type: 'string',
+    required: false,
   })
-  productsPrice: number;
+  code: string;
 
-  @property({
-    type: 'number',
-    required: true,
-  })
-  serviceFee: number;
-
-  @property({
-    type: 'number',
-    required: true,
-  })
-  totalPrice: number;
+  @belongsTo(() => Balcony)
+  balconyId: string;
 
   constructor(data?: Partial<OrderV2>) {
     super(data);
