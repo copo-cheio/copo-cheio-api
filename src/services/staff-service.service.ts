@@ -41,7 +41,9 @@ export class StaffService {
    * Notifies the admins
    * Notifies all the checked in users in that place to refresh the menu
    */
-  async updateOrderStatus(orderId, status) {}
+  async updateOrderStatus({orderId, status}) {
+    const staff = await this.getActiveStaffInfo();
+  }
 
   /**
    * Will update a ingredient status on a balcony

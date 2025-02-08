@@ -1,11 +1,15 @@
-import {/* inject, */ BindingScope, injectable} from '@loopback/core';
+import {AuthenticationBindings} from '@loopback/authentication';
+import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
+import {UserProfile} from '@loopback/security';
 import {
+  DevRepository,
   StaffRepository,
   TeamRepository,
   TeamStaffRepository,
   UserRepository,
 } from '../repositories/v1';
+import {AuthService} from './auth.service';
 
 /*
  * Fix the service type. Possible options can be:
@@ -19,8 +23,13 @@ export type User = unknown;
 export class UserService {
   constructor(
     @repository(UserRepository) public userRepository: UserRepository,
+    @inject('services.AuthService')
+    protected authService: AuthService,
+    @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
+    private currentUser: UserProfile, // Inject the current user profile
     @repository(StaffRepository) public staffRepository: StaffRepository,
     @repository(TeamRepository) public teamRepository: TeamRepository,
+    @repository('DevRepository') public devRepository: DevRepository,
     @repository(TeamStaffRepository)
     public teamStaffRepository: TeamStaffRepository,
   ) {}
@@ -101,6 +110,52 @@ export class UserService {
     }
 
     return result;
+  }
+
+  async updatePushNotificationToken(token: string) {
+    const user = this.currentUser;
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+    const signIn = await this.devRepository.findByAction(
+      'user',
+      'sign-in',
+      user.uid,
+    );
+
+    await this.devRepository.updateById(signIn.id, {
+      data: {...signIn.data, pushNotificationToken: token},
+    });
+    return {success: true};
+  }
+  async getActiveCheckIn() {
+    const user = await this.getUserDetails();
+    if (!user?.checkIn?.active) {
+      throw new Error('User not checked in');
+    }
+
+    return {
+      userId: user.user.uid,
+      user: user.user,
+      balconyId: user.checkIn.balconyId,
+      placeId: user.checkIn.placeId,
+      role: user.checkIn.role,
+    };
+  }
+  async getUserDetails() {
+    // Fetches the logged-in user
+    const user = this.currentUser;
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const checkIn = await this.devRepository.findByAction(
+      'user',
+      'check-in',
+      user.uid,
+    );
+
+    return {user, checkIn: checkIn.data}; // This contains details like id, name, roles, etc.
   }
   /*
    * Add service methods here

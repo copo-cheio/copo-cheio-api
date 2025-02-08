@@ -114,7 +114,7 @@ export class DevController {
     @param.path.string('action') action: string,
     @param.path.string('refId') refId: string,
   ): Promise<any> {
-    console.log('GET', {app, refId, action});
+    /* console.log('GET', {app, refId, action}); */
     //this.dummyActionMiddleware(app, refId, action);
     return this.devRepository[ACTIONS[action]](app, refId);
   }
@@ -130,7 +130,7 @@ export class DevController {
     @requestBody({})
     data: any,
   ): Promise<any> {
-    console.log('POST', {app, refId, action, data});
+    /* console.log('POST', {app, refId, action, data}); */
     this.dummyActionMiddleware(app, refId, action);
     return this.devRepository[ACTIONS[action]](app, refId, data);
   }

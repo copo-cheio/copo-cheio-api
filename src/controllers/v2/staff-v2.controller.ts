@@ -20,15 +20,6 @@ export class StaffV2Controller {
     protected staffService: StaffService,
   ) {}
 
-  @get('/v2/staff/info')
-  @authenticate('firebase')
-  @response(200, {
-    description: 'Activity model instance',
-  })
-  async getCurrentUser(): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
-  Promise<any> {
-    return this.staffService.getActiveStaffInfo();
-  }
   @get('/v2/staff/balcony-orders')
   @authenticate('firebase')
   @response(200, {
@@ -49,5 +40,26 @@ export class StaffV2Controller {
     body: any,
   ): Promise<any> {
     return this.staffService.updateStockStatus(body.stockId, body.status);
+  }
+  @post('/v2/staff/update-order-status')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async updateOrderStatus(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.staffService.updateOrderStatus(body);
+  }
+
+  @get('/v2/staff/info')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Activity model instance',
+  })
+  async getCurrentUser(): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
+  Promise<any> {
+    return this.staffService.getActiveStaffInfo();
   }
 }
