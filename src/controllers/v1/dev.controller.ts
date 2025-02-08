@@ -20,6 +20,7 @@ const ACTIONS: any = {
   'payment-success': 'userOrderPaymentSuccess',
   'balcony-orders': 'getBalconyOrders',
   'update-order-status': 'onUpdateOrderStatus',
+  'update-stock-status': 'onUpdateStockStatus',
   'validate-order': 'validateOrder',
   user: 'getUserProfile',
 };
@@ -77,6 +78,13 @@ export class DevController {
   })
   async getOrder(@param.path.string('id') id: string): Promise<any> {
     return this.devRepository.getOrderFromSystemOrders(id);
+  }
+  @get('/dev/balcony/{id}/full')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async getBalcony(@param.path.string('id') id: string): Promise<any> {
+    return this.devRepository.getBalconyFull(id);
   }
   @get('/dev/{app}/{action}/{refId}')
   @response(200, {

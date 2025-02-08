@@ -1,7 +1,10 @@
 import {Getter, inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {v7} from 'uuid';
-import {BalconySimpleQuery} from '../../blueprints/balcony.blueprint';
+import {
+  BalconyFullQuery,
+  BalconySimpleQuery,
+} from '../../blueprints/balcony.blueprint';
 import {
   BasePlacesQuery,
   PlaceQueryFull,
@@ -16,6 +19,7 @@ import {BaseRepository} from './base.repository.base';
 import {MenuRepository} from './menu.repository';
 import {OrderRepository} from './order.repository';
 import {PlaceRepository} from './place.repository';
+import {StockRepository} from './stock.repository';
 import {UserRepository} from './user.repository';
 
 const generateTimeline = (status, orderId, staffId, staff) => {
@@ -48,6 +52,8 @@ export class DevRepository extends BaseRepository<
     private getMenuRepository: Getter<MenuRepository>,
     @repository.getter('OrderRepository')
     private getOrderRepository: Getter<OrderRepository>,
+    @repository.getter('StockRepository')
+    private getStockRepository: Getter<StockRepository>,
     @inject('services.PushNotificationService')
     private pushNotificationService: PushNotificationService,
     @inject('services.EncryptionProvider')
@@ -61,6 +67,69 @@ export class DevRepository extends BaseRepository<
       console.log(ex);
     }
     //console.log('fbi', this.findByAction);
+  }
+
+  async getBalconyFull(balconyId) {
+    const balconyRepository = await this.getBalconyRepository();
+    const balcony: any = await balconyRepository.findById(
+      balconyId,
+      BalconyFullQuery,
+    );
+    const inStock = balcony.stocks
+      .filter((s: any) => s.status == 'IN_STOCK')
+      .map((s: any) => s.ingredientId);
+    const outOfStock = balcony.stocks
+      .filter((s: any) => s.status == 'OUT_OF_STOCK')
+      .map((s: any) => s.ingredientId);
+    balcony.menu.products = [
+      ...balcony.menu.products.map((menuProduct: any) => {
+        const product = menuProduct.product;
+
+        let options = product.options || [];
+
+        let ingredients = product.ingredients || [];
+
+        product.available = true;
+        menuProduct.available = true;
+        options = [
+          ...options.map((o: any) => {
+            const isAvailable = inStock.indexOf(o.ingredientId) > -1;
+
+            return {
+              ...o,
+              available: isAvailable,
+              ingredient: {...o.ingredient, available: isAvailable},
+            };
+          }),
+        ];
+        ingredients = [
+          ...ingredients.map((i: any) => {
+            const isAvailable = inStock.indexOf(i.ingredientId) > -1;
+            if (!isAvailable) {
+              console.log('INGREDIENT NA', i.ingredientId, product);
+              product.available = false;
+              menuProduct.available = false;
+            }
+            return {...i, available: isAvailable};
+          }),
+        ];
+        product.options = [...options];
+        product.ingredients = [...ingredients];
+        return {...menuProduct, product: {...product}};
+      }),
+    ];
+
+    balcony.inStock = inStock;
+    return balcony;
+  }
+
+  async onUpdateStockStatus(app, refId, data: any = {}) {
+    const stockRepository = await this.getStockRepository();
+    const balconyRepository = await this.getBalconyRepository();
+    const status = data.status;
+    const stock = await stockRepository.updateById(data.stockId, {
+      status: data.status,
+    });
   }
 
   async getUserProfile(app: string, refId: any = {}) {
