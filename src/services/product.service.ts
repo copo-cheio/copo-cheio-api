@@ -23,7 +23,7 @@ interface iCreateProduct {
 @injectable({scope: BindingScope.TRANSIENT})
 export class ProductService {
   constructor(
-    @repository(ProductRepository)
+    @repository('ProductRepository')
     public productRepository: ProductRepository,
     @repository(ProductOptionRepository)
     public productOptionRepository: ProductOptionRepository,
@@ -50,8 +50,15 @@ export class ProductService {
       thumbnailId: payload.thumbnailId || DEFAULT_MODEL_ID.thumbnailId,
       tagIds: payload.tagIds || [],
     };
-
-    const product: any = await callbackFn(productPayload, transaction);
+    console.log('xxxxxxxxxxxxxxxxxxxx');
+    console.log('');
+    console.log('');
+    console.log({productPayload, callbackFn});
+    console.log('');
+    console.log('');
+    console.log('xxxxxxxxxxxxxxxxxxxx');
+    //    const product: any = await callbackFn(productPayload);
+    const product: any = await this.productRepository.create(productPayload);
 
     const productId = product.id;
 
@@ -108,11 +115,20 @@ export class ProductService {
     const productIngredientIds: any = [];
     const productIngredients: any = payload.ingredients || [];
     for (const productIngredient of productIngredients) {
-      const record = await this.productIngredientRepository.updateOrCreateById(
-        productIngredient.id,
-        {productId, ingredientId: productIngredient.ingredientId},
-        transaction,
-      );
+      console.log({productIngredient});
+      let record;
+      if (productIngredient.ingredientId) {
+        record = await this.productIngredientRepository.updateOrCreateById(
+          productIngredient.id,
+          {productId, ingredientId: productIngredient.ingredientId},
+          transaction,
+        );
+      } else {
+        record = await this.productIngredientRepository.create(
+          {productId, ingredientId: productIngredient.id},
+          transaction,
+        );
+      }
       productIngredientIds.push(record.id);
     }
 
@@ -127,7 +143,7 @@ export class ProductService {
         const {product, productId} = await this.handleProductPayload(
           payload,
           transaction,
-          this.priceRepository.create,
+          this.productRepository.create,
         );
 
         const {productOptionIds} = await this.handleProductOptions(
