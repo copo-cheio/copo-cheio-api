@@ -273,6 +273,21 @@ export class PlaceService {
 
   async getTodayActiveHours(placeId: string) {
     function getEventTimes(schedule) {
+      if (schedule.length == 0) {
+        const today = new Date();
+        const eventDate = new Date(today);
+        const startDate = new Date(today);
+        const endDate = new Date(today);
+        endDate.setDate(today.getDate() + 1); // Next event day
+        endDate.setHours(0, 0, 0, 0); // Reset time
+        startDate.setDate(today.getDate() - 1); // Next event day
+        startDate.setHours(0, 0, 0, 0); // Reset time
+
+        return {
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+        };
+      }
       const today = new Date();
       const dayOfWeek = today.getDay(); // Current day of the week (0 = Sunday, 6 = Saturday)
       const eventDay = schedule.dayofweek; // Day of the event (6 = Saturday)
@@ -283,12 +298,14 @@ export class PlaceService {
       eventDate.setHours(0, 0, 0, 0); // Reset time
 
       // Set start time
-      const [openHour, openMinute] = schedule.openhour.split(':').map(Number);
+      const [openHour, openMinute] = (schedule.openhour || '00:00')
+        .split(':')
+        .map(Number);
       const startTime = new Date(eventDate);
       startTime.setHours(openHour, openMinute, 0, 0);
 
       // Set end time
-      const [closeHour, closeMinute] = schedule.closehour
+      const [closeHour, closeMinute] = (schedule.closehour || '00:00')
         .split(':')
         .map(Number);
       const endTime = new Date(eventDate);
@@ -300,6 +317,7 @@ export class PlaceService {
       };
     }
     const openingHours = await this.getTodayOpeningHours(placeId);
+
     return getEventTimes(openingHours?.[0] || openingHours);
   }
 }
