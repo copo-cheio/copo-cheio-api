@@ -69,11 +69,17 @@ export class DevRepository extends BaseRepository<
     //console.log('fbi', this.findByAction);
   }
 
-  async migrate() {
+  async migrate(balconyId?: any) {
     const balconyRepository = await this.getBalconyRepository();
     const menuRepository = await this.getMenuRepository();
     const stockRepository = await this.getStockRepository();
-    const balconies = await balconyRepository.findAll();
+    let balconies;
+    if (balconyId) {
+      balconies = await balconyRepository.findById(balconyId);
+      balconies = [balconies];
+    } else {
+      balconies = await balconyRepository.findAll();
+    }
     const response: any = {
       menus: {},
       balconies: {},
@@ -106,7 +112,7 @@ export class DevRepository extends BaseRepository<
             },
           ],
         });
-        const products = menu.products;
+        const products = menu.products || [];
         for (const p of products) {
           // @ts-ignore
           const ingredients = p?.product?.ingredients || [];
@@ -145,10 +151,12 @@ export class DevRepository extends BaseRepository<
       balconyId,
       BalconyFullQuery,
     );
-    const inStock = balcony.stocks
+    const stocks = balcony.stocks || [];
+    balcony.menu.products = balcony.menu.products || [];
+    const inStock = stocks
       .filter((s: any) => s.status == 'IN_STOCK')
       .map((s: any) => s.ingredientId);
-    const outOfStock = balcony.stocks
+    const outOfStock = stocks
       .filter((s: any) => s.status == 'OUT_OF_STOCK')
       .map((s: any) => s.ingredientId);
     balcony.menu.products = [
@@ -176,7 +184,7 @@ export class DevRepository extends BaseRepository<
           ...ingredients.map((i: any) => {
             const isAvailable = inStock.indexOf(i.ingredientId) > -1;
             if (!isAvailable) {
-              console.log('INGREDIENT NA', i.ingredientId, product);
+              // console.log('INGREDIENT NA', i.ingredientId, product);
               product.available = false;
               menuProduct.available = false;
             }

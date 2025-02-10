@@ -17,6 +17,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import {MenuFullQuery} from '../../blueprints/menu.blueprint';
 import {Menu} from '../../models/v1';
 import {MenuRepository} from '../../repositories/v1';
 
@@ -105,6 +106,21 @@ export class MenuController {
     @param.filter(Menu, {exclude: 'where'}) filter?: FilterExcludingWhere<Menu>,
   ): Promise<Menu> {
     return this.menuRepository.findById(id, filter);
+  }
+  @get('/menus/{id}/full')
+  @response(200, {
+    description: 'Menu model instance',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(Menu, {includeRelations: true}),
+      },
+    },
+  })
+  async findFullById(
+    @param.path.string('id') id: string,
+    @param.filter(Menu, {exclude: 'where'}) filter?: FilterExcludingWhere<Menu>,
+  ): Promise<Menu> {
+    return this.menuRepository.findById(id, MenuFullQuery);
   }
 
   @patch('/menus/{id}')

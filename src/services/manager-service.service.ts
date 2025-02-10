@@ -1,6 +1,11 @@
 import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {MenuProductRepository} from '../repositories';
+import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
+import {
+  BalconyRepository,
+  DevRepository,
+  MenuProductRepository,
+} from '../repositories';
 import {StockService} from './stock-service.service';
 
 @injectable({scope: BindingScope.TRANSIENT})
@@ -10,6 +15,10 @@ export class ManagerService {
     protected stockService: StockService,
     @repository(MenuProductRepository)
     public menuProductRepository: MenuProductRepository,
+    @repository(BalconyRepository)
+    public balconyRepository: BalconyRepository,
+    @repository('DevRepository')
+    public devRepository: DevRepository,
   ) {}
 
   /**
@@ -45,5 +54,19 @@ export class ManagerService {
       });
       await this.stockService.updateBalconyStockRequirementsByMenu(menuId);
     }
+  }
+
+  async updateBalcony(id, payload: any = {}) {
+    console.log({id, payload});
+    await this.balconyRepository.updateById(id, payload);
+    await this.devRepository.migrate(id);
+    return this.balconyRepository.findById(id, BalconyFullQuery);
+  }
+
+  async createBalcony(payload: any = {}) {
+    const balcony = await this.balconyRepository.create(payload);
+    const id = balcony.id;
+    await this.devRepository.migrate(id);
+    return this.balconyRepository.findById(id, BalconyFullQuery);
   }
 }
