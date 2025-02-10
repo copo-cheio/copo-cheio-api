@@ -3,7 +3,7 @@
 import {AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {param, patch, post, requestBody, response} from '@loopback/rest';
+import {get, param, patch, post, requestBody, response} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 
 import {DevRepository} from '../../repositories';
@@ -26,7 +26,7 @@ export class ManagerV2Controller {
   @response(200, {
     description: 'Array of available models',
   })
-  async updateStockStatus(
+  async createBalcony(
     @requestBody({})
     body: any,
   ): Promise<any> {
@@ -37,11 +37,29 @@ export class ManagerV2Controller {
   @response(204, {
     description: 'Balcony PATCH success',
   })
-  async updateById(
+  async updateBalconyById(
     @param.path.string('id') id: string,
     @requestBody({})
     body: any,
   ): Promise<void> {
     await this.managerService.updateBalcony(id, body);
+  }
+
+  @get('/v2/manager/menu-stock-balcony-simulation/{menuId}')
+  @response(200, {
+    description: 'Activity model instance',
+  })
+  async simulateStockStatusBalconyMenu(
+    @param.path.string('menuId') menuId: string,
+
+    @param.query.object('filter') filter?: any,
+  ): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
+  Promise<any> {
+    const balconyId = filter?.balconyId;
+
+    return this.managerService.simulateStockStatusForBalconyMenu(
+      menuId,
+      balconyId,
+    );
   }
 }

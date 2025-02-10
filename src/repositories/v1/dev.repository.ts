@@ -136,7 +136,7 @@ export class DevRepository extends BaseRepository<
           await stockRepository.create({
             balconyId: b.id,
             ingredientId: ing,
-            status: 'IN_STOCK',
+            status: 'OUT_OF_STOCK',
           });
         }
       }

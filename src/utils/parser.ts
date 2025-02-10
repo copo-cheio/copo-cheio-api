@@ -1,7 +1,7 @@
-import {BodyParser,RequestBody} from '@loopback/rest';
+import {BodyParser, RequestBody} from '@loopback/rest';
 import {Request} from 'express-serve-static-core';
 import multer from 'multer';
-export const FORM_DATA = "multipart/form-data"
+export const FORM_DATA = 'multipart/form-data';
 
 export class MultipartFormDataBodyParser implements BodyParser {
   name = FORM_DATA;
@@ -27,4 +27,11 @@ export class MultipartFormDataBodyParser implements BodyParser {
       });
     });
   }
+}
+
+export function findIdArrayEntries(a1, a2) {
+  const available = a1.filter(item => a2.includes(item));
+  const unavailable = a1.filter(item => !a2.includes(item));
+
+  return {available, unavailable};
 }

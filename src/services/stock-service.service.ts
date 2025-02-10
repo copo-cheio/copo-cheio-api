@@ -1,5 +1,6 @@
 import {/* inject, */ BindingScope, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
+import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
 import {
   BalconyRepository,
   MenuRepository,
@@ -111,5 +112,136 @@ export class StockService {
       }
     }
     return [...new Set(ingredientIds)];
+  }
+
+  /**
+   * Will update stocks for all user balconies
+   * @param balconyId
+   * @returns
+   */
+  async migrateStock(balconyId?: any) {
+    let balconies;
+    if (balconyId) {
+      balconies = await this.balconyRepository.findById(balconyId);
+      balconies = [balconies];
+    } else {
+      balconies = await this.balconyRepository.findAll();
+    }
+    const response: any = {
+      menus: {},
+      balconies: {},
+    };
+
+    for (const b of balconies) {
+      if (!response.balconies[b.id]) {
+        response.balconies[b.id] = [];
+      }
+      if (!response.menus[b.menuId]) {
+        response.menus[b.menuId] = [];
+        const ingredientIds = [];
+        const menu = await this.menuRepository.findById(b.menuId, {
+          include: [
+            {
+              relation: 'products',
+              scope: {
+                include: [
+                  {
+                    relation: 'product',
+                    scope: {
+                      include: [
+                        {relation: 'ingredients'},
+                        {relation: 'options'},
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        });
+        const products = menu.products || [];
+        for (const p of products) {
+          // @ts-ignore
+          const ingredients = p?.product?.ingredients || [];
+          // @ts-ignore
+          const options = p?.product?.options || [];
+          for (const ingredient of ingredients) {
+            ingredientIds.push(ingredient.ingredientId);
+          }
+          for (const ingredient of options) {
+            ingredientIds.push(ingredient.ingredientId);
+          }
+        }
+        response.menus[b.menuId] = [...new Set(ingredientIds)];
+      }
+      response.balconies[b.id] = response.menus[b.menuId];
+      for (const ing of response.menus[b.menuId]) {
+        const entry = await this.stockRepository.findOne({
+          where: {balconyId: b.id, ingredientId: ing},
+        });
+        if (!entry) {
+          await this.stockRepository.create({
+            balconyId: b.id,
+            ingredientId: ing,
+            status: 'OUT_OF_STOCK',
+          });
+        }
+      }
+    }
+
+    return response.balconies;
+  }
+
+  async getBalconyFull(balconyId) {
+    const balcony: any = await this.balconyRepository.findById(
+      balconyId,
+      BalconyFullQuery,
+    );
+    const stocks = balcony.stocks || [];
+    balcony.menu.products = balcony.menu.products || [];
+    const inStock = stocks
+      .filter((s: any) => s.status == 'IN_STOCK')
+      .map((s: any) => s.ingredientId);
+
+    balcony.menu.products = [
+      ...balcony.menu.products.map((menuProduct: any) => {
+        const product = menuProduct.product;
+
+        let options = product.options || [];
+
+        let ingredients = product.ingredients || [];
+
+        product.available = true;
+        menuProduct.available = true;
+        options = [
+          ...options.map((o: any) => {
+            const isAvailable = inStock.indexOf(o.ingredientId) > -1;
+
+            return {
+              ...o,
+              available: isAvailable,
+              ingredient: {...o.ingredient, available: isAvailable},
+            };
+          }),
+        ];
+        ingredients = [
+          ...ingredients.map((i: any) => {
+            const isAvailable = inStock.indexOf(i.ingredientId) > -1;
+            if (!isAvailable) {
+              // console.log('INGREDIENT NA', i.ingredientId, product);
+              product.available = false;
+              menuProduct.available = false;
+            }
+            return {...i, available: isAvailable};
+          }),
+        ];
+        product.options = [...options];
+        product.ingredients = [...ingredients];
+        return {...menuProduct, product: {...product}};
+      }),
+    ];
+
+    balcony.inStock = inStock;
+    return balcony;
   }
 }
