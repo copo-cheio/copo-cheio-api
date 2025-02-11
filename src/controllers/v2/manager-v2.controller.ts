@@ -6,7 +6,6 @@ import {repository} from '@loopback/repository';
 import {get, param, patch, post, requestBody, response} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 
-import {MenuFullQuery} from '../../blueprints/menu.blueprint';
 import {DevRepository} from '../../repositories';
 import {AuthService, ManagerService} from '../../services';
 
@@ -52,7 +51,7 @@ export class ManagerV2Controller {
   })
   async getManagerMenus(): Promise<any> {
     try {
-      const menus = await this.managerService.findMenus(MenuFullQuery);
+      const menus = await this.managerService.findMenus();
       return menus || [];
     } catch (ex) {
       console.warn(ex);
