@@ -1,7 +1,10 @@
 import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
+<<<<<<< HEAD
 import {MenuFullQuery} from '../blueprints/menu.blueprint';
+=======
+>>>>>>> c1877ba8eb050d9fa3acee6535ef27a4b075a1c6
 import {
   BalconyRepository,
   DevRepository,
@@ -79,5 +82,4 @@ export class ManagerService {
       ...MenuFullQuery,
       include: [...MenuFullQuery.include, {relation: 'balconies'}],
     });
-  }
 }

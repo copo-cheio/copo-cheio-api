@@ -1,22 +1,38 @@
-import {IncludeThumbnail} from "./image.include";
-import {IncludeIngredientRelation} from "./ingredient.include";
+import {IncludeThumbnail} from './image.include';
+import {IncludeIngredientRelation} from './ingredient.include';
 import {IncludePriceRelation} from './price.include';
 import {IncludeTagsRelation} from './tag.include';
 
 export const IncludeProductRelation: any = {
-  relation: "product",
+  relation: 'product',
   scope: {
     include: [
       {
-        relation: "ingredients",
-        scope: { include: [IncludeIngredientRelation] },
+        relation: 'ingredients',
+        scope: {include: [IncludeIngredientRelation]},
       },
       {
-        relation: "options",
-        scope: { include: [IncludeIngredientRelation,IncludePriceRelation] },
+        relation: 'options',
+        scope: {include: [IncludeIngredientRelation, IncludePriceRelation]},
       },
       IncludeThumbnail,
-      IncludeTagsRelation
+      IncludeTagsRelation,
     ],
   },
 };
+console.log(
+  JSON.stringify({
+    include: [
+      {
+        relation: 'ingredients',
+        scope: {include: [IncludeIngredientRelation]},
+      },
+      {
+        relation: 'options',
+        scope: {include: [IncludeIngredientRelation, IncludePriceRelation]},
+      },
+      IncludeThumbnail,
+      IncludeTagsRelation,
+    ],
+  }),
+);
