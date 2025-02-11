@@ -61,6 +61,22 @@ export class DevController {
   async onSignIn(@requestBody() body: {provider: string; idToken: string}) {
     return this.authService.loginWithIdToken(body);
   }
+  @post('/dev/user/sign-in')
+  async onSignInUser(@requestBody() body: {provider: string; idToken: string}) {
+    return this.authService.loginWithIdToken(body);
+  }
+  @post('/dev/staff/sign-in')
+  async onSignInStaff(
+    @requestBody() body: {provider: string; idToken: string},
+  ) {
+    return this.authService.loginWithIdToken(body);
+  }
+  @post('/dev/manager/sign-in')
+  async onSignInManager(
+    @requestBody() body: {provider: string; idToken: string},
+  ) {
+    return this.authService.loginWithIdToken(body);
+  }
 
   @get('/dev/private-request')
   @authenticate('firebase')

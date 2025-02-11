@@ -26,7 +26,7 @@ export class ManagerV2Controller {
   @response(200, {
     description: 'Array of available models',
   })
-  async createBalcony(
+  async updateStockStatus(
     @requestBody({})
     body: any,
   ): Promise<any> {
@@ -37,7 +37,7 @@ export class ManagerV2Controller {
   @response(204, {
     description: 'Balcony PATCH success',
   })
-  async updateBalconyById(
+  async updateById(
     @param.path.string('id') id: string,
     @requestBody({})
     body: any,
@@ -45,21 +45,17 @@ export class ManagerV2Controller {
     await this.managerService.updateBalcony(id, body);
   }
 
-  @get('/v2/manager/menu-stock-balcony-simulation/{menuId}')
+  @get('/v2/manager/menus')
   @response(200, {
-    description: 'Activity model instance',
+    description: 'Balcony PATCH success',
   })
-  async simulateStockStatusBalconyMenu(
-    @param.path.string('menuId') menuId: string,
-
-    @param.query.object('filter') filter?: any,
-  ): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
-  Promise<any> {
-    const balconyId = filter?.balconyId;
-
-    return this.managerService.simulateStockStatusForBalconyMenu(
-      menuId,
-      balconyId,
-    );
+  async getManagerMenus(): Promise<any> {
+    try {
+      const menus = await this.managerService.findMenus();
+      return menus || [];
+    } catch (ex) {
+      console.warn(ex);
+      return [];
+    }
   }
 }

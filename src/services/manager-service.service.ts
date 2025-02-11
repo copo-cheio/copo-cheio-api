@@ -1,12 +1,13 @@
 import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
+import {IncludeMenuRelation} from '../blueprints/shared/menu.include';
 import {
   BalconyRepository,
   DevRepository,
   MenuProductRepository,
+  MenuRepository,
 } from '../repositories';
-import {findIdArrayEntries} from '../utils/parser';
 import {StockService} from './stock-service.service';
 
 @injectable({scope: BindingScope.TRANSIENT})
@@ -20,6 +21,8 @@ export class ManagerService {
     public balconyRepository: BalconyRepository,
     @repository('DevRepository')
     public devRepository: DevRepository,
+    @repository('MenuRepository')
+    public menuRepository: MenuRepository,
   ) {}
 
   /**
@@ -71,63 +74,7 @@ export class ManagerService {
     return this.balconyRepository.findById(id, BalconyFullQuery);
   }
 
-  async simulateStockStatusForBalconyMenu(menuId: string, balconyId?: any) {
-    let balcony;
-    let balconyIngredientIds: any = [];
-    let balconyRequiredIngredientIds: any = [];
-    const menuIngredientIds = await this.getMenuIngredientIdList(menuId);
-
-    if (balconyId) {
-      balcony = await this.getBalconyFull(balconyId);
-      const menuProducts = balcony?.menu?.products || [];
-      for (const product of menuProducts) {
-        const ingredients: any = product.ingredients || [];
-        const optionalIngredients: any = product.options?.ingredients || [];
-        for (const ingredient of ingredients) {
-          balconyRequiredIngredientIds.push(ingredient.id);
-          balconyIngredientIds.push(ingredient.id);
-        }
-        for (const option of optionalIngredients) {
-          balconyIngredientIds.push(option.id);
-        }
-      }
-    }
-    balconyIngredientIds = [...new Set(balconyIngredientIds)];
-    balconyRequiredIngredientIds = [...new Set(balconyRequiredIngredientIds)];
-
-    const requiredInStock = findIdArrayEntries(
-      menuIngredientIds,
-      balconyRequiredIngredientIds,
-    );
-    const affectedInStock = findIdArrayEntries(
-      menuIngredientIds,
-      balconyIngredientIds,
-    );
-    return {
-      requiredInStock,
-      affectedInStock,
-      menuIngredientIds,
-      balconyIngredientIds,
-      balconyRequiredIngredientIds,
-    };
-  }
-
-  async updateBalconyStockRequirementsByMenu(menuId) {
-    return this.stockService.updateBalconyStockRequirementsByMenu(menuId);
-  }
-  async updateBalconyStockRequirements(balconyId, ingredientIds) {
-    return this.stockService.updateBalconyStockRequirements(
-      balconyId,
-      ingredientIds,
-    );
-  }
-  async getMenuIngredientIdList(menuId) {
-    return this.stockService.getMenuIngredientIdList(menuId);
-  }
-  async migrateStock(balconyId) {
-    return this.stockService.migrateStock(balconyId);
-  }
-  async getBalconyFull(balconyId) {
-    return this.stockService.getBalconyFull(balconyId);
+  async findMenus() {
+    return this.menuRepository.findAll(IncludeMenuRelation);
   }
 }
