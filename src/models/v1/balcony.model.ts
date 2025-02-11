@@ -1,4 +1,4 @@
-import {belongsTo,hasMany,model,property} from '@loopback/repository';
+import {belongsTo, hasMany, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Image} from './image.model';
 import {Menu} from './menu.model';
@@ -15,9 +15,8 @@ export class Balcony extends Base {
   name: string;
   @property({
     type: 'string',
-
   })
-description: string;
+  description: string;
 
   @belongsTo(() => Place)
   placeId: string;
