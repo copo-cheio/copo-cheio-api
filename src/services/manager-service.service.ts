@@ -79,4 +79,5 @@ export class ManagerService {
       ...MenuFullQuery,
       include: [...MenuFullQuery.include, {relation: 'balconies'}],
     });
+  }
 }
