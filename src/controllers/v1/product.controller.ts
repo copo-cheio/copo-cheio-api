@@ -72,7 +72,24 @@ export class ProductController {
   async find(
     @param.filter(Product) filter?: Filter<Product>,
   ): Promise<Product[]> {
-    return this.productRepository.find(filter);
+    return this.productRepository.find();
+  }
+  @get('/products/full')
+  @response(200, {
+    description: 'Array of Product model instances',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'array',
+          items: getModelSchemaRef(Product, {includeRelations: true}),
+        },
+      },
+    },
+  })
+  async findFull(
+    @param.filter(Product) filter?: Filter<Product>,
+  ): Promise<Product[]> {
+    return this.productRepository.find(ProductQueryFull);
   }
 
   @patch('/products')
