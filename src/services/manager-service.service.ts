@@ -1,7 +1,6 @@
 import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
-import {IncludeMenuRelation} from '../blueprints/shared/menu.include';
 import {
   BalconyRepository,
   DevRepository,
@@ -74,7 +73,7 @@ export class ManagerService {
     return this.balconyRepository.findById(id, BalconyFullQuery);
   }
 
-  async findMenus() {
-    return this.menuRepository.findAll(IncludeMenuRelation);
+  async findMenus(MenuFullQuery: any) {
+    return this.menuRepository.findAll(MenuFullQuery);
   }
 }

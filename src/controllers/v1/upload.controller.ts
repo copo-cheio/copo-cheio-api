@@ -3,7 +3,9 @@ import {del, param, post, Request, requestBody, response} from '@loopback/rest';
 import {RequestHandler} from 'express-serve-static-core';
 import {Client} from 'minio';
 import multer from 'multer';
+import sharp from 'sharp';
 import {v4 as uuidv4} from 'uuid';
+import {DEFAULT_IMAGE_SIZES} from '../../constants';
 import {
   EventRepository,
   ImageRepository,
@@ -216,7 +218,8 @@ export class FileUploadController {
     })
     request: Request,
   ): Promise<object> {
-    const upload = multer().single('file');
+    return this.fileUploadHelper(request, 'thumbnail');
+    /*  const upload = multer().single('file');
     const handler = this.promisify(upload);
     await handler(request);
 
@@ -227,10 +230,19 @@ export class FileUploadController {
       throw new Error('File not found in request');
     }
 
+    const imageSizes = DEFAULT_IMAGE_SIZES.cover
+    // Resize the image to 360x200 using Sharp
+    const resizedBuffer = await sharp(file.buffer)
+      .resize(imageSizes[0],imageSizes[1] {
+        fit: 'cover', // Ensures the image fills the dimensions
+        position: 'center', // Centers the cropping
+      })
+      .toBuffer();
+
     const fileName = uuidv4() + '-' + file.originalname;
 
     // Upload file to MinIO
-    await this.minioClient.putObject(bucketName, fileName, file.buffer);
+    await this.minioClient.putObject(bucketName, fileName, resizedBuffer);
 
     // Update image payload
     const imagePayload: any = {
@@ -256,7 +268,7 @@ export class FileUploadController {
       }
     }
 
-    return imageRecord;
+    return imageRecord; */
   }
 
   // Utility to promisify the middleware function
@@ -287,10 +299,19 @@ export class FileUploadController {
       throw new Error('File not found in request');
     }
 
+    const imageSizes = DEFAULT_IMAGE_SIZES[type];
+    // Resize the image to 360x200 using Sharp
+    const resizedBuffer = await sharp(file.buffer)
+      .resize(imageSizes[0], imageSizes[1], {
+        fit: 'cover', // Ensures the image fills the dimensions
+        position: 'center', // Centers the cropping
+      })
+      .toBuffer();
+
     const fileName = uuidv4() + '-' + file.originalname;
 
     // Upload file to MinIO
-    await this.minioClient.putObject(bucketName, fileName, file.buffer);
+    await this.minioClient.putObject(bucketName, fileName, resizedBuffer);
 
     // Update image payload
     const imagePayload: any = {

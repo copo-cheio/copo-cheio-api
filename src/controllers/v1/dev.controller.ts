@@ -71,7 +71,7 @@ export class DevController {
   ) {
     return this.authService.loginWithIdToken(body);
   }
-  @post('/dev/manager/sign-in')
+  @post('/dev/admin/sign-in')
   async onSignInManager(
     @requestBody() body: {provider: string; idToken: string},
   ) {
