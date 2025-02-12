@@ -218,57 +218,7 @@ export class FileUploadController {
     })
     request: Request,
   ): Promise<object> {
-    return this.fileUploadHelper(request, 'thumbnail');
-    /*  const upload = multer().single('file');
-    const handler = this.promisify(upload);
-    await handler(request);
-
-    const bucketName = 'copo-cheio'; //minioClientSetup.bucketUrl// Replace with your bucket name
-    const file = (request as any).file;
-
-    if (!file) {
-      throw new Error('File not found in request');
-    }
-
-    const imageSizes = DEFAULT_IMAGE_SIZES.cover
-    // Resize the image to 360x200 using Sharp
-    const resizedBuffer = await sharp(file.buffer)
-      .resize(imageSizes[0],imageSizes[1] {
-        fit: 'cover', // Ensures the image fills the dimensions
-        position: 'center', // Centers the cropping
-      })
-      .toBuffer();
-
-    const fileName = uuidv4() + '-' + file.originalname;
-
-    // Upload file to MinIO
-    await this.minioClient.putObject(bucketName, fileName, resizedBuffer);
-
-    // Update image payload
-    const imagePayload: any = {
-      url: minioClientSetup.bucketUrl + fileName,
-      type: 'cover',
-      refId: request.body.refId || '00000000-0000-0000-0000-000000000001',
-    };
-    const imageRecord = await this.imageRepository.create(imagePayload);
-    const {body, data}: any = request;
-
-    if (request?.body?.refId && request?.body?.model) {
-      const model: any = this.COVER_MODELS[request?.body?.model];
-      const repo: any = model?.repository;
-      // console.log(model, request.body.model);
-      if (repo?.findById && request.body.refId) {
-        // @ts-ignore
-
-        const record = await repo.findById(request.body.refId);
-        if (record) {
-          record.coverId = imageRecord.id;
-          await repo.updateById(record.id, record);
-        }
-      }
-    }
-
-    return imageRecord; */
+    return this.fileUploadHelper(request, 'cover');
   }
 
   // Utility to promisify the middleware function
@@ -282,7 +232,11 @@ export class FileUploadController {
       });
   }
 
-  async fileUploadHelper(request: Request, type?: string): Promise<object> {
+  async fileUploadHelper(
+    request: Request,
+    type?: string,
+    config: any = {},
+  ): Promise<object> {
     console.log('up');
     const upload = multer().single('file');
     const handler = this.promisify(upload);
@@ -293,7 +247,6 @@ export class FileUploadController {
     const refId = request.body.refId || '00000000-0000-0000-0000-000000000002';
     const table = request.body.model;
     type = type || 'cover';
-    console.log({refId, table, type});
 
     if (!file) {
       throw new Error('File not found in request');
@@ -313,6 +266,9 @@ export class FileUploadController {
     // Upload file to MinIO
     await this.minioClient.putObject(bucketName, fileName, resizedBuffer);
 
+    if (table == 'product') {
+      type = 'thumbnail';
+    }
     // Update image payload
     const imagePayload: any = {
       url: minioClientSetup.bucketUrl + fileName,
@@ -321,7 +277,6 @@ export class FileUploadController {
     };
     const imageRecord = await this.imageRepository.create(imagePayload);
 
-    console.log({imageRecord});
     // const { body, data }: any = request;
 
     if (refId && table) {
@@ -343,7 +298,6 @@ export class FileUploadController {
 
             record[fileKey] = imageRecord.id;
 
-            console.log({rid: record.id, refId, type, model});
             await repo.updateById(record.id, record);
           }
         } catch (ex) {}

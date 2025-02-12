@@ -50,13 +50,9 @@ export class ProductService {
       thumbnailId: payload.thumbnailId || DEFAULT_MODEL_ID.thumbnailId,
       tagIds: payload.tagIds || [],
     };
-    console.log('xxxxxxxxxxxxxxxxxxxx');
-    console.log('');
-    console.log('');
+
     console.log({productPayload, callbackFn});
-    console.log('');
-    console.log('');
-    console.log('xxxxxxxxxxxxxxxxxxxx');
+
     //    const product: any = await callbackFn(productPayload);
     const product: any = await this.productRepository.create(productPayload);
 
