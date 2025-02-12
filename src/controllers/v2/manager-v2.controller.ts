@@ -22,6 +22,14 @@ export class ManagerV2Controller {
     public managerService: ManagerService,
   ) {}
 
+  @get('/v2/manager/balconies/stocks')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async getBalconiesWithStock() {
+    return this.managerService.findBalconyStocks();
+  }
+
   @post('/v2/manager/balconies')
   @response(200, {
     description: 'Array of available models',

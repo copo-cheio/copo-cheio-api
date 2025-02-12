@@ -61,7 +61,6 @@ export class ManagerService {
   }
 
   async updateBalcony(id, payload: any = {}) {
-    console.log({id, payload});
     await this.balconyRepository.updateById(id, payload);
     await this.devRepository.migrate(id);
     return this.balconyRepository.findById(id, BalconyFullQuery);
@@ -79,5 +78,22 @@ export class ManagerService {
       ...MenuFullQuery,
       include: [...MenuFullQuery.include, {relation: 'balconies'}],
     });
+  }
+
+  async findBalconyStocks(balconyId?: any) {
+    const balconies: any = [];
+    let balconyIds: any = [];
+    if (balconyId) {
+      balconyIds = [balconyId];
+    } else {
+      const allBalconies = await this.balconyRepository.findAll();
+      balconyIds = allBalconies.map(b => b.id);
+    }
+
+    for (const id of balconyIds) {
+      const balcony = await this.stockService.getBalconyFull(id);
+      balconies.push(balcony);
+    }
+    return balconyId ? balconies[0] : balconies;
   }
 }
