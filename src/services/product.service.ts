@@ -51,12 +51,20 @@ export class ProductService {
       tagIds: payload.tagIds || [],
     };
 
-    console.log({productPayload, callbackFn});
-
+    let productId: any = payload.id;
+    let product: any;
+    if (productId) {
+      product = await this.productRepository.updateById(
+        productId,
+        productPayload,
+      );
+      product = await this.productRepository.findById(productId);
+    } else {
+      product = await this.productRepository.create(productPayload);
+    }
     //    const product: any = await callbackFn(productPayload);
-    const product: any = await this.productRepository.create(productPayload);
 
-    const productId = product.id;
+    productId = product.id;
 
     const checkProductId = validateUuid(productId, '');
     if (!checkProductId.valid) {
@@ -135,8 +143,11 @@ export class ProductService {
     return transactionWrapper(
       this.productRepository,
       async (transaction: any) => {
-        if (payload.ingredients.length == 0) {
+        if (!payload?.ingredients?.length) {
           throw new Error('A product requires at least one ingredient');
+        }
+        if (!payload?.tagIds?.length) {
+          throw new Error('A product requires at least one tag');
         }
         const {product, productId} = await this.handleProductPayload(
           payload,
@@ -171,10 +182,13 @@ export class ProductService {
       async (transaction: any) => {
         // Create the product
 
-        if (payload.ingredients.length == 0) {
+        if (!payload?.ingredients?.length) {
           throw new Error('A product requires at least one ingredient');
         }
-
+        if (!payload?.tagIds?.length) {
+          throw new Error('A product requires at least one tag');
+        }
+        payload.id = id;
         const {product, productId} = await this.handleProductPayload(
           payload,
           transaction,

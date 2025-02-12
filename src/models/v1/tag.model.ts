@@ -1,4 +1,4 @@
-import {belongsTo,model,property} from '@loopback/repository';
+import {belongsTo, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Translation} from './translation.model';
 
@@ -62,7 +62,21 @@ import {Translation} from './translation.model';
   }
 ]
  */
-@model()
+@model({
+  settings: {
+    indexes: {
+      compositeUnique: {
+        keys: {
+          type: 1,
+          name: 1,
+        },
+        options: {
+          unique: true,
+        },
+      },
+    },
+  },
+})
 export class Tag extends Base {
   @property({
     type: 'string',
@@ -78,7 +92,6 @@ export class Tag extends Base {
 
   @belongsTo(() => Translation)
   translationId: string;
-
 
   // @hasMany(() => Event, {through: {model: () => TagReferences, keyTo: 'refId'}})
   // events: Event[];
