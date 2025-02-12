@@ -37,6 +37,31 @@ export class ManagerService {
    * 3. Ruptura / actualização de stock
    */
 
+  async getHomePage() {
+    const now = Date.now();
+    const balconyOrders = await this.devRepository.findAll({
+      where: {and: [{app: 'staff', action: 'balcony-orders'}]},
+    });
+    const balconyOrdersData = balconyOrders.map(
+      (balconyOrder: any) => balconyOrder.data,
+    );
+    const revenue = balconyOrdersData.flat().map(b => {
+      return {
+        created_at: b.created_at,
+        price: b?.order?.totalPrice || b?.data?.order?.totalPrice,
+      };
+    });
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+    const filtered = revenue.filter(
+      item => new Date(item.created_at) < oneDayAgo,
+    );
+    const totalRevenue = filtered.reduce((a, b) => a + b.price, 0);
+
+    return {totalRevenue, orders: revenue.length};
+  }
+
   async addOrUpdateMenuProduct(menuId, productId, priceId, thumbnailId) {
     const record = await this.menuProductRepository.findOne({
       where: {

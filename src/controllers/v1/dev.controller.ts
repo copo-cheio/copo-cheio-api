@@ -97,6 +97,7 @@ export class DevController {
     data: any,
   ): Promise<any> {
     const query = data.query;
+    console.log(query);
     return eval(query);
   }
 

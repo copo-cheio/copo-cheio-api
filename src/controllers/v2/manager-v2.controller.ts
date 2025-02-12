@@ -66,4 +66,17 @@ export class ManagerV2Controller {
       return [];
     }
   }
+  @get('/v2/manager/home')
+  @response(200, {
+    description: 'Balcony PATCH success',
+  })
+  async getManagerHomePage(): Promise<any> {
+    try {
+      const homePage = await this.managerService.getHomePage();
+      return homePage;
+    } catch (ex) {
+      console.warn(ex);
+      return [];
+    }
+  }
 }
