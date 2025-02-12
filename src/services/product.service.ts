@@ -135,7 +135,9 @@ export class ProductService {
     return transactionWrapper(
       this.productRepository,
       async (transaction: any) => {
-        // Create the product
+        if (payload.ingredients.length == 0) {
+          throw new Error('A product requires at least one ingredient');
+        }
         const {product, productId} = await this.handleProductPayload(
           payload,
           transaction,
@@ -168,6 +170,11 @@ export class ProductService {
       this.productRepository,
       async (transaction: any) => {
         // Create the product
+
+        if (payload.ingredients.length == 0) {
+          throw new Error('A product requires at least one ingredient');
+        }
+
         const {product, productId} = await this.handleProductPayload(
           payload,
           transaction,
