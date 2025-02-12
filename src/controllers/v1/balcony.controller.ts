@@ -19,12 +19,14 @@ import {
 } from '@loopback/rest';
 import {BalconyFullQuery} from '../../blueprints/balcony.blueprint';
 import {Balcony} from '../../models/v1';
-import {BalconyRepository} from '../../repositories/v1';
+import {BalconyRepository, DevRepository} from '../../repositories/v1';
 
 export class BalconyController {
   constructor(
     @repository(BalconyRepository)
     public balconyRepository: BalconyRepository,
+    @repository(DevRepository)
+    public devRepository: DevRepository,
   ) {}
 
   @get('/balconies/{id}/full')
@@ -63,7 +65,9 @@ export class BalconyController {
     })
     balcony: Omit<Balcony, 'id'>,
   ): Promise<Balcony> {
-    return this.balconyRepository.create(balcony);
+    const b: any = await this.balconyRepository.create(balcony);
+    await this.devRepository.migrate(b.id);
+    return b;
   }
 
   @get('/balconies/count')
@@ -146,7 +150,10 @@ export class BalconyController {
     })
     balcony: Balcony,
   ): Promise<void> {
-    await this.balconyRepository.updateById(id, balcony);
+    const response: any = await this.balconyRepository.updateById(id, balcony);
+
+    await this.devRepository.migrate(id);
+    return response;
   }
 
   @put('/balconies/{id}')
