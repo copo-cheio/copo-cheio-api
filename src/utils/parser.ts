@@ -1,5 +1,4 @@
 import {BodyParser, RequestBody} from '@loopback/rest';
-import {Request} from 'express-serve-static-core';
 import multer from 'multer';
 export const FORM_DATA = 'multipart/form-data';
 
@@ -12,7 +11,7 @@ export class MultipartFormDataBodyParser implements BodyParser {
     return mediaType.startsWith(FORM_DATA);
   }
 
-  async parse(request: Request): Promise<RequestBody> {
+  async parse(request: any): Promise<RequestBody> {
     const storage = multer.memoryStorage();
     const upload = multer({storage});
     return new Promise<RequestBody>((resolve, reject) => {

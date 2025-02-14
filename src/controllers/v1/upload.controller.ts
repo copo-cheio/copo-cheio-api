@@ -238,7 +238,7 @@ export class FileUploadController {
     config: any = {},
   ): Promise<object> {
     console.log('up');
-    const upload = multer().single('file');
+    const upload: any = multer().single('file');
     const handler = this.promisify(upload);
     await handler(request);
 
