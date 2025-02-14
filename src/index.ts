@@ -1,7 +1,8 @@
-import {ApplicationConfig,CopoCheioServerApplication} from "./application";
-import {CompanyOwnershipValidation} from "./interceptors/company-ownership-validation";
-
-export * from "./application";
+import debugFactory from 'debug';
+import {ApplicationConfig, CopoCheioServerApplication} from './application';
+import {CompanyOwnershipValidation} from './interceptors/company-ownership-validation';
+debugFactory.disable();
+export * from './application';
 
 export async function main(options: ApplicationConfig = {}) {
   const app = new CopoCheioServerApplication(options);
@@ -35,8 +36,8 @@ if (require.main === module) {
       // protocol: 'http',
     },
   };
-  main(config).catch((err) => {
-    console.error("Cannot start the application.", err);
+  main(config).catch(err => {
+    console.error('Cannot start the application.', err);
     process.exit(1);
   });
 }
