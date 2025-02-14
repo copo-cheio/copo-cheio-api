@@ -16,8 +16,8 @@ import {
   response,
 } from '@loopback/rest';
 import {ProductQueryFull} from '../../blueprints/product.blueprint';
-import {Product} from '../../models/v1';
-import {ProductRepository} from '../../repositories/v1';
+import {Product} from '../../models';
+import {ProductRepository} from '../../repositories';
 
 export class ProductController {
   constructor(

@@ -2,8 +2,8 @@ import {Getter, inject} from '@loopback/core';
 
 import {BelongsToAccessor, repository} from '@loopback/repository';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Event, Favorite, FavoriteRelations, Place, User} from '../../models/v1';
-import {BaseRepository} from './base.repository.base';
+import {Event, Favorite, FavoriteRelations, Place, User} from '../../models';
+import {BaseRepository} from '../base.repository.base';
 import {EventRepository} from './event.repository';
 import {PlaceRepository} from './place.repository';
 import {UserRepository} from './user.repository';

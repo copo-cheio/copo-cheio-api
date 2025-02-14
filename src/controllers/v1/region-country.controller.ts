@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Country, Region} from '../../models/v1';
-import {RegionRepository} from '../../repositories/v1';
+import {Country, Region} from '../../models';
+import {RegionRepository} from '../../repositories';
 
 export class RegionCountryController {
   constructor(

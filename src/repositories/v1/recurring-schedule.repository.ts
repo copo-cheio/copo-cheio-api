@@ -6,7 +6,7 @@ import {
   Event,
   RecurringSchedule,
   RecurringScheduleRelations,
-} from '../../models/v1';
+} from '../../models';
 import {EventRepository} from './event.repository';
 
 export class RecurringScheduleRepository extends SoftCrudRepository<

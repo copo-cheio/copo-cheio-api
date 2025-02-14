@@ -1,5 +1,5 @@
 import {repository} from '@loopback/repository';
-import {ProductRepository} from '../../repositories/v1';
+import {ProductRepository} from '../../repositories';
 
 export class ProductIngredientController {
   constructor(

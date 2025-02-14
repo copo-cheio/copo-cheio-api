@@ -1,5 +1,6 @@
-import {belongsTo, model, property} from '@loopback/repository';
-import {Balcony, Base} from '../v1';
+/* import {belongsTo, model, property} from '@loopback/repository';
+import {Base} from '../v1';
+import {Balcony} from '../v1/balcony.model';
 
 @model()
 export class OrderV2 extends Base {
@@ -29,3 +30,4 @@ export interface OrderV2Relations {
 }
 
 export type OrderV2WithRelations = OrderV2 & OrderV2Relations;
+ */

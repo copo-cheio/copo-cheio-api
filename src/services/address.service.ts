@@ -1,13 +1,13 @@
 import {/* inject, */ BindingScope, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {AddressRepository, RegionRepository} from '../repositories/v1';
+import {AddressRepository, RegionRepository} from '../repositories';
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class AddressService {
   constructor(
-    @repository(AddressRepository)
+    @repository('AddressRepository')
     public addressRepository: AddressRepository,
-    @repository(RegionRepository)
+    @repository('RegionRepository')
     public regionRepository: RegionRepository,
   ) {}
 

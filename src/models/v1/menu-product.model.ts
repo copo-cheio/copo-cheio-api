@@ -1,4 +1,4 @@
-import {belongsTo,model} from '@loopback/repository';
+import {belongsTo, model} from '@loopback/repository';
 import {Base} from './base.model';
 import {Image} from './image.model';
 import {Menu} from './menu.model';
@@ -7,15 +7,13 @@ import {Product} from './product.model';
 
 @model()
 export class MenuProduct extends Base {
-
-
   // @property({
   //   type: 'string',
   @belongsTo(() => Menu)
   menuId: string;
 
   @belongsTo(() => Image)
-  thumbnailId: string = "64829554-6ad4-4f27-b192-1680eea924fb";
+  thumbnailId: string = '64829554-6ad4-4f27-b192-1680eea924fb';
   // @belongsTo(() => Image)
   // thumbnailId: string;
   // })

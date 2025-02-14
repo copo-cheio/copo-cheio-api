@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Balcony, Stock} from '../../models/v1';
-import {BalconyRepository} from '../../repositories/v1';
+import {Balcony, Stock} from '../../models';
+import {BalconyRepository} from '../../repositories';
 
 export class BalconyStockController {
   constructor(

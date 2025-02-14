@@ -5,48 +5,211 @@ import {HttpErrors} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 import {v4} from 'uuid';
 import {OrderSingleFull} from '../blueprints/shared/order.include';
+import {DEFAULT_MODEL_ID} from '../constants';
 import {
   ORDER_COMPLETE_STATUS,
   ORDER_READY_STATUS,
   ORDER_STATUS,
-} from '../models/v1';
+} from '../models';
 import {
   CredentialRepository,
+  DevRepository,
   ImageRepository,
+  OrderDetailsV2Repository,
   OrderItemRepository,
+  OrderItemsV2Repository,
   OrderRepository,
   OrderTimelineRepository,
+  OrderV2Queries,
+  OrderV2Repository,
+  Orderv2Transformers,
   PriceRepository,
-} from '../repositories/v1';
+} from '../repositories';
 import {
   PUSH_NOTIFICATION_SUBSCRIPTIONS,
   PushNotificationService,
 } from './push-notification.service';
 import {QrFactoryService} from './qr-factory.service';
+import {TransactionService} from './transaction.service';
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class OrderService {
   constructor(
     /* Add @inject to inject parameters */
-    @repository(OrderRepository)
+    @repository('OrderRepository')
     public orderRepository: OrderRepository,
-    @repository(OrderTimelineRepository)
+    @repository('OrderV2Repository')
+    public orderV2Repository: OrderV2Repository,
+    @repository('OrderDetailsV2Repository')
+    public orderDetailsV2Repository: OrderDetailsV2Repository,
+    @repository('OrderItemsV2Repository')
+    public orderItemsV2Repository: OrderItemsV2Repository,
+    @repository('OrderTimelineRepository')
     public orderTimelineRepository: OrderTimelineRepository,
-    @repository(PriceRepository)
+    @repository('PriceRepository')
     public priceRepository: PriceRepository,
-    @repository(ImageRepository)
+    @repository('ImageRepository')
     public imageRepository: ImageRepository,
-    @repository(OrderItemRepository)
+    @repository('OrderItemRepository')
     public orderItemRepository: OrderItemRepository,
+    @repository('DevRepository')
+    public devRepository: DevRepository,
     @inject('services.PushNotificationService')
     private pushNotificationService: PushNotificationService,
     @inject('services.QrFactoryService')
     protected qrFactoryService: QrFactoryService,
-    @repository(CredentialRepository)
+    @repository('CredentialRepository')
     public credentialRepository: CredentialRepository,
     @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
     private currentUser: UserProfile, // Inject the current user profile
+    @inject('services.TransactionService')
+    private transactionService: TransactionService,
   ) {}
+
+  /* -------------------------------------------------------------------------- */
+  /*                                     V2                                     */
+  /* -------------------------------------------------------------------------- */
+
+  /**
+   * Steps:
+   * Find user.uid, order, balcony
+   * @param order
+   * @returns
+   */
+
+  /**
+   * OrderV2
+   *   userId
+   *   placeId
+   *   balconyId
+   *   eventId
+   *   status
+   *   code
+   *   orderInfoId -> refers to orderInfoId
+   *   paymentId ->
+   *
+totalPrice : 12.9
+
+   * @param order
+   * @returns
+   */
+  createOrderV2(payload: any) {
+    const currentUser = this.currentUser;
+    return this.transactionService.execute(async tx => {
+      const status = ORDER_STATUS[0];
+      const user = this.currentUser;
+      const userId = user.id;
+      const userUid = user.uid;
+
+      const price = await this.priceRepository.create({
+        price: payload.order.totalPrice,
+        currencyId: DEFAULT_MODEL_ID.currencyId,
+      });
+      const orderV2Payload = {
+        userId,
+        balconyId: payload.balconyId,
+        userUid: currentUser.uid,
+        placeId: payload.placeId,
+        status,
+        priceId: price.id,
+      };
+      const orderV2 = await this.orderV2Repository.create(orderV2Payload);
+
+      const orderDetailsV2Payload = {
+        productCount: payload.order.productCount,
+        productsPrice: payload.order.productsPrice,
+        serviceFee: payload.order.serviceFee,
+        totalPrice: payload.order.totalPrice,
+        orderV2Id: orderV2.id,
+      };
+      await this.orderDetailsV2Repository.create(orderDetailsV2Payload);
+
+      for (const menuProduct of payload.items) {
+        for (const orderItem of menuProduct.items) {
+          const itemOptions = orderItem.selectedOptions || [];
+
+          await this.orderItemsV2Repository.create({
+            orderV2Id: orderV2.id,
+            calculatedPrice: orderItem.calculatedPrice,
+            basePrice: parseFloat(orderItem?.price?.price),
+            menuProductId: orderItem.menuProductId,
+            optionIds: itemOptions.map(option => option.id),
+          });
+        }
+      }
+
+      await this.orderTimelineRepository.create({
+        orderV2Id: orderV2.id,
+        action: status,
+        title: status,
+        timelineKey: status,
+        staffId: this.currentUser.id,
+      });
+
+      const order = await this.orderV2Repository.findById(
+        orderV2.id,
+        OrderV2Queries.full,
+      );
+      return order;
+    });
+  }
+  onOrderPaymentCompleteV2(payload: any) {
+    const currentUser = this.currentUser;
+    return this.transactionService.execute(async tx => {
+      const status = ORDER_STATUS[3];
+      const user = this.currentUser;
+      const orderId = payload.orderId;
+      const orderV2Payload = {
+        status,
+      };
+
+      await this.orderV2Repository.updateById(orderId, orderV2Payload);
+
+      await this.orderTimelineRepository.create({
+        orderV2Id: orderId,
+        action: status,
+        title: status,
+        timelineKey: status,
+        staffId: this.currentUser.id,
+      });
+
+      const order = await this.orderV2Repository.findById(
+        orderId,
+        OrderV2Queries.full,
+      );
+
+      this.notifyBalconyStaffV2(order.balconyId, 'ORDER_RECIEVED', {});
+
+      return order;
+    });
+  }
+
+  async findByOrderByIdV2(id: string) {
+    id = 'b39ffdc0-9e89-48ad-8169-865de0f40944';
+    const order = await this.orderV2Repository.findById(
+      id,
+      OrderV2Queries.full,
+    );
+
+    return Orderv2Transformers.full(order);
+  }
+
+  notifyBalconyStaffV2(balconyId: string, action: string, data: any = {}) {
+    const ACTIONS: any = {
+      ORDER_RECIEVED: {
+        title: 'staff',
+        body: 'new order',
+      },
+    };
+    const {title, body} = ACTIONS[action];
+    this.devRepository
+      .notifyBalconyStaff(balconyId, title, body, {
+        action,
+        payload: data,
+      })
+      .then(console.log)
+      .catch(console.warn);
+  }
 
   /*
    * Add service methods here
@@ -273,7 +436,7 @@ export class OrderService {
       //     id: record.id
       //   }
       // })
-      return this.orderRepository.findOne({
+      return await this.orderRepository.findOne({
         ...OrderSingleFull,
         where: {id: record.id},
       });

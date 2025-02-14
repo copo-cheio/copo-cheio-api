@@ -1,4 +1,4 @@
-import {hasMany,model,property,referencesMany} from '@loopback/repository';
+import {hasMany, model, property, referencesMany} from '@loopback/repository';
 import {Base} from './base.model';
 import {PlaylistSong} from './playlist-song.model';
 import {Song} from './song.model';
@@ -26,7 +26,7 @@ export class Playlist extends Base {
       model: () => PlaylistSong,
       keyFrom: 'refId',
       keyTo: 'songId',
-    }
+    },
   })
   songs: Song[];
 

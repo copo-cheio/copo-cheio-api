@@ -18,8 +18,9 @@ import {
   response,
 } from '@loopback/rest';
 import {BalconyFullQuery} from '../../blueprints/balcony.blueprint';
-import {Balcony} from '../../models/v1';
-import {BalconyRepository, DevRepository} from '../../repositories/v1';
+
+import {Balcony} from '../../models';
+import {BalconyRepository, DevRepository} from '../../repositories';
 
 export class BalconyController {
   constructor(

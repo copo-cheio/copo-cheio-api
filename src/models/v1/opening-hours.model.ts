@@ -1,4 +1,4 @@
-import {model,property} from '@loopback/repository';
+import {model, property} from '@loopback/repository';
 import {Base} from './base.model';
 
 @model()
@@ -31,12 +31,11 @@ export class OpeningHours extends Base {
   })
   eventId?: string;
 
-   @property({
-     type: 'boolean',
-     default:false,
-
-   })
-   active?: boolean
+  @property({
+    type: 'boolean',
+    default: false,
+  })
+  active?: boolean;
 
   constructor(data?: Partial<OpeningHours>) {
     super(data);

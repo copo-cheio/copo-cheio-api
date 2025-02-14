@@ -10,7 +10,7 @@ import {
   Event,
   Place,
   User,
-} from '../../models/v1';
+} from '../../models';
 import {BalconyRepository} from './balcony.repository';
 import {EventRepository} from './event.repository';
 import {PlaceRepository} from './place.repository';
@@ -81,7 +81,9 @@ export class ActivityRepository extends SoftCrudRepository<
   async forceUpdateById(id: string, data: any) {
     try {
       await this.undoSoftDeleteById(id);
-    } catch (ex) {}
+    } catch (ex) {
+      console.warn(ex);
+    }
     if (data.id) {
       id = data.id;
       delete data.id;

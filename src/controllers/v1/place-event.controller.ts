@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Event, Place} from '../../models/v1';
-import {PlaceRepository} from '../../repositories/v1';
+import {Event, Place} from '../../models';
+import {PlaceRepository} from '../../repositories';
 
 export class PlaceEventController {
   constructor(

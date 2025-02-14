@@ -2,7 +2,7 @@ import {Getter, inject} from '@loopback/core';
 import {BelongsToAccessor, repository} from '@loopback/repository';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Artist, Image, Song, SongRelations} from '../../models/v1';
+import {Artist, Image, Song, SongRelations} from '../../models';
 import {ArtistRepository} from './artist.repository';
 import {ImageRepository} from './image.repository';
 

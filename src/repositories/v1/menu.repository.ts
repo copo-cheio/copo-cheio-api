@@ -2,7 +2,7 @@ import {Getter, inject} from '@loopback/core';
 import {HasManyRepositoryFactory, repository} from '@loopback/repository';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Balcony, Menu, MenuProduct, MenuRelations} from '../../models/v1';
+import {Balcony, Menu, MenuProduct, MenuRelations} from '../../models';
 
 import {BalconyRepository} from './balcony.repository';
 import {MenuProductRepository} from './menu-product.repository';

@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Event, Order} from '../../models/v1';
-import {OrderRepository} from '../../repositories/v1';
+import {Event, Order} from '../../models';
+import {OrderRepository} from '../../repositories';
 
 export class OrderEventController {
   constructor(

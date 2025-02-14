@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Staff} from '../../models/v1';
-import {StaffRepository} from '../../repositories/v1';
+import {Staff} from '../../models';
+import {StaffRepository} from '../../repositories';
 
 export class StaffController {
   constructor(

@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {OpeningHours, Place} from '../../models/v1';
-import {PlaceRepository} from '../../repositories/v1';
+import {OpeningHours, Place} from '../../models';
+import {PlaceRepository} from '../../repositories';
 
 export class PlaceOpeningHoursController {
   constructor(

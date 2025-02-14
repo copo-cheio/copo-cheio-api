@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Tag, Translation} from '../../models/v1';
-import {TagRepository} from '../../repositories/v1';
+import {Tag, Translation} from '../../models';
+import {TagRepository} from '../../repositories';
 
 export class TagTranslationController {
   constructor(

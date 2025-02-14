@@ -3,13 +3,13 @@ import {repository} from '@loopback/repository';
 import * as fs from 'fs';
 import * as path from 'path';
 import {v4} from 'uuid';
-import {ImageRepository} from '../repositories/v1';
+import {ImageRepository} from '../repositories';
 import {generateQrWithLogo} from '../utils/qr';
 import {storageService} from './minio/service';
 @injectable({scope: BindingScope.TRANSIENT})
 export class QrFactoryService {
   constructor(
-    @repository(ImageRepository)
+    @repository('ImageRepository')
     public imageRepository: ImageRepository,
   ) {}
 

@@ -1,31 +1,28 @@
-import {hasMany,model,property, belongsTo} from '@loopback/repository';
+import {belongsTo, hasMany, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Event} from './event.model';
+import {Image} from './image.model';
 import {Place} from './place.model';
 import {Staff} from './staff.model';
 import {TeamStaff} from './team-staff.model';
-import {Image} from './image.model';
 
 @model()
 export class Team extends Base {
-
   @property({
     type: 'string',
-    required: true
+    required: true,
   })
   companyId?: string;
 
   @property({
     type: 'string',
-    required: true
+    required: true,
   })
-
   name?: string;
   @property({
     type: 'string',
   })
   description?: string;
-
 
   @hasMany(() => Staff, {through: {model: () => TeamStaff}})
   staff: Staff[];

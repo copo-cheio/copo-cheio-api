@@ -1,4 +1,4 @@
-import {belongsTo,model,property} from '@loopback/repository';
+import {belongsTo, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Price} from './price.model';
 
@@ -25,7 +25,7 @@ export class Ticket extends Base {
     },
 
     postgresql: {
-          default: 0, // Default value of 0 in PostgreSQL
+      default: 0, // Default value of 0 in PostgreSQL
     },
   })
   quantity?: number;

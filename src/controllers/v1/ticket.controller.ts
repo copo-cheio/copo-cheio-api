@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Ticket} from '../../models/v1';
-import {TicketRepository} from '../../repositories/v1';
+import {Ticket} from '../../models';
+import {TicketRepository} from '../../repositories';
 
 export class TicketController {
   constructor(

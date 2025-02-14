@@ -16,8 +16,8 @@ import {
   requestBody,
 } from '@loopback/rest';
 import {OrderSingleFull} from '../../blueprints/shared/order.include';
-import {Balcony, Order} from '../../models/v1';
-import {BalconyRepository} from '../../repositories/v1';
+import {Balcony, Order} from '../../models';
+import {BalconyRepository} from '../../repositories';
 
 export class BalconyOrderController {
   constructor(

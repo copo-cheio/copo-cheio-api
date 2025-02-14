@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Staff, TeamStaff} from '../../models/v1';
-import {TeamStaffRepository} from '../../repositories/v1';
+import {Staff, TeamStaff} from '../../models';
+import {TeamStaffRepository} from '../../repositories';
 
 export class TeamStaffStaffController {
   constructor(

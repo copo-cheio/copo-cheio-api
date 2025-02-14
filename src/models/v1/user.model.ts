@@ -1,26 +1,26 @@
-import {hasOne,model,property, hasMany} from "@loopback/repository";
-import {IUser} from "loopback4-soft-delete";
-import {Base} from "./base.model";
-import {ShoppingCart} from "./shopping-cart.model";
+import {hasMany, hasOne, model, property} from '@loopback/repository';
+import {IUser} from 'loopback4-soft-delete';
+import {Base} from './base.model';
 import {Favorite} from './favorite.model';
+import {ShoppingCart} from './shopping-cart.model';
 
 @model()
 export class User extends Base implements IUser {
   @property({
-    type: "string",
+    type: 'string',
   })
   name: string;
 
   @property({
-    type: "string",
+    type: 'string',
   })
   avatar: string;
   @property({
-    type: "string",
+    type: 'string',
   })
   email: string;
   @property({
-    type: "string",
+    type: 'string',
   })
   firebaseUserId: string;
 
@@ -28,10 +28,10 @@ export class User extends Base implements IUser {
   shoppingCart: ShoppingCart;
 
   @property({
-    type: "number",
+    type: 'number',
     required: false,
     postgresql: {
-      dataType: "NUMERIC", // Explicitly specify NUMERIC
+      dataType: 'NUMERIC', // Explicitly specify NUMERIC
       precision: 10, // Total number of digits
       scale: 2, // Number of digits after the decimal point
       default: 0, // Default value of 0 in PostgreSQL
@@ -40,10 +40,10 @@ export class User extends Base implements IUser {
   latitude: number;
 
   @property({
-    type: "number",
+    type: 'number',
     required: false,
     postgresql: {
-      dataType: "NUMERIC", // Explicitly specify NUMERIC
+      dataType: 'NUMERIC', // Explicitly specify NUMERIC
       precision: 10, // Total number of digits
       scale: 2, // Number of digits after the decimal point
       default: 0, // Default value of 0 in PostgreSQL
@@ -52,7 +52,7 @@ export class User extends Base implements IUser {
   longitude: number;
 
   @property({
-    type: "boolean",
+    type: 'boolean',
     default: false,
   })
   isDeleted?: boolean;

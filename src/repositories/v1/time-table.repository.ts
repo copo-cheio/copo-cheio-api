@@ -1,8 +1,8 @@
 import {Getter, inject} from '@loopback/core';
 import {BelongsToAccessor, repository} from '@loopback/repository';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Playlist, TimeTable, TimeTableRelations} from '../../models/v1';
-import {BaseRepository} from './base.repository.base';
+import {Playlist, TimeTable, TimeTableRelations} from '../../models';
+import {BaseRepository} from '../base.repository.base';
 import {PlaylistRepository} from './playlist.repository';
 
 export class TimeTableRepository extends BaseRepository<

@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Place, Schedule} from '../../models/v1';
-import {PlaceRepository} from '../../repositories/v1';
+import {Place, Schedule} from '../../models';
+import {PlaceRepository} from '../../repositories';
 
 export class PlaceScheduleController {
   constructor(

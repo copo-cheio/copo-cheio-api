@@ -1,5 +1,5 @@
 import {repository} from '@loopback/repository';
-import {StaffRepository} from '../../repositories/v1';
+import {StaffRepository} from '../../repositories';
 
 export class StaffCompanyController {
   constructor(

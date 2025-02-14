@@ -12,7 +12,7 @@ import {RestBindings} from '@loopback/rest';
 import axios from 'axios';
 import {Request} from 'express-serve-static-core';
 import {FirebaseAuthHelper} from '../auth-strategies/firebase-strategy';
-import {SearchRepository} from '../repositories/v1';
+import {SearchRepository} from '../repositories';
 import {AuthService} from '../services';
 import {UserService} from '../services/user.service';
 const ipware = new Ipware();

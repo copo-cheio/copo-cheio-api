@@ -47,6 +47,7 @@ export * from './order-item.model';
 export * from './order-timeline.model';
 export * from './order.model';
 export * from './product-ingredient.model';
+
 export * from './product-option.model';
 export * from './product.model';
 export * from './recurring-schedule.model';

@@ -2,7 +2,7 @@ import {Getter, inject} from '@loopback/core';
 import {BelongsToAccessor, repository} from '@loopback/repository';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Address, AddressRelations, Country, Region} from '../../models/v1';
+import {Address, AddressRelations, Country, Region} from '../../models';
 import {CountryRepository} from './country.repository';
 import {RegionRepository} from './region.repository';
 

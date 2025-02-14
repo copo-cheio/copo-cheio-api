@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Search, User} from '../../models/v1';
-import {SearchRepository} from '../../repositories/v1';
+import {Search, User} from '../../models';
+import {SearchRepository} from '../../repositories';
 
 export class SearchUserController {
   constructor(

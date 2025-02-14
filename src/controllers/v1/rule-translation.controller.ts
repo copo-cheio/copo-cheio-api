@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Rule, Translation} from '../../models/v1';
-import {RuleRepository} from '../../repositories/v1';
+import {Rule, Translation} from '../../models';
+import {RuleRepository} from '../../repositories';
 
 export class RuleTranslationController {
   constructor(

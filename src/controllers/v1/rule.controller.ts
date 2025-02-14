@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Rule} from '../../models/v1';
-import {RuleRepository} from '../../repositories/v1';
+import {Rule} from '../../models';
+import {RuleRepository} from '../../repositories';
 
 export class RuleController {
   constructor(

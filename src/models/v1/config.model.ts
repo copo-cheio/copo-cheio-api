@@ -1,6 +1,5 @@
-import {model,property} from '@loopback/repository';
+import {model, property} from '@loopback/repository';
 import {Base} from './base.model';
-
 
 @model()
 export class Config extends Base {
@@ -15,7 +14,6 @@ export class Config extends Base {
     required: true,
   })
   version: string;
-
 
   constructor(data?: Partial<Config>) {
     super(data);

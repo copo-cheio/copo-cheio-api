@@ -1,25 +1,28 @@
-import sanitizeHtml from "sanitize-html";
-import {AddressBelongsToTransformer} from "./address.blueprint";
-import {ImageBelongsToTransformer} from "./image.blueprint";
-import {PlaceBelongsToTransformer} from "./place.blueprint";
-import {PlaylistBelongsToTransformer} from "./playlist.blueprint";
-import {ScheduleBelongsToTransformer} from "./schedule.blueprint";
-import {IncludeAddressRelation} from "./shared/address.include";
-import {IncludeContactsRelation} from "./shared/contacts.include";
-import {IncludeEventInstanceRelation,IncludeEventInstancesRelation} from "./shared/eventinstance.include";
-import {IncludeCover} from "./shared/image.include";
+import sanitizeHtml from 'sanitize-html';
+import {AddressBelongsToTransformer} from './address.blueprint';
+import {ImageBelongsToTransformer} from './image.blueprint';
+import {PlaceBelongsToTransformer} from './place.blueprint';
+import {PlaylistBelongsToTransformer} from './playlist.blueprint';
+import {ScheduleBelongsToTransformer} from './schedule.blueprint';
+import {IncludeAddressRelation} from './shared/address.include';
+import {IncludeContactsRelation} from './shared/contacts.include';
+import {
+  IncludeEventInstanceRelation,
+  IncludeEventInstancesRelation,
+} from './shared/eventinstance.include';
+import {IncludeCover} from './shared/image.include';
 // import {IncludeLineupRelation} from "./shared/lineup.include";
 import {IncludeLineupsRelation} from './shared/lineups.include';
-import {IncludeOpeningHoursRelation} from "./shared/openinghours.include";
-import {IncludePlaceRelation} from "./shared/place.include";
-import {IncludePlaylistRelation} from "./shared/playlist.include";
-import {QueryFilterBaseBlueprint} from "./shared/query-filter.interface";
-import {IncludeRulesRelation} from "./shared/rule.include";
-import {IncludeScheduleRelation} from "./shared/schedule.include";
-import {IncludeTagsRelation} from "./shared/tag.include";
-import {IncludeTicketsRelation} from "./shared/ticket.include";
+import {IncludeOpeningHoursRelation} from './shared/openinghours.include';
+import {IncludePlaceRelation} from './shared/place.include';
+import {IncludePlaylistRelation} from './shared/playlist.include';
+import {QueryFilterBaseBlueprint} from './shared/query-filter.interface';
+import {IncludeRulesRelation} from './shared/rule.include';
+import {IncludeScheduleRelation} from './shared/schedule.include';
+import {IncludeTagsRelation} from './shared/tag.include';
+import {IncludeTicketsRelation} from './shared/ticket.include';
 
-export const BaseEventsQuery:any = {
+export const BaseEventsQuery: any = {
   ...QueryFilterBaseBlueprint,
   fields: {
     id: true,
@@ -41,10 +44,10 @@ export const BaseEventsQuery:any = {
     recurrenceEndDate: true,
     isRecurring: true, // True if recurring, false if one-time event
     eventType: true,
-    teamId:true
+    teamId: true,
   },
   include: [
-    "cover",
+    'cover',
     IncludeAddressRelation,
     IncludeScheduleRelation,
     IncludePlaceRelation,
@@ -54,13 +57,12 @@ export const BaseEventsQuery:any = {
 
     IncludeContactsRelation,
     // { relation: "instances" }, // Include event instances (occurrences)
-    { relation: "recurringSchedule" }, // Include recurring schedules
-  ]
-
-}
+    {relation: 'recurringSchedule'}, // Include recurring schedules
+  ],
+};
 export const EventsQuery: any = {
   ...BaseEventsQuery,
-  include:[...BaseEventsQuery.include,IncludeEventInstanceRelation]
+  include: [...BaseEventsQuery.include, IncludeEventInstanceRelation],
 };
 
 export const EventFullQuery: any = {
@@ -84,7 +86,7 @@ export const EventFullQuery: any = {
     recurrenceEndDate: true,
     isRecurring: true, // True if recurring, false if one-time event
     eventType: true,
-    teamId:true
+    teamId: true,
   },
   include: [
     IncludeCover,
@@ -98,78 +100,78 @@ export const EventFullQuery: any = {
     IncludeOpeningHoursRelation,
     IncludeLineupsRelation,
     IncludeEventInstancesRelation, // Include event instances (occurrences)
-    { relation: "recurringSchedule" }, // Include recurring schedules
+    {relation: 'recurringSchedule'}, // Include recurring schedules
     IncludeContactsRelation,
   ],
 };
 
 export const EventCreateSchema = {
-  type: "object",
-  required: ["name", "placeId"],
+  type: 'object',
+  required: ['name', 'placeId'],
   properties: {
     name: {
-      type: "string",
+      type: 'string',
     },
     description: {
-      type: "string",
+      type: 'string',
     },
     email: {
-      type: "string",
+      type: 'string',
     },
     webpage: {
-      type: "string",
+      type: 'string',
     },
     placeId: {
-      type: "string",
+      type: 'string',
     },
     coverId: {
-      type: "string",
+      type: 'string',
     },
     addressId: {
-      type: "string",
+      type: 'string',
     },
 
     scheduleId: {
-      type: "string",
+      type: 'string',
     },
 
     type: {
-      type: "string",
+      type: 'string',
     },
     endDate: {
-      type: "date",
+      type: 'date',
     },
     tagIds: {
-      type: "array",
+      type: 'array',
     },
     tickets: {
-      type: "array",
+      type: 'array',
     },
   },
 };
 
 const EVENT_DEFAULTS = {
   endDate: {
-    once: "1900-01-01 ",
-    repeat: "3145-01-01 ",
+    once: '1900-01-01 ',
+    repeat: '3145-01-01 ',
   },
 };
 export const getEventEndDate = async (event: any) => {
-  const type = event?.schedule?.scheduleType || event.type || "once";
+  const type = event?.schedule?.scheduleType || event.type || 'once';
   let endDate = new Date(EVENT_DEFAULTS.endDate.once);
-  if (type == "once") {
-    let scheduleRanges: any[] = event?.schedule?.scheduleRanges || [
-      { end: { datetime: EVENT_DEFAULTS.endDate.once } },
+  if (type == 'once') {
+    const scheduleRanges: any[] = event?.schedule?.scheduleRanges || [
+      {end: {datetime: EVENT_DEFAULTS.endDate.once}},
     ];
-    for (let scheduleRange of scheduleRanges) {
-      let scheduleEnd = scheduleRange?.end?.datetime
+    for (const scheduleRange of scheduleRanges) {
+      const scheduleEnd = scheduleRange?.end?.datetime
         ? new Date(scheduleRange?.end?.datetime)
         : endDate;
       if (scheduleEnd > endDate) {
         endDate = scheduleEnd;
       }
     }
-  } else if (type == "repeat") {
+  } else if (type == 'repeat') {
     endDate = new Date(EVENT_DEFAULTS.endDate.repeat);
   }
   event.endDate = endDate;
@@ -179,26 +181,26 @@ export const getEventEndDate = async (event: any) => {
 };
 
 export const EventCreateTransformer = async (event: any) => {
-  event.name = sanitizeHtml(event.name || "");
-  event.description = sanitizeHtml(event.description || "");
+  event.name = sanitizeHtml(event.name || '');
+  event.description = sanitizeHtml(event.description || '');
   /* ************ Schedule ************ */
   event = await getEventEndDate(event);
-  event = ScheduleBelongsToTransformer(event, event?.type || "once");
+  event = ScheduleBelongsToTransformer(event, event?.type || 'once');
 
   /* ************** Image ************* */
-  event = ImageBelongsToTransformer(event, "cover");
+  event = ImageBelongsToTransformer(event, 'cover');
 
   /* ************* Address ************ */
-  event = AddressBelongsToTransformer(event, "event");
+  event = AddressBelongsToTransformer(event, 'event');
 
   /* ************** Place ************* */
-  event = PlaceBelongsToTransformer(event, "place");
+  event = PlaceBelongsToTransformer(event, 'place');
 
   /* ************** Tags ************** */
   event.tagIds = Array.isArray(event.tagIds) ? event.tagIds : [];
 
   /* ************ Playlist ************ */
-  event = PlaylistBelongsToTransformer(event, "event");
+  event = PlaylistBelongsToTransformer(event, 'event');
 
   /* ************** Live ************** */
   event.live = 0;
@@ -207,27 +209,26 @@ export const EventCreateTransformer = async (event: any) => {
 };
 
 export const EventValidation = async (repository: any, data: any) => {
-  console.log({ data: JSON.stringify(data) });
-  let isLive = () => {
+  const isLive = () => {
     let isValid = true;
-    const notDefaultBelongsTo = ["addressId", "scheduleId", "placeId"];
+    const notDefaultBelongsTo = ['addressId', 'scheduleId', 'placeId'];
     const notNull = [
-      "name",
-      "coverId",
-      "playlistId",
-      "tagIds",
+      'name',
+      'coverId',
+      'playlistId',
+      'tagIds',
       // "playlistId",
       ...notDefaultBelongsTo,
     ];
 
-    for (let nN of notNull) {
+    for (const nN of notNull) {
       if (data[nN] == null) {
         isValid = false;
         return false;
       }
     }
-    for (let nonDefault of notDefaultBelongsTo) {
-      if (data[nonDefault] && data[nonDefault].indexOf("00000000") > 0) {
+    for (const nonDefault of notDefaultBelongsTo) {
+      if (data[nonDefault] && data[nonDefault].indexOf('00000000') > 0) {
         isValid = false;
         return false;
       }
@@ -236,7 +237,7 @@ export const EventValidation = async (repository: any, data: any) => {
     return isValid;
   };
 
-  let live = isLive();
+  const live = isLive();
   if (data.live !== live) {
     data.live = live;
     await repository.updateById(data.id, data);
@@ -245,17 +246,16 @@ export const EventValidation = async (repository: any, data: any) => {
   return data;
 };
 
-export const EventInstanceFullQuery:any = {
-
+export const EventInstanceFullQuery: any = {
   fields: {
     eventId: true,
     id: true,
     startDate: true,
-    endDate: true
+    endDate: true,
   },
   include: [
     {
-      relation: "event",
+      relation: 'event',
       scope: {
         fields: {
           id: true,
@@ -277,10 +277,10 @@ export const EventInstanceFullQuery:any = {
           recurrenceEndDate: true,
           isRecurring: true, // True if recurring, false if one-time event
           eventType: true,
-          teamId:true
+          teamId: true,
         },
         include: [
-          "cover",
+          'cover',
           IncludeAddressRelation,
           IncludeScheduleRelation,
           IncludePlaceRelation,
@@ -290,7 +290,7 @@ export const EventInstanceFullQuery:any = {
 
           IncludeContactsRelation,
           // { relation: "instances" }, // Include event instances (occurrences)
-          { relation: "recurringSchedule" }, // Include recurring schedules
+          {relation: 'recurringSchedule'}, // Include recurring schedules
         ],
       },
     }, // Include recurring schedules

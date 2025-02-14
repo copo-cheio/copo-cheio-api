@@ -2,8 +2,8 @@
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param, post, requestBody} from '@loopback/rest';
-import {CartItem} from '../../models/v1';
-import {OrderRepository} from '../../repositories/v1';
+import {CartItem} from '../../models';
+import {OrderRepository} from '../../repositories';
 import {StripeService} from '../../services/stripe.service';
 
 export class PaymentController {

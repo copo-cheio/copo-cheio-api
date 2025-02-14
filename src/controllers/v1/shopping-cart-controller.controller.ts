@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {CartItem} from '../../models/v1';
-import {CartItemRepository} from '../../repositories/v1';
+import {CartItem} from '../../models';
+import {CartItemRepository} from '../../repositories';
 
 export class ShoppingCartControllerController {
   constructor(

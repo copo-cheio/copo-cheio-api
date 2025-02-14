@@ -1,5 +1,5 @@
-import {model, property} from '@loopback/repository';
-import {Base} from './v1';
+/* import {model, property} from '@loopback/repository';
+import {Base} from './v1/base.model';
 
 @model()
 export class UserV2 extends Base {
@@ -47,3 +47,4 @@ export interface UserV2Relations {
 }
 
 export type UserV2WithRelations = UserV2 & UserV2Relations;
+ */

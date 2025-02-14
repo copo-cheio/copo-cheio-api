@@ -1,29 +1,24 @@
-import {
-  belongsTo,
-  model,
-  property,
-  referencesMany,
-} from "@loopback/repository";
-import {Base} from "./base.model";
-import {MenuProduct} from "./menu-product.model";
-import {ProductOption} from "./product-option.model";
+import {belongsTo, model, property, referencesMany} from '@loopback/repository';
+import {Base} from './base.model';
+import {MenuProduct} from './menu-product.model';
+import {ProductOption} from './product-option.model';
 
 @model()
 export class OrderItem extends Base {
   @property({
-    type: "string",
+    type: 'string',
   })
   orderId?: string;
 
   @property({
-    type: "number",
+    type: 'number',
   })
   count?: number;
   @property({
-    type: "number", // Use 'number' for NUMERIC/DECIMAL types in LoopBack
+    type: 'number', // Use 'number' for NUMERIC/DECIMAL types in LoopBack
 
     postgresql: {
-      dataType: "NUMERIC", // Explicitly specify NUMERIC
+      dataType: 'NUMERIC', // Explicitly specify NUMERIC
       precision: 10, // Total number of digits
       scale: 2, // Number of digits after the decimal point
       default: 0, // Default value of 0 in PostgreSQL
@@ -34,10 +29,10 @@ export class OrderItem extends Base {
   })
   currentPrice: number;
   @property({
-    type: "number", // Use 'number' for NUMERIC/DECIMAL types in LoopBack
+    type: 'number', // Use 'number' for NUMERIC/DECIMAL types in LoopBack
 
     postgresql: {
-      dataType: "NUMERIC", // Explicitly specify NUMERIC
+      dataType: 'NUMERIC', // Explicitly specify NUMERIC
       precision: 10, // Total number of digits
       scale: 2, // Number of digits after the decimal point
       default: 0, // Default value of 0 in PostgreSQL

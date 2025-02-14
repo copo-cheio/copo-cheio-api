@@ -1,4 +1,4 @@
-import {belongsTo,model,property} from '@loopback/repository';
+import {belongsTo, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Ingredient} from './ingredient.model';
 import {Product} from './product.model';
@@ -7,17 +7,14 @@ import {Product} from './product.model';
 export class ProductIngredient extends Base {
   @property({
     type: 'boolean',
-
   })
   isOptional: boolean;
   @property({
     type: 'string',
-
   })
   optionType: string;
   @property({
     type: 'string',
-
   })
   optionDefaultValue: string;
 
@@ -30,8 +27,8 @@ export class ProductIngredient extends Base {
     default: 0,
     postgresql: {
       dataType: 'decimal',
-      precision: 10,  // Total number of digits
-      scale: 2,       // Number of digits after the decimal point
+      precision: 10, // Total number of digits
+      scale: 2, // Number of digits after the decimal point
     },
   })
   cost: number;
@@ -51,9 +48,8 @@ export interface ProductIngredientRelations {
   // describe navigational properties here
 }
 
-export type ProductIngredientWithRelations = ProductIngredient & ProductIngredientRelations;
-
-
+export type ProductIngredientWithRelations = ProductIngredient &
+  ProductIngredientRelations;
 
 /*
 'ba870db2-c44c-443f-9c86-defd4a2c92fc' , 'ice'
@@ -65,5 +61,5 @@ export type ProductIngredientWithRelations = ProductIngredient & ProductIngredie
 'ef8f4e91-7b08-477b-8c62-a2b455571d81' , 'Water'
 */
 
-const query = (key:string,value:string)=>
-`insert into translation (code,pt,en,live) values ('${key}','${value}','${key}',true)`
+const query = (key: string, value: string) =>
+  `insert into translation (code,pt,en,live) values ('${key}','${value}','${key}',true)`;

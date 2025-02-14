@@ -9,7 +9,7 @@ import {
   MenuProductRelations,
   Price,
   Product,
-} from '../../models/v1';
+} from '../../models';
 import {ImageRepository} from './image.repository';
 import {MenuRepository} from './menu.repository';
 import {PriceRepository} from './price.repository';

@@ -1,4 +1,4 @@
-import {hasMany,model,property} from '@loopback/repository';
+import {hasMany, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {DateTime} from './date-time.model';
 import {ScheduleRange} from './schedule-range.model';

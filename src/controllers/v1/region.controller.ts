@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Region} from '../../models/v1';
-import {RegionRepository} from '../../repositories/v1';
+import {Region} from '../../models';
+import {RegionRepository} from '../../repositories';
 
 export class RegionController {
   constructor(

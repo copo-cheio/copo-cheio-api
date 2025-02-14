@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Place, Team} from '../../models/v1';
-import {TeamRepository} from '../../repositories/v1';
+import {Place, Team} from '../../models';
+import {TeamRepository} from '../../repositories';
 
 export class TeamPlaceController {
   constructor(

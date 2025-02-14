@@ -1,7 +1,7 @@
 import {inject} from '@loopback/core';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
-import {EventRule, EventRuleRelations} from '../../models/v1';
+import {EventRule, EventRuleRelations} from '../../models';
 
 export class EventRuleRepository extends SoftCrudRepository<
   EventRule,

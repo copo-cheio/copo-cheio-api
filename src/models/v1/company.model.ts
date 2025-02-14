@@ -1,11 +1,17 @@
-import {belongsTo,hasMany,hasOne,model,property} from '@loopback/repository';
+import {
+  belongsTo,
+  hasMany,
+  hasOne,
+  model,
+  property,
+} from '@loopback/repository';
 import {Base} from './base.model';
 import {Contacts} from './contacts.model';
 import {Event} from './event.model';
 import {Image} from './image.model';
 // import {Place} from './place.model';
-import {Team} from './team.model';
 import {Place} from './place.model';
+import {Team} from './team.model';
 
 @model()
 export class Company extends Base {
@@ -33,7 +39,6 @@ export class Company extends Base {
   places: Place[];
   // @hasMany(() => Staff)
   // staffMembers: Staff[];
-
 
   @hasMany(() => Team, {keyTo: 'companyId'})
   teams?: Team[];

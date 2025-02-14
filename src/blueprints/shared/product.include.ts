@@ -20,19 +20,3 @@ export const IncludeProductRelation: any = {
     ],
   },
 };
-console.log(
-  JSON.stringify({
-    include: [
-      {
-        relation: 'ingredients',
-        scope: {include: [IncludeIngredientRelation]},
-      },
-      {
-        relation: 'options',
-        scope: {include: [IncludeIngredientRelation, IncludePriceRelation]},
-      },
-      IncludeThumbnail,
-      IncludeTagsRelation,
-    ],
-  }),
-);

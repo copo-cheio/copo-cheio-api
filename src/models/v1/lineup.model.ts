@@ -1,4 +1,4 @@
-import {belongsTo,hasMany,model,property} from '@loopback/repository';
+import {belongsTo, hasMany, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Event} from './event.model';
 import {LineUpArtist} from './line-up-artist.model';

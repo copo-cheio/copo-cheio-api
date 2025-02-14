@@ -2,7 +2,7 @@ import {Getter, inject} from '@loopback/core';
 import {BelongsToAccessor, repository} from '@loopback/repository';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Rule, RuleRelations, Translation} from '../../models/v1';
+import {Rule, RuleRelations, Translation} from '../../models';
 import {TranslationRepository} from './translation.repository';
 
 export class RuleRepository extends SoftCrudRepository<

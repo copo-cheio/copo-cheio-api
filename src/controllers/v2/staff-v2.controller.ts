@@ -5,13 +5,13 @@ import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {get, post, requestBody, response} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
-import {DevRepository} from '../../repositories/v1';
+import {DevRepository} from '../../repositories';
 import {AuthService, StaffService} from '../../services';
 // import {inject} from '@loopback/core';
 
 export class StaffV2Controller {
   constructor(
-    @repository(DevRepository) public devRepository: DevRepository | any,
+    @repository('DevRepository') public devRepository: DevRepository | any,
     @inject('services.AuthService')
     protected authService: AuthService,
     @inject(AuthenticationBindings.CURRENT_USER, {optional: true})

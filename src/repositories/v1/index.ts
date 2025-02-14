@@ -29,7 +29,6 @@ export * from './lineup.repository';
 export * from './place-rule.repository';
 export * from './playlist-song.repository';
 
-
 export * from './activity.repository';
 export * from './cart-item.repository';
 export * from './credential.repository';
@@ -54,11 +53,11 @@ export * from './contacts.repository';
 export * from './staff.repository';
 export * from './team.repository';
 
-export * from './base.repository.base';
+export * from '../base.repository.base';
 
-export * from './team-staff.repository';
-export * from './search.repository';
-export * from './time-table.repository';
-export * from './favorite.repository';
-export * from './stock.repository';
 export * from './dev.repository';
+export * from './favorite.repository';
+export * from './search.repository';
+export * from './stock.repository';
+export * from './team-staff.repository';
+export * from './time-table.repository';

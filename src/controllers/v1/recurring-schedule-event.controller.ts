@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Event, RecurringSchedule} from '../../models/v1';
-import {RecurringScheduleRepository} from '../../repositories/v1';
+import {Event, RecurringSchedule} from '../../models';
+import {RecurringScheduleRepository} from '../../repositories';
 
 export class RecurringScheduleEventController {
   constructor(

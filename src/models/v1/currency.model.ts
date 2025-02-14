@@ -1,5 +1,5 @@
-import { model, property } from '@loopback/repository';
-import { Base } from './base.model';
+import {model, property} from '@loopback/repository';
+import {Base} from './base.model';
 
 @model()
 export class Currency extends Base {
@@ -20,7 +20,6 @@ export class Currency extends Base {
     required: true,
   })
   name: string;
-
 
   constructor(data?: Partial<Currency>) {
     super(data);

@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Favorite, User} from '../../models/v1';
-import {UserRepository} from '../../repositories/v1';
+import {Favorite, User} from '../../models';
+import {UserRepository} from '../../repositories';
 
 export class UserFavoriteController {
   constructor(

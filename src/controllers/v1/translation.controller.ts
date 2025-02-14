@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Translation} from '../../models/v1';
-import {TranslationRepository} from '../../repositories/v1';
+import {Translation} from '../../models';
+import {TranslationRepository} from '../../repositories';
 
 export class TranslationController {
   constructor(

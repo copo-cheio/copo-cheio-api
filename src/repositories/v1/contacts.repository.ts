@@ -1,7 +1,7 @@
 import {inject} from '@loopback/core';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Contacts, ContactsRelations} from '../../models/v1';
+import {Contacts, ContactsRelations} from '../../models';
 
 export class ContactsRepository extends SoftCrudRepository<
   Contacts,

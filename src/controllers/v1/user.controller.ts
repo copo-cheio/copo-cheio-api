@@ -15,8 +15,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {User} from '../../models/v1';
-import {UserRepository} from '../../repositories/v1';
+import {User} from '../../models';
+import {UserRepository} from '../../repositories';
 
 export class UserController {
   constructor(

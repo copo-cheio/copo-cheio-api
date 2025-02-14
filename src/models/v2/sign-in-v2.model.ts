@@ -1,4 +1,4 @@
-import {model} from '@loopback/repository';
+/* import {model} from '@loopback/repository';
 import {Base} from '../v1';
 
 @model()
@@ -13,3 +13,4 @@ export interface SignInV2Relations {
 }
 
 export type SignInV2WithRelations = SignInV2 & SignInV2Relations;
+ */

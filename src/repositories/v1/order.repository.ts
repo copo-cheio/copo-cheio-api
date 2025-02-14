@@ -19,7 +19,8 @@ import {
   Place,
   Price,
   User,
-} from '../../models/v1';
+} from '../../models';
+
 import {BalconyRepository} from './balcony.repository';
 import {CartItemRepository} from './cart-item.repository';
 import {EventRepository} from './event.repository';

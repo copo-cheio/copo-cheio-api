@@ -4,7 +4,7 @@ import {AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {UserProfile} from '@loopback/security';
-import {DevRepository, StockRepository} from '../repositories/v1';
+import {DevRepository, StockRepository} from '../repositories';
 import {AuthService, PushNotificationService} from '../services';
 import {PlaceService} from './place.service';
 @injectable({scope: BindingScope.TRANSIENT})
@@ -143,6 +143,7 @@ export class StaffService {
   async getBalconyOrders() {
     const staff = await this.getActiveStaffInfo();
     const timeSpan = await this.getSessionTimeSpan(staff.placeId);
+    console.log({staff, timeSpan});
     const balconyOrdersRecord = await this.devRepository.findOne({
       where: {
         and: [{app: 'staff', refId: staff.balconyId, action: 'balcony-orders'}],

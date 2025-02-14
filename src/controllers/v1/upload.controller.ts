@@ -12,7 +12,7 @@ import {
   IngredientRepository,
   PlaceRepository,
   ProductRepository,
-} from '../../repositories/v1';
+} from '../../repositories';
 import minioClient, {minioClientSetup} from '../../services/minio/client';
 
 export class FileUploadController {

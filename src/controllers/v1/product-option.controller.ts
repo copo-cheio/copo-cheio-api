@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {ProductOption} from '../../models/v1';
-import {ProductOptionRepository} from '../../repositories/v1';
+import {ProductOption} from '../../models';
+import {ProductOptionRepository} from '../../repositories';
 
 export class ProductOptionController {
   constructor(

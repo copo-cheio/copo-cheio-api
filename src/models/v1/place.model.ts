@@ -1,4 +1,12 @@
-import {belongsTo,hasMany,hasOne,model,property,referencesMany} from '@loopback/repository';
+import {
+  belongsTo,
+  hasMany,
+  hasOne,
+  model,
+  property,
+  referencesMany,
+} from '@loopback/repository';
+
 import {Address} from './address.model';
 import {Balcony} from './balcony.model';
 import {Base} from './base.model';
@@ -15,8 +23,6 @@ import {Team} from './team.model';
 
 @model()
 export class Place extends Base {
-
-
   @property({
     type: 'string',
     required: true,
@@ -31,7 +37,6 @@ export class Place extends Base {
 
   @property({
     type: 'string',
-
   })
   email?: string;
 
@@ -48,7 +53,7 @@ export class Place extends Base {
   @property({
     type: 'boolean',
 
-    default: false
+    default: false,
   })
   live: boolean;
 
@@ -58,13 +63,11 @@ export class Place extends Base {
   @belongsTo(() => Image)
   coverId: string;
 
-
   @belongsTo(() => Address)
   addressId: string;
 
   @belongsTo(() => Schedule)
   scheduleId: string;
-
 
   @hasMany(() => Event)
   events: Event[];
@@ -81,7 +84,7 @@ export class Place extends Base {
   @hasMany(() => OpeningHours)
   openingHours: OpeningHours[];
 
-  @hasMany(() => Image, {keyTo: 'refId', })
+  @hasMany(() => Image, {keyTo: 'refId'})
   gallery: Image[];
 
   @hasOne(() => Contacts, {keyTo: 'refId'})
@@ -94,12 +97,10 @@ export class Place extends Base {
   // companyId: string;
   @property({
     type: 'string',
-
   })
   companyId: string;
 
   constructor(data?: Partial<Place>) {
-
     super(data);
   }
 }

@@ -1,4 +1,4 @@
-import {belongsTo,model,property} from '@loopback/repository';
+import {belongsTo, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Event} from './event.model';
 import {Team} from './team.model';
@@ -17,7 +17,7 @@ export class EventInstance extends Base {
   endDate?: string;
 
   @property({
-    type: "number",
+    type: 'number',
     required: true,
     postgresql: {
       dataType: 'NUMERIC', // Explicitly specify NUMERIC
@@ -29,7 +29,7 @@ export class EventInstance extends Base {
   latitude: number;
 
   @property({
-    type: "number",
+    type: 'number',
     required: true,
     postgresql: {
       dataType: 'NUMERIC', // Explicitly specify NUMERIC
@@ -42,7 +42,7 @@ export class EventInstance extends Base {
 
   @property({
     type: 'object',
-    default: {}
+    default: {},
   })
   configuration: any;
 

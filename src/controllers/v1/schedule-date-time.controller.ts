@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {DateTime, Schedule} from '../../models/v1';
-import {ScheduleRepository} from '../../repositories/v1';
+import {DateTime, Schedule} from '../../models';
+import {ScheduleRepository} from '../../repositories';
 
 export class ScheduleDateTimeController {
   constructor(

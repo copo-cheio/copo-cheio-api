@@ -1,5 +1,5 @@
-import {model} from '@loopback/repository';
-import {Base} from './v1';
+/* import {model} from '@loopback/repository';
+import {Base} from './v1/base.model';
 
 @model()
 export class SignInV2 extends Base {
@@ -13,3 +13,4 @@ export interface SignInV2Relations {
 }
 
 export type SignInV2WithRelations = SignInV2 & SignInV2Relations;
+ */

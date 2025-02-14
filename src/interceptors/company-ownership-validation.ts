@@ -11,7 +11,7 @@ import {repository} from '@loopback/repository';
 import {HttpErrors, RestBindings} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 import {Request} from 'express-serve-static-core';
-import {CompanyRepository} from '../repositories/v1';
+import {CompanyRepository} from '../repositories';
 
 export class CompanyOwnershipValidation implements Provider<Interceptor> {
   constructor(

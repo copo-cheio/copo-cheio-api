@@ -1,4 +1,5 @@
 import {hasMany, model, property} from '@loopback/repository';
+
 import {Balcony} from './balcony.model';
 import {Base} from './base.model';
 import {MenuProduct} from './menu-product.model';

@@ -1,4 +1,5 @@
-import {belongsTo,model,property} from '@loopback/repository';
+import {belongsTo, model, property} from '@loopback/repository';
+
 import {Base} from './base.model';
 import {Currency} from './currency.model';
 
@@ -20,7 +21,7 @@ export class Price extends Base {
   price: number;
 
   @belongsTo(() => Currency)
-  currencyId: string ;
+  currencyId: string;
 
   constructor(data?: Partial<Price>) {
     super(data);

@@ -12,7 +12,7 @@ import {
   OrderRepository,
   PlaceRepository,
   UserRepository,
-} from '../repositories/v1';
+} from '../repositories';
 import {DevServiceApi} from './dev/dev.api';
 import {PushNotificationService} from './push-notification.service';
 

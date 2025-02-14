@@ -9,22 +9,22 @@ import {
   ImageRepository,
   OpeningHoursRepository,
   PlaceRepository,
-} from '../repositories/v1';
+} from '../repositories';
 import {QrFactoryService} from './qr-factory.service';
 
 export class PlaceService {
   constructor(
-    @repository(PlaceRepository)
+    @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
-    @repository(ContactsRepository)
+    @repository('ContactsRepository')
     public contactRepository: ContactsRepository,
-    @repository(EventRepository)
+    @repository('EventRepository')
     public eventRepository: EventRepository,
-    @repository(EventInstanceRepository)
+    @repository('EventInstanceRepository')
     public eventInstanceRepository: EventInstanceRepository,
-    @repository(ImageRepository)
+    @repository('ImageRepository')
     public imageRepository: ImageRepository,
-    @repository(OpeningHoursRepository)
+    @repository('OpeningHoursRepository')
     public openingHoursRepository: OpeningHoursRepository,
     @inject('services.QrFactoryService')
     protected qrFactoryService: QrFactoryService,
@@ -272,6 +272,7 @@ export class PlaceService {
   }
 
   async getTodayActiveHours(placeId: string) {
+    /*
     function getEventTimes(schedule) {
       if (schedule.length == 0) {
         const today = new Date();
@@ -319,5 +320,15 @@ export class PlaceService {
     const openingHours = await this.getTodayOpeningHours(placeId);
 
     return getEventTimes(openingHours?.[0] || openingHours);
+    */
+    const s = new Date();
+    const e = new Date();
+    const startDate = new Date(s.setDate(s.getDate() - 1)); // Next event day
+    const endDate = new Date(e.setDate(e.getDate() + 1)); // Next event day
+
+    return {
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+    };
   }
 }

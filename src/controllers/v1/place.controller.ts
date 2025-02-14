@@ -21,13 +21,13 @@ import {
 } from '@loopback/rest';
 import {PlaceQueryFull, PlacesQuery} from '../../blueprints/place.blueprint';
 import {FilterByTags} from '../../blueprints/shared/tag.include';
-import {Place} from '../../models/v1';
+import {Place} from '../../models';
 import {
   ContactsRepository,
   OpeningHoursRepository,
   PlaceRepository,
   PlaylistRepository,
-} from '../../repositories/v1';
+} from '../../repositories';
 import {PlaceService} from '../../services/place.service';
 export class PlaceController {
   constructor(

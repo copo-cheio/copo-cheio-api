@@ -3,7 +3,7 @@ import {BelongsToAccessor, repository} from '@loopback/repository';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {DEFAULT_MODEL_ID} from '../../constants';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Currency, Price, PriceRelations} from '../../models/v1';
+import {Currency, Price, PriceRelations} from '../../models';
 import {validateUuid} from '../../utils/validations';
 import {CurrencyRepository} from './currency.repository';
 

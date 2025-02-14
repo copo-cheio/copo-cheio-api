@@ -3,8 +3,8 @@
 import {Filter, repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param, response} from '@loopback/rest';
 
-import {OpeningHours} from '../../models/v1/opening-hours.model';
-import {OpeningHoursRepository} from '../../repositories/v1/opening-hours.repository';
+import {OpeningHours} from '../../models';
+import {OpeningHoursRepository} from '../../repositories';
 
 // import {inject} from '@loopback/core';
 

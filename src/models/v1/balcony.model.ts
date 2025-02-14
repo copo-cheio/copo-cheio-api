@@ -1,4 +1,5 @@
 import {belongsTo, hasMany, model, property} from '@loopback/repository';
+import {OrderV2} from '../order-v2.model';
 import {Base} from './base.model';
 import {Image} from './image.model';
 import {Menu} from './menu.model';
@@ -32,6 +33,9 @@ export class Balcony extends Base {
 
   @hasMany(() => Stock)
   stocks: Stock[];
+
+  @hasMany(() => OrderV2)
+  ordersV2: OrderV2[];
 
   constructor(data?: Partial<Balcony>) {
     super(data);

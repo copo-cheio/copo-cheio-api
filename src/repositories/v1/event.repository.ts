@@ -26,12 +26,12 @@ import {
   Tag,
   Team,
   Ticket,
-} from '../../models/v1';
+} from '../../models';
 import {AddressRepository} from './address.repository';
 import {EventRuleRepository} from './event-rule.repository';
 import {ImageRepository} from './image.repository';
 import {LineupRepository} from './lineup.repository';
-import {PlaceRepository} from './place.repository';
+
 import {PlaylistRepository} from './playlist.repository';
 import {RuleRepository} from './rule.repository';
 import {ScheduleRepository} from './schedule.repository';
@@ -40,6 +40,7 @@ import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {ContactsRepository} from './contacts.repository';
 import {EventInstanceRepository} from './event-instance.repository';
 import {OpeningHoursRepository} from './opening-hours.repository';
+import {PlaceRepository} from './place.repository';
 import {RecurringScheduleRepository} from './recurring-schedule.repository';
 import {TagRepository} from './tag.repository';
 import {TeamRepository} from './team.repository';

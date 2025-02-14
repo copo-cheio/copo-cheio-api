@@ -12,7 +12,7 @@ import {
   FavoriteRepository,
   PlaceRepository,
   UserRepository,
-} from '../../repositories/v1';
+} from '../../repositories';
 import {EventService} from '../../services';
 import {PlaceService} from '../../services/place.service';
 

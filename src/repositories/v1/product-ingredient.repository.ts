@@ -7,7 +7,7 @@ import {
   Product,
   ProductIngredient,
   ProductIngredientRelations,
-} from '../../models/v1';
+} from '../../models';
 import {validateUuid} from '../../utils/validations';
 import {IngredientRepository} from './ingredient.repository';
 import {ProductRepository} from './product.repository';

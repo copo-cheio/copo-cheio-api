@@ -7,7 +7,7 @@ import {
   Schedule,
   ScheduleRange,
   ScheduleRelations,
-} from '../../models/v1';
+} from '../../models';
 import {DateTimeRepository} from './date-time.repository';
 import {ScheduleRangeRepository} from './schedule-range.repository';
 

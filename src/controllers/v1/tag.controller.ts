@@ -18,7 +18,7 @@ import {
   response,
 } from '@loopback/rest';
 import {TagQueryFull} from '../../blueprints/tag.blueprint';
-import {Artist, Event, Place, Playlist, Tag} from '../../models/v1';
+import {Artist, Event, Place, Playlist, Tag} from '../../models';
 import {
   ArtistRepository,
   EventRepository,
@@ -26,7 +26,7 @@ import {
   PlaylistRepository,
   TagRepository,
   TranslationRepository,
-} from '../../repositories/v1';
+} from '../../repositories';
 import {replaceAll} from '../../utils/validations';
 
 export class TagController {

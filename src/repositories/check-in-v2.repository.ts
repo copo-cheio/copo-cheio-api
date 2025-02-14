@@ -1,4 +1,4 @@
-import {inject} from '@loopback/core';
+/* import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
 import {PostgresSqlDataSource} from '../datasources';
 
@@ -15,3 +15,4 @@ export class CheckInV2Repository extends DefaultCrudRepository<
     super(CheckInV2, dataSource);
   }
 }
+ */

@@ -1,13 +1,13 @@
 import {/* inject, */ BindingScope, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {DEFAULT_MODEL_ID} from '../constants';
-import {Product} from '../models/v1';
+import {Product} from '../models';
 import {
   PriceRepository,
   ProductIngredientRepository,
   ProductOptionRepository,
   ProductRepository,
-} from '../repositories/v1';
+} from '../repositories';
 import {transactionWrapper} from '../shared/database';
 import {validateUuid} from '../utils/validations';
 
@@ -25,11 +25,11 @@ export class ProductService {
   constructor(
     @repository('ProductRepository')
     public productRepository: ProductRepository,
-    @repository(ProductOptionRepository)
+    @repository('ProductOptionRepository')
     public productOptionRepository: ProductOptionRepository,
-    @repository(ProductIngredientRepository)
+    @repository('ProductIngredientRepository')
     public productIngredientRepository: ProductIngredientRepository,
-    @repository(PriceRepository)
+    @repository('PriceRepository')
     public priceRepository: PriceRepository,
   ) {}
 

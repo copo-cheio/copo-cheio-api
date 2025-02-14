@@ -1,14 +1,14 @@
 import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {BaseEventsQuery, EventsQuery} from '../blueprints/event.blueprint';
-import {Event, EventInstance} from '../models/v1';
+import {Event, EventInstance} from '../models';
 import {
   ContactsRepository,
   EventInstanceRepository,
   EventRepository,
   PlaceRepository,
   PlaylistRepository,
-} from '../repositories/v1';
+} from '../repositories';
 import {transactionWrapper} from '../shared/database';
 import {getDistanceFromLatLonInKm} from '../utils/query';
 import {AddressService} from './address.service';
@@ -16,14 +16,14 @@ import {AddressService} from './address.service';
 @injectable({scope: BindingScope.TRANSIENT})
 export class EventService {
   constructor(
-    @repository(EventRepository) public eventRepository: EventRepository,
-    @repository(ContactsRepository)
+    @repository('EventRepository') public eventRepository: EventRepository,
+    @repository('ContactsRepository')
     public contactRepository: ContactsRepository,
-    @repository(PlaylistRepository)
+    @repository('PlaylistRepository')
     public playlistRepository: PlaylistRepository,
-    @repository(EventInstanceRepository)
+    @repository('EventInstanceRepository')
     public eventInstanceRepository: EventInstanceRepository,
-    @repository(PlaceRepository)
+    @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
     @inject('services.AddressService')
     protected addressService: AddressService,

@@ -11,7 +11,7 @@ import {
   OrderItem,
   OrderItemRelations,
   ProductOption,
-} from '../../models/v1';
+} from '../../models';
 import {MenuProductRepository} from './menu-product.repository';
 import {ProductOptionRepository} from './product-option.repository';
 

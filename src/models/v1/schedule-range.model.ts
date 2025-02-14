@@ -1,11 +1,10 @@
-import {belongsTo,model,property} from '@loopback/repository';
+import {belongsTo, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {DateTime} from './date-time.model';
 import {Schedule} from './schedule.model';
 
 @model()
 export class ScheduleRange extends Base {
-
   @property({
     type: 'string',
     required: true,

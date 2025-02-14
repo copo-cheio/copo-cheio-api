@@ -1,8 +1,8 @@
 import {injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {admin} from '../firebase-config';
-import {Credential} from '../models/v1/credential.model';
-import {CredentialRepository, UserRepository} from '../repositories/v1';
+import {Credential} from '../models';
+import {CredentialRepository, UserRepository} from '../repositories';
 
 export const PUSH_NOTIFICATION_SUBSCRIPTIONS: any = {
   checkIn: {
@@ -23,9 +23,9 @@ export const PUSH_NOTIFICATION_SUBSCRIPTIONS: any = {
 @injectable()
 export class PushNotificationService {
   constructor(
-    @repository(UserRepository)
+    @repository('UserRepository')
     public userRepository: UserRepository,
-    @repository(CredentialRepository)
+    @repository('CredentialRepository')
     public credentialRepository: CredentialRepository,
   ) {}
 

@@ -18,3 +18,4 @@ export * from './encryption.service';
 export * from './staff-service.service';
 export * from './manager-service.service';
 export * from './stock-service.service';
+export * from './transaction.service';

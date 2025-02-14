@@ -7,7 +7,7 @@ import {
   PlaylistSong,
   PlaylistSongRelations,
   Song,
-} from '../../models/v1';
+} from '../../models';
 import {PlaylistRepository} from './playlist.repository';
 import {SongRepository} from './song.repository';
 

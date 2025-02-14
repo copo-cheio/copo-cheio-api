@@ -12,7 +12,7 @@ import {
   LineUpArtist,
   LineupRelations,
   TimeTable,
-} from '../../models/v1';
+} from '../../models';
 import {EventRepository} from './event.repository';
 import {LineUpArtistRepository} from './line-up-artist.repository';
 import {TimeTableRepository} from './time-table.repository';

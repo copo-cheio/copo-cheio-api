@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Place, Rule} from '../../models/v1';
-import {PlaceRepository} from '../../repositories/v1';
+import {Place, Rule} from '../../models';
+import {PlaceRepository} from '../../repositories';
 
 export class PlaceRuleController {
   constructor(

@@ -1,4 +1,4 @@
-import {inject} from '@loopback/core';
+/* import {inject} from '@loopback/core';
 import {PostgresSqlDataSource} from '../datasources';
 
 import {SignInV2, SignInV2Relations} from '../models';
@@ -15,3 +15,4 @@ export class SignInV2Repository extends BaseRepository<
     super(SignInV2, dataSource);
   }
 }
+ */

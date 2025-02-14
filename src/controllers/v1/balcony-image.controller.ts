@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Balcony, Image} from '../../models/v1';
-import {BalconyRepository} from '../../repositories/v1';
+import {Balcony, Image} from '../../models';
+import {BalconyRepository} from '../../repositories';
 
 export class BalconyImageController {
   constructor(

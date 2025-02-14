@@ -24,10 +24,11 @@ import {
   Schedule,
   Tag,
   Team,
-} from '../../models/v1';
+} from '../../models';
 import {AddressRepository} from './address.repository';
-import {BalconyRepository} from './balcony.repository';
+
 // import { CompanyRepository } from "./company.repository";
+import {BalconyRepository} from './balcony.repository';
 import {ContactsRepository} from './contacts.repository';
 import {EventRepository} from './event.repository';
 import {ImageRepository} from './image.repository';

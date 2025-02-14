@@ -5,6 +5,13 @@ import {
   repository,
 } from '@loopback/repository';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
+import {
+  ImageRepository,
+  MenuRepository,
+  OrderRepository,
+  PlaceRepository,
+} from '.';
+import {StockRepository} from '..';
 import {PostgresSqlDataSource} from '../../datasources';
 import {
   Balcony,
@@ -12,14 +19,11 @@ import {
   Image,
   Menu,
   Order,
+  OrderV2,
   Place,
   Stock,
-} from '../../models/v1';
-import {ImageRepository} from './image.repository';
-import {MenuRepository} from './menu.repository';
-import {OrderRepository} from './order.repository';
-import {PlaceRepository} from './place.repository';
-import {StockRepository} from './stock.repository';
+} from '../../models';
+import {OrderV2Repository} from '../order-v2.repository';
 
 export class BalconyRepository extends SoftCrudRepository<
   Balcony,
@@ -42,6 +46,11 @@ export class BalconyRepository extends SoftCrudRepository<
     typeof Balcony.prototype.id
   >;
 
+  public readonly ordersV2: HasManyRepositoryFactory<
+    OrderV2,
+    typeof Balcony.prototype.id
+  >;
+
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
     @repository.getter('PlaceRepository')
@@ -54,8 +63,15 @@ export class BalconyRepository extends SoftCrudRepository<
     protected orderRepositoryGetter: Getter<OrderRepository>,
     @repository.getter('StockRepository')
     protected stockRepositoryGetter: Getter<StockRepository>,
+    @repository.getter('OrderV2Repository')
+    protected orderV2RepositoryGetter: Getter<OrderV2Repository>,
   ) {
     super(Balcony, dataSource);
+    this.ordersV2 = this.createHasManyRepositoryFactoryFor(
+      'ordersV2',
+      orderV2RepositoryGetter,
+    );
+    this.registerInclusionResolver('ordersV2', this.ordersV2.inclusionResolver);
     this.stocks = this.createHasManyRepositoryFactoryFor(
       'stocks',
       stockRepositoryGetter,

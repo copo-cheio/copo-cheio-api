@@ -14,7 +14,7 @@ import {
   ProductOption,
   ProductRelations,
   Tag,
-} from '../../models/v1';
+} from '../../models';
 import {ImageRepository} from './image.repository';
 import {IngredientRepository} from './ingredient.repository';
 import {ProductIngredientRepository} from './product-ingredient.repository';

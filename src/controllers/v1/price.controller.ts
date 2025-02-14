@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Price} from '../../models/v1';
-import {PriceRepository} from '../../repositories/v1';
+import {Price} from '../../models';
+import {PriceRepository} from '../../repositories';
 
 export class PriceController {
   constructor(

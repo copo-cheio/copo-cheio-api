@@ -1,12 +1,11 @@
-import {model, belongsTo} from '@loopback/repository';
+import {belongsTo, model} from '@loopback/repository';
 import {Base} from './base.model';
-import {User} from './user.model';
 import {Event} from './event.model';
 import {Place} from './place.model';
+import {User} from './user.model';
 
 @model()
 export class Favorite extends Base {
-
   @belongsTo(() => User)
   userId: string;
 

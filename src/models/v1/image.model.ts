@@ -1,4 +1,4 @@
-import {model,property} from '@loopback/repository';
+import {model, property} from '@loopback/repository';
 import {Base} from './base.model';
 
 /*
@@ -24,7 +24,7 @@ export class Image extends Base {
   @property({
     type: 'string',
     required: true,
-    default: "a813bc90-d422-4d60-aa48-1e7d6c69ae8e"
+    default: 'a813bc90-d422-4d60-aa48-1e7d6c69ae8e',
   })
   url: string;
 
@@ -36,7 +36,6 @@ export class Image extends Base {
 
   @property({
     type: 'string',
-
   })
   refId: string;
 
@@ -61,4 +60,3 @@ export interface ImageRelations {
 }
 
 export type ImageWithRelations = Image & ImageRelations;
-

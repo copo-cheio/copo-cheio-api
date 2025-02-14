@@ -14,9 +14,8 @@ import {FilterExcludingWhere, repository} from '@loopback/repository';
 import {BalconyFullQuery} from '../../blueprints/balcony.blueprint';
 import {EventFullQuery} from '../../blueprints/event.blueprint';
 import {PlaceQueryFull} from '../../blueprints/place.blueprint';
-import {IncludeIngredientRelation} from '../../blueprints/shared/ingredient.include';
 import {OrderSingleFull} from '../../blueprints/shared/order.include';
-import {Balcony, Stock} from '../../models/v1';
+import {Balcony, Stock} from '../../models';
 import {
   ActivityRepository,
   BalconyRepository,
@@ -26,10 +25,8 @@ import {
   OrderRepository,
   PlaceRepository,
   StaffRepository,
-  StockRepository,
   TeamRepository,
-  TeamStaffRepository,
-} from '../../repositories/v1';
+} from '../../repositories';
 
 // import {inject} from '@loopback/core';
 
@@ -39,8 +36,7 @@ export class BarController {
     public teamRepository: TeamRepository,
     @repository(CompanyRepository)
     public companyRepository: CompanyRepository,
-    @repository(TeamStaffRepository)
-    public teamStaffRepository: TeamStaffRepository,
+
     @repository(EventRepository)
     public eventRepository: EventRepository,
     @repository(EventInstanceRepository)
@@ -55,8 +51,8 @@ export class BarController {
     public balconyRepository: BalconyRepository,
     @repository(StaffRepository)
     public staffRepository: StaffRepository,
-    @repository(StockRepository)
-    public stockRepository: StockRepository,
+    /*     @repository(StockRepository)
+    public stockRepository: StockRepository, */
   ) {}
 
   @get('/bar/check-in-options')
@@ -119,11 +115,12 @@ export class BarController {
       id,
       BalconyFullQuery,
     ); //{include:[{relation:"meny"}])
-    const stock: any = await this.stockRepository.findAll({
+    /*   const stock: any = await this.stockRepository.findAll({
       where: {balconyId: id},
       include: [IncludeIngredientRelation],
     }); //BalconyFullQuery);
-
+ */
+    const stock = [];
     return {balcony, stock};
   }
 
@@ -143,7 +140,8 @@ export class BarController {
     })
     stock: Stock,
   ): Promise<void> {
-    await this.stockRepository.updateById(id, {status: stock.status});
+    return;
+    //    await this.stockRepository.updateById(id, {status: stock.status});
   }
 
   @get('/bar/balcony/{id}/orders')
@@ -202,8 +200,9 @@ export class BarController {
           await this.placeRepository.getTodayOpeningHours(placeId);
         const openhour = openHours?.[0].openhour;
         const dayofweek = openHours?.[0].dayofweek;
-        const now = new Date();
-        startDate = now;
+
+        const _now = new Date();
+        startDate = _now;
         if (startDate.getDay() > dayofweek)
           startDate.setDate(startDate.getDate() - 1);
         startDate.setHours(openhour.split(':')[0]);
@@ -223,7 +222,7 @@ export class BarController {
         order: 'created_at DESC',
       });
     } else {
-      throw 'Access denied';
+      throw new Error('Access denied');
     }
   }
 }

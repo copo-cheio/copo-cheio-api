@@ -8,7 +8,7 @@ import {
   LineUpArtistRelations,
   Lineup,
   Schedule,
-} from '../../models/v1';
+} from '../../models';
 import {ArtistRepository} from './artist.repository';
 import {LineupRepository} from './lineup.repository';
 import {ScheduleRepository} from './schedule.repository';

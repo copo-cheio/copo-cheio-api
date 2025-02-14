@@ -21,8 +21,8 @@ import {
   IncludeScheduleRangeRelation,
   ScheduleTypes,
 } from '../../blueprints/shared/schedule.include';
-import {Schedule} from '../../models/v1';
-import {EventRepository, ScheduleRepository} from '../../repositories/v1';
+import {Schedule} from '../../models';
+import {EventRepository, ScheduleRepository} from '../../repositories';
 
 export class ScheduleController {
   constructor(

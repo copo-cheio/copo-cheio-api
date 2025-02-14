@@ -8,7 +8,7 @@ import {
   TeamRepository,
   TeamStaffRepository,
   UserRepository,
-} from '../repositories/v1';
+} from '../repositories';
 import {AuthService} from './auth.service';
 
 /*
@@ -117,6 +117,7 @@ export class UserService {
     if (!user) {
       throw new Error('User not authenticated');
     }
+
     const signIn = await this.devRepository.findByAction(
       'user',
       'sign-in',

@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Schedule, ScheduleRange} from '../../models/v1';
-import {ScheduleRepository} from '../../repositories/v1';
+import {Schedule, ScheduleRange} from '../../models';
+import {ScheduleRepository} from '../../repositories';
 
 export class ScheduleScheduleRangeController {
   constructor(

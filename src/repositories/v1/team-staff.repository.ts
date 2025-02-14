@@ -2,8 +2,8 @@ import {AuthenticationBindings} from '@loopback/authentication';
 import {Getter, inject} from '@loopback/core';
 import {BelongsToAccessor, repository} from '@loopback/repository';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Staff, TeamStaff, TeamStaffRelations} from '../../models/v1';
-import {BaseRepository} from './base.repository.base';
+import {Staff, TeamStaff, TeamStaffRelations} from '../../models';
+import {BaseRepository} from '../base.repository.base';
 import {StaffRepository} from './staff.repository';
 
 export class TeamStaffRepository extends BaseRepository<

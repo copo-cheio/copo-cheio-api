@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Team, TeamStaff} from '../../models/v1';
-import {TeamRepository} from '../../repositories/v1';
+import {Team, TeamStaff} from '../../models';
+import {TeamRepository} from '../../repositories';
 
 export class TeamTeamStaffController {
   constructor(

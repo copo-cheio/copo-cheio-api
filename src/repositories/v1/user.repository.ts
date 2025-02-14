@@ -5,8 +5,8 @@ import {
   repository,
 } from '@loopback/repository';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Favorite, ShoppingCart, User, UserRelations} from '../../models/v1';
-import {BaseRepository} from './base.repository.base';
+import {Favorite, ShoppingCart, User, UserRelations} from '../../models';
+import {BaseRepository} from '../base.repository.base';
 import {FavoriteRepository} from './favorite.repository';
 import {ShoppingCartRepository} from './shopping-cart.repository';
 

@@ -5,7 +5,7 @@ import {
   repository,
 } from '@loopback/repository';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Credential, CredentialRelations, User} from '../../models/v1';
+import {Credential, CredentialRelations, User} from '../../models';
 import {UserRepository} from './user.repository';
 
 export class CredentialRepository extends DefaultCrudRepository<

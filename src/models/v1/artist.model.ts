@@ -1,4 +1,4 @@
-import {belongsTo,model,property,referencesMany} from '@loopback/repository';
+import {belongsTo, model, property, referencesMany} from '@loopback/repository';
 import {Base} from './base.model';
 import {Image} from './image.model';
 import {Playlist} from './playlist.model';
@@ -6,9 +6,6 @@ import {Tag} from './tag.model';
 
 @model()
 export class Artist extends Base {
-
-
-
   @property({
     type: 'string',
     required: true,
@@ -20,7 +17,6 @@ export class Artist extends Base {
     required: true,
   })
   url: string;
-
 
   // @hasMany(() => Tag, {through: {model: () => TagReferences, keyFrom: 'refId'}})
   // tags: Tag[];

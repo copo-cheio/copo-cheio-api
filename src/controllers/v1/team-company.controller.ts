@@ -1,5 +1,5 @@
 import {repository} from '@loopback/repository';
-import {TeamRepository} from '../../repositories/v1';
+import {TeamRepository} from '../../repositories';
 
 export class TeamCompanyController {
   constructor(

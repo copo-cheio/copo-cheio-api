@@ -63,7 +63,7 @@ import {Translation} from './translation.model';
 ]
  */
 @model({
-  settings: {
+  /*   settings: {
     indexes: {
       compositeUnique: {
         keys: {
@@ -75,7 +75,7 @@ import {Translation} from './translation.model';
         },
       },
     },
-  },
+  }, */
 })
 export class Tag extends Base {
   @property({

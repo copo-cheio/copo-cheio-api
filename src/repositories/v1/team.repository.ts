@@ -14,8 +14,8 @@ import {
   Team,
   TeamRelations,
   TeamStaff,
-} from '../../models/v1';
-import {BaseRepository} from './base.repository.base';
+} from '../../models';
+import {BaseRepository} from '../base.repository.base';
 // import {CompanyRepository} from './company.repository';
 import {EventRepository} from './event.repository';
 import {ImageRepository} from './image.repository';

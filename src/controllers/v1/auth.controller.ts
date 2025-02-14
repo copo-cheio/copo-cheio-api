@@ -14,7 +14,7 @@ import {
   StaffRepository,
   TeamStaffRepository,
   UserRepository,
-} from '../../repositories/v1';
+} from '../../repositories';
 import {AuthService, SpotifyService} from '../../services';
 import {UserService} from '../../services/user.service';
 import {logRequest} from '../../utils/dev';

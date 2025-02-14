@@ -1,5 +1,5 @@
-import { model, property } from '@loopback/repository';
-import { Base } from './base.model';
+import {model, property} from '@loopback/repository';
+import {Base} from './base.model';
 
 @model()
 export class EventRule extends Base {

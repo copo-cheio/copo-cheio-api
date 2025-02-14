@@ -7,7 +7,7 @@ import {
   BalconyRepository,
   EventRepository,
   PlaceRepository,
-} from '../../repositories/v1';
+} from '../../repositories';
 import {PlaceService} from '../place.service';
 import {
   PUSH_NOTIFICATION_SUBSCRIPTIONS,
@@ -19,13 +19,13 @@ const SUBSCRIPTIONS = PUSH_NOTIFICATION_SUBSCRIPTIONS.checkIn;
 @injectable({scope: BindingScope.TRANSIENT})
 export class ActivityService {
   constructor(
-    @repository(PlaceRepository)
+    @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
-    @repository(EventRepository)
+    @repository('EventRepository')
     public eventRepository: EventRepository,
-    @repository(ActivityRepository)
+    @repository('ActivityRepository')
     public activityRepository: ActivityRepository,
-    @repository(BalconyRepository)
+    @repository('BalconyRepository')
     public balconyRepository: BalconyRepository,
     @inject('services.PlaceService')
     protected placeService: PlaceService,

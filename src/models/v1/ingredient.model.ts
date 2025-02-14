@@ -4,7 +4,7 @@ import {Image} from './image.model';
 import {Tag} from './tag.model';
 
 @model({
-  settings: {
+  /* settings: {
     indexes: {
       compositeUnique: {
         keys: {
@@ -16,7 +16,7 @@ import {Tag} from './tag.model';
         },
       },
     },
-  },
+  }, */
 })
 export class Ingredient extends Base {
   @property({

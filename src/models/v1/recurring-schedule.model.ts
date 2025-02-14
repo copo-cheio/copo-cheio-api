@@ -1,4 +1,4 @@
-import {model,property, belongsTo} from '@loopback/repository';
+import {belongsTo, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Event} from './event.model';
 
@@ -40,4 +40,5 @@ export interface RecurringScheduleRelations {
   // describe navigational properties here
 }
 
-export type RecurringScheduleWithRelations = RecurringSchedule & RecurringScheduleRelations;
+export type RecurringScheduleWithRelations = RecurringSchedule &
+  RecurringScheduleRelations;

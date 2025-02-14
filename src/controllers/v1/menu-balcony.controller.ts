@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Balcony, Menu} from '../models';
-import {MenuRepository} from '../repositories';
+import {Balcony, Menu} from '../../models';
+import {MenuRepository} from '../../repositories';
 
 export class MenuBalconyController {
   constructor(

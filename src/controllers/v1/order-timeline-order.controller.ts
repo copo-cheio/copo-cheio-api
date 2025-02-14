@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Order, OrderTimeline} from '../../models/v1';
-import {OrderTimelineRepository} from '../../repositories/v1';
+import {Order, OrderTimeline} from '../../models';
+import {OrderTimelineRepository} from '../../repositories';
 
 export class OrderTimelineOrderController {
   constructor(

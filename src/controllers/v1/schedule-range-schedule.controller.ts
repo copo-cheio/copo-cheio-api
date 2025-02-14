@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Schedule, ScheduleRange} from '../../models/v1';
-import {ScheduleRangeRepository} from '../../repositories/v1';
+import {Schedule, ScheduleRange} from '../../models';
+import {ScheduleRangeRepository} from '../../repositories';
 
 export class ScheduleRangeScheduleController {
   constructor(

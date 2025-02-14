@@ -1,4 +1,4 @@
-import {model,property} from '@loopback/repository';
+import {model, property} from '@loopback/repository';
 import {Base} from './base.model';
 
 @model()
@@ -15,7 +15,6 @@ export class Translation extends Base {
   })
   pt: string;
 
-
   @property({
     type: 'string',
     required: true,
@@ -26,7 +25,6 @@ export class Translation extends Base {
     type: 'boolean',
   })
   live?: boolean;
-
 
   constructor(data?: Partial<Translation>) {
     super(data);

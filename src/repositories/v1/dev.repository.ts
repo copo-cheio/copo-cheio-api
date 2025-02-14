@@ -10,14 +10,16 @@ import {
   PlaceQueryFull,
 } from '../../blueprints/place.blueprint';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Dev, DevRelations} from '../../models/v1';
+import {Dev, DevRelations} from '../../models';
 import {EncryptionProvider, QrFactoryService} from '../../services';
 import {createTimeline} from '../../services/dev/dev.utils';
 import {PushNotificationService} from '../../services/push-notification.service';
-import {BalconyRepository} from './balcony.repository';
-import {BaseRepository} from './base.repository.base';
+
+import {BaseRepository} from '../base.repository.base';
 import {MenuRepository} from './menu.repository';
 import {OrderRepository} from './order.repository';
+
+import {BalconyRepository} from './balcony.repository';
 import {PlaceRepository} from './place.repository';
 import {StockRepository} from './stock.repository';
 import {UserRepository} from './user.repository';
@@ -280,7 +282,6 @@ export class DevRepository extends BaseRepository<
   }
 
   async onUpdateOrderStatus(app: string, refId: string, data: any = {}) {
-    console.log({app, refId, data});
     const result = await this.updateOrder(app, refId, data);
     await this.updateSystemOrderStatusByOrderId(refId, data.status);
     return result;
@@ -478,14 +479,17 @@ export class DevRepository extends BaseRepository<
     });
     record = await this.findByAction(app, action, refId);
     const userOrders = await this.findByAction(app, 'user-orders', refId);
+
     await this.updateById(userOrders.id, {
       ...userOrders,
-      data: userOrders.data.map((o: any) => {
-        if (o.id == record.data.id) {
-          o = record.data;
-        }
-        return o;
-      }),
+      data: userOrders.data
+        .filter((o: any) => o)
+        .map((o: any) => {
+          if (o.id == record.data.id) {
+            o = record.data;
+          }
+          return o;
+        }),
     });
     const balconyOrders = await this.findByAction(
       'staff',
@@ -583,17 +587,21 @@ export class DevRepository extends BaseRepository<
   }
 
   async notifyBalconyStaff(balconyId, title, body, payload) {
-    const balconyStaff = await this.getBalconyStaff(balconyId);
+    try {
+      const balconyStaff = await this.getBalconyStaff(balconyId);
 
-    for (const s of balconyStaff || []) {
-      try {
-        if (s?.pushNotificationToken) {
-          console.log('Will notify staff', s);
-          await this.notify(title, body, s.pushNotificationToken, payload);
+      for (const s of balconyStaff || []) {
+        try {
+          if (s?.pushNotificationToken) {
+            console.log('Will notify staff', s);
+            await this.notify(title, body, s.pushNotificationToken, payload);
+          }
+        } catch (ex) {
+          console.log('Failed to notify staff');
         }
-      } catch (ex) {
-        console.log('Failed to notify staff');
       }
+    } catch (ex) {
+      console.warn(ex);
     }
   }
 
@@ -796,7 +804,6 @@ export class DevRepository extends BaseRepository<
     });
   }
   async getMember(app, uid) {
-    console.log(app, uid, 'getMember');
     const record = await this.findOne({
       where: {app: app, refId: uid, action: 'sign-in'},
     });

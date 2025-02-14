@@ -5,7 +5,7 @@ import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {get, param, post, requestBody, response} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
-import {DevRepository} from '../../repositories/v1';
+import {DevRepository} from '../../repositories';
 import {AuthService, StaffService} from '../../services';
 // import {inject} from '@loopback/core';
 const ACTIONS: any = {

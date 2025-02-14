@@ -2,8 +2,8 @@ import {Getter, inject} from '@loopback/core';
 
 import {BelongsToAccessor, repository} from '@loopback/repository';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Search, SearchRelations, User} from '../../models/v1';
-import {BaseRepository} from './base.repository.base';
+import {Search, SearchRelations, User} from '../../models';
+import {BaseRepository} from '../base.repository.base';
 import {UserRepository} from './user.repository';
 
 export class SearchRepository extends BaseRepository<

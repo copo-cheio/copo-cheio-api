@@ -1,9 +1,8 @@
-import {model,property} from '@loopback/repository';
+import {model, property} from '@loopback/repository';
 import {Base} from './base.model';
 
 @model()
 export class TagReferences extends Base {
-
   @property({
     type: 'string',
   })

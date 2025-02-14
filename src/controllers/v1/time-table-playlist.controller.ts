@@ -1,11 +1,11 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Playlist, TimeTable} from '../../models/v1';
-import {TimeTableRepository} from '../../repositories/v1';
+import {Playlist, TimeTable} from '../../models';
+import {TimeTableRepository} from '../../repositories';
 
 export class TimeTablePlaylistController {
   constructor(
-    @repository(TimeTableRepository)
+    @repository('TimeTableRepository')
     public timeTableRepository: TimeTableRepository,
   ) {}
 

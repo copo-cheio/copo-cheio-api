@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Stock} from '../../models/v1';
-import {StockRepository} from '../../repositories/v1';
+import {Stock} from '../../models';
+import {StockRepository} from '../../repositories';
 
 export class StockController {
   constructor(

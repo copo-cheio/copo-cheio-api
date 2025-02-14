@@ -11,16 +11,16 @@ import {
 @injectable({scope: BindingScope.TRANSIENT})
 export class StockService {
   constructor(
-    @repository(PlaceRepository)
+    @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
 
-    @repository(BalconyRepository)
+    @repository('BalconyRepository')
     public balconyRepository: BalconyRepository,
 
-    @repository(StockRepository)
+    @repository('StockRepository')
     public stockRepository: StockRepository,
 
-    @repository(MenuRepository)
+    @repository('MenuRepository')
     public menuRepository: MenuRepository,
   ) {}
 

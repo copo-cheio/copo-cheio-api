@@ -16,7 +16,7 @@ import {
   Image,
   Place,
   Team,
-} from '../../models/v1';
+} from '../../models';
 import {ContactsRepository} from './contacts.repository';
 import {EventRepository} from './event.repository';
 import {ImageRepository} from './image.repository';

@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Playlist, PlaylistSong} from '../../models/v1';
-import {PlaylistSongRepository} from '../../repositories/v1';
+import {Playlist, PlaylistSong} from '../../models';
+import {PlaylistSongRepository} from '../../repositories';
 
 export class PlaylistSongPlaylistController {
   constructor(

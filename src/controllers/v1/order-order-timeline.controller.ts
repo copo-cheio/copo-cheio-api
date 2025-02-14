@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Order, OrderTimeline} from '../../models/v1';
-import {OrderRepository} from '../../repositories/v1';
+import {Order, OrderTimeline} from '../../models';
+import {OrderRepository} from '../../repositories';
 
 export class OrderOrderTimelineController {
   constructor(

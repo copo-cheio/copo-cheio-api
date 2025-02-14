@@ -1,5 +1,5 @@
 import {repository} from '@loopback/repository';
-import {PlaceRepository} from '../../repositories/v1';
+import {PlaceRepository} from '../../repositories';
 
 export class PlaceCompanyController {
   constructor(

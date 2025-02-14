@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Currency, Price} from '../../models/v1';
-import {PriceRepository} from '../../repositories/v1';
+import {Currency, Price} from '../../models';
+import {PriceRepository} from '../../repositories';
 
 export class PriceCurrencyController {
   constructor(

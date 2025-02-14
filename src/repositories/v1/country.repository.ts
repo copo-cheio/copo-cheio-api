@@ -2,7 +2,7 @@ import {Getter, inject} from '@loopback/core';
 import {HasManyRepositoryFactory, repository} from '@loopback/repository';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Country, CountryRelations, Region} from '../../models/v1';
+import {Country, CountryRelations, Region} from '../../models';
 import {RegionRepository} from './region.repository';
 
 export class CountryRepository extends SoftCrudRepository<

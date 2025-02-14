@@ -1,7 +1,7 @@
 import {inject} from '@loopback/core';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
-import {PlaceRule, PlaceRuleRelations} from '../../models/v1';
+import {PlaceRule, PlaceRuleRelations} from '../../models';
 
 export class PlaceRuleRepository extends SoftCrudRepository<
   PlaceRule,

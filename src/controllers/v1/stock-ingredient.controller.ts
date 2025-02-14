@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Ingredient, Stock} from '../../models/v1';
-import {StockRepository} from '../../repositories/v1';
+import {Ingredient, Stock} from '../../models';
+import {StockRepository} from '../../repositories';
 
 export class StockIngredientController {
   constructor(

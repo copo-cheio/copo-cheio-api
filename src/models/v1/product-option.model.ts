@@ -1,4 +1,4 @@
-import {belongsTo,model,property} from '@loopback/repository';
+import {belongsTo, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Ingredient} from './ingredient.model';
 import {Price} from './price.model';
@@ -6,19 +6,18 @@ import {Product} from './product.model';
 
 @model()
 export class ProductOption extends Base {
+  @property({
+    type: 'string',
+    required: true,
+  })
+  group: string;
 
   @property({
-    type:"string",
-    required:true
+    type: 'boolean',
+    required: false,
+    default: false,
   })
-  group:string;
-
-  @property({
-    type:"boolean",
-    required:false,
-    default:false
-  })
-  includedByDefault:boolean;
+  includedByDefault: boolean;
 
   @belongsTo(() => Product)
   productId: string;

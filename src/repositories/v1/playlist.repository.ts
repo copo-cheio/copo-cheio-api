@@ -12,7 +12,7 @@ import {
   PlaylistSong,
   Song,
   Tag,
-} from '../../models/v1';
+} from '../../models';
 import {PlaylistSongRepository} from './playlist-song.repository';
 import {SongRepository} from './song.repository';
 import {TagRepository} from './tag.repository';

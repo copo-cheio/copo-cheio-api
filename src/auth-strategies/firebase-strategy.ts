@@ -3,7 +3,7 @@ import {repository} from '@loopback/repository';
 import {HttpErrors, Request} from '@loopback/rest';
 import {UserProfile, securityId} from '@loopback/security';
 import {admin} from '../firebase-config';
-import {UserRepository} from '../repositories/v1';
+import {UserRepository} from '../repositories';
 
 export const FirebaseAuthHelper = (() => {
   const extractCredentials = (request: Request) => {

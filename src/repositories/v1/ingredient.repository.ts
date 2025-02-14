@@ -6,7 +6,7 @@ import {
 } from '@loopback/repository';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Image, Ingredient, IngredientRelations, Tag} from '../../models/v1';
+import {Image, Ingredient, IngredientRelations, Tag} from '../../models';
 import {ImageRepository} from './image.repository';
 import {TagRepository} from './tag.repository';
 

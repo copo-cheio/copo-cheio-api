@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Playlist} from '../../models/v1';
-import {PlaylistRepository} from '../../repositories/v1';
+import {Playlist} from '../../models';
+import {PlaylistRepository} from '../../repositories';
 
 export class PlaylistController {
   constructor(

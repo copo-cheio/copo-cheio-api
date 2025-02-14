@@ -15,9 +15,9 @@ export class ManagerService {
   constructor(
     @inject('services.StockService')
     protected stockService: StockService,
-    @repository(MenuProductRepository)
+    @repository('MenuProductRepository')
     public menuProductRepository: MenuProductRepository,
-    @repository(BalconyRepository)
+    @repository('BalconyRepository')
     public balconyRepository: BalconyRepository,
     @repository('DevRepository')
     public devRepository: DevRepository,

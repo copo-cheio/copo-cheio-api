@@ -1,9 +1,10 @@
 import {Getter, inject} from '@loopback/core';
 import {BelongsToAccessor, repository} from '@loopback/repository';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Balcony, Ingredient, Stock, StockRelations} from '../../models/v1';
+
+import {Balcony, Ingredient, Stock, StockRelations} from '../../models';
+import {BaseRepository} from '../base.repository.base';
 import {BalconyRepository} from './balcony.repository';
-import {BaseRepository} from './base.repository.base';
 import {IngredientRepository} from './ingredient.repository';
 import {UserRepository} from './user.repository';
 

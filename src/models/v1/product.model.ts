@@ -1,4 +1,10 @@
-import {belongsTo,hasMany,model,property,referencesMany} from '@loopback/repository';
+import {
+  belongsTo,
+  hasMany,
+  model,
+  property,
+  referencesMany,
+} from '@loopback/repository';
 import {Base} from './base.model';
 import {Image} from './image.model';
 import {ProductIngredient} from './product-ingredient.model';
@@ -11,21 +17,19 @@ export class Product extends Base {
     type: 'string',
     // id: true,
     // generated: true,
-    required:true
+    required: true,
   })
   name: string;
 
   @property({
-    type: 'string'
+    type: 'string',
   })
   description?: string;
 
   @property({
-    type: 'boolean'
+    type: 'boolean',
   })
   customizable?: boolean;
-
-
 
   @referencesMany(() => Tag)
   tagIds: string[];
