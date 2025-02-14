@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Favorite, Place} from '../../models/v1';
-import {FavoriteRepository} from '../../repositories/v1';
+import {Favorite, Place} from '../../models';
+import {FavoriteRepository} from '../../repositories';
 
 export class FavoritePlaceController {
   constructor(

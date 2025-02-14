@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param, requestBody} from '@loopback/rest';
-import {Event, Playlist} from '../../models/v1';
-import {EventRepository, PlaylistRepository} from '../../repositories/v1';
+import {Event, Playlist} from '../../models';
+import {EventRepository, PlaylistRepository} from '../../repositories';
 
 export class EventPlaylistController {
   constructor(

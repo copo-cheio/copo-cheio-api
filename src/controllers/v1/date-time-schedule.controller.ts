@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {DateTime, Schedule} from '../../models/v1';
-import {DateTimeRepository} from '../../repositories/v1';
+import {DateTime, Schedule} from '../../models';
+import {DateTimeRepository} from '../../repositories';
 
 export class DateTimeScheduleController {
   constructor(

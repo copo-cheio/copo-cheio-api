@@ -25,7 +25,7 @@ import {
   ScheduleTypes,
 } from '../../blueprints/shared/schedule.include';
 import {addCompanyOwnership} from '../../interceptors/add-company-ownership.interceptor';
-import {Event, EventInstance, Price} from '../../models/v1';
+import {Event, EventInstance, Price} from '../../models';
 import {
   ContactsRepository,
   DateTimeRepository,
@@ -38,7 +38,7 @@ import {
   ScheduleRangeRepository,
   ScheduleRepository,
   TicketRepository,
-} from '../../repositories/v1';
+} from '../../repositories';
 import {EventService, QrFactoryService} from '../../services';
 import {transactionWrapper} from '../../shared/database';
 

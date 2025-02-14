@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Event, Lineup} from '../../models/v1';
-import {LineupRepository} from '../../repositories/v1';
+import {Event, Lineup} from '../../models';
+import {LineupRepository} from '../../repositories';
 
 export class LineupEventController {
   constructor(

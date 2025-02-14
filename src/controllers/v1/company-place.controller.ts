@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Company, Place} from '../../models/v1';
-import {CompanyRepository} from '../../repositories/v1';
+import {Company, Place} from '../../models';
+import {CompanyRepository} from '../../repositories';
 
 export class CompanyPlaceController {
   constructor(

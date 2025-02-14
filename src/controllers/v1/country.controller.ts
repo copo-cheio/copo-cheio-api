@@ -18,8 +18,8 @@ import {
   response,
 } from '@loopback/rest';
 import {CountryQueryFull} from '../../blueprints/country.blueprint';
-import {Country} from '../../models/v1';
-import {CountryRepository} from '../../repositories/v1';
+import {Country} from '../../models';
+import {CountryRepository} from '../../repositories';
 
 export class CountryController {
   constructor(

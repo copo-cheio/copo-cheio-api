@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {LineUpArtist, Schedule} from '../../models/v1';
-import {LineUpArtistRepository} from '../../repositories/v1';
+import {LineUpArtist, Schedule} from '../../models';
+import {LineUpArtistRepository} from '../../repositories';
 
 export class LineUpArtistScheduleController {
   constructor(

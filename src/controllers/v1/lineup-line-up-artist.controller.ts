@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Lineup, LineUpArtist} from '../../models/v1';
-import {LineupRepository} from '../../repositories/v1';
+import {Lineup, LineUpArtist} from '../../models';
+import {LineupRepository} from '../../repositories';
 
 export class LineupLineUpArtistController {
   constructor(

@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Activity, User} from '../../models/v1';
-import {ActivityRepository} from '../../repositories/v1';
+import {Activity, User} from '../../models';
+import {ActivityRepository} from '../../repositories';
 
 export class ActivityUserController {
   constructor(

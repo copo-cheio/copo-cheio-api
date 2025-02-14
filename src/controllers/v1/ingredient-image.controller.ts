@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Image, Ingredient} from '../../models/v1';
-import {IngredientRepository} from '../../repositories/v1';
+import {Image, Ingredient} from '../../models';
+import {IngredientRepository} from '../../repositories';
 
 export class IngredientImageController {
   constructor(

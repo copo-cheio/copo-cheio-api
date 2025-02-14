@@ -18,8 +18,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Image} from '../../models/v1';
-import {ImageRepository} from '../../repositories/v1';
+import {Image} from '../../models';
+import {ImageRepository} from '../../repositories';
 import {QrFactoryService} from '../../services';
 import {storageService} from '../../services/minio/service';
 

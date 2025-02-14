@@ -18,8 +18,8 @@ import {
   response,
 } from '@loopback/rest';
 import {MenuFullQuery} from '../../blueprints/menu.blueprint';
-import {Menu} from '../../models/v1';
-import {MenuRepository} from '../../repositories/v1';
+import {Menu} from '../../models';
+import {MenuRepository} from '../../repositories';
 
 export class MenuController {
   constructor(

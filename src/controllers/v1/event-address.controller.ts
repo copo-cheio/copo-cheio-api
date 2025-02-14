@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Address, Event} from '../../models/v1';
-import {EventRepository} from '../../repositories/v1';
+import {Address, Event} from '../../models';
+import {EventRepository} from '../../repositories';
 
 export class EventAddressController {
   constructor(

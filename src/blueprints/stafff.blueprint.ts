@@ -1,7 +1,6 @@
 import {QueryFilterBaseBlueprint} from './shared/query-filter.interface';
 import {IncludeUserRelation} from './shared/user.include';
 
-
 export const StaffQueryFull: any = {
   ...QueryFilterBaseBlueprint,
 
@@ -12,11 +11,5 @@ export const StaffQueryFull: any = {
     userId: true,
     role: true,
   },
-  include: [
-    IncludeUserRelation
-    // IncludeCompanyRelation,
-    // IncludeTeamStaffRelation,
-    // IncludeEventsRelation,
-    // IncludePlacesRelation,
-  ],
+  include: [IncludeUserRelation],
 };

@@ -14,8 +14,8 @@ import {
   response,
 } from '@loopback/rest';
 import {EventInstanceFullQuery} from '../../blueprints/event.blueprint';
-import {Event, EventInstance} from '../../models/v1';
-import {EventInstanceRepository} from '../../repositories/v1';
+import {Event, EventInstance} from '../../models';
+import {EventInstanceRepository} from '../../repositories';
 
 export class EventInstanceEventController {
   constructor(

@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Address} from '../../models/v1';
-import {AddressRepository} from '../../repositories/v1';
+import {Address} from '../../models';
+import {AddressRepository} from '../../repositories';
 
 export class AddressController {
   constructor(

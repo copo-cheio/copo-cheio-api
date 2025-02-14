@@ -16,8 +16,8 @@ import {
   CompanysQuery,
 } from '../../blueprints/company.blueprint';
 import {addCompanyOwnership} from '../../interceptors/add-company-ownership.interceptor';
-import {Company} from '../../models/v1';
-import {CompanyRepository, ContactsRepository} from '../../repositories/v1';
+import {Company} from '../../models';
+import {CompanyRepository, ContactsRepository} from '../../repositories';
 
 export class CompanyController {
   constructor(

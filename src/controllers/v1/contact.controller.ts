@@ -17,8 +17,8 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Contacts} from '../../models/v1';
-import {ContactsRepository} from '../../repositories/v1';
+import {Contacts} from '../../models';
+import {ContactsRepository} from '../../repositories';
 import {isValidEmail, isValidHttpUrl} from '../../utils/validations';
 
 export class ContactController {

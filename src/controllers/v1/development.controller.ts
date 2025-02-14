@@ -3,8 +3,8 @@ import {get, param, post, requestBody, response} from '@loopback/rest';
 import CryptoJS from 'crypto-js';
 import {v7} from 'uuid';
 import {EventFullQuery} from '../../blueprints/event.blueprint';
-import {Event} from '../../models/v1';
-import {EventRepository} from '../../repositories/v1';
+import {Event} from '../../models';
+import {EventRepository} from '../../repositories';
 import {debugLogger} from '../../utils/dev';
 import {replaceAll} from '../../utils/validations';
 const MODELS: any = {

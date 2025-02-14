@@ -18,8 +18,8 @@ import {
   response,
 } from '@loopback/rest';
 import {IngredientFullQuery} from '../../blueprints/ingredient.blueprint';
-import {Ingredient} from '../../models/v1';
-import {IngredientRepository} from '../../repositories/v1';
+import {Ingredient} from '../../models';
+import {IngredientRepository} from '../../repositories';
 
 export class IngredientController {
   constructor(

@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Event, Image} from '../../models/v1';
-import {EventRepository} from '../../repositories/v1';
+import {Event, Image} from '../../models';
+import {EventRepository} from '../../repositories';
 
 export class EventImageController {
   constructor(

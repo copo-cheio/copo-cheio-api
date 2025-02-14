@@ -16,8 +16,8 @@ import {authenticate, AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {UserProfile} from '@loopback/security';
-import {Credential} from '../../models/v1';
-import {CredentialRepository} from '../../repositories/v1';
+import {Credential} from '../../models';
+import {CredentialRepository} from '../../repositories';
 import {PushNotificationService} from '../../services/push-notification.service';
 
 // import {inject} from '@loopback/core';

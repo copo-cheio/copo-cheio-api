@@ -18,7 +18,7 @@ import {StaffQueryFull} from '../../blueprints/stafff.blueprint';
 import {TeamQueryFull} from '../../blueprints/team.blueprint';
 import {DEFAULT_MODEL_ID} from '../../constants';
 import {addCompanyOwnership} from '../../interceptors/add-company-ownership.interceptor';
-import {Product, Staff, Team, TeamStaff} from '../../models/v1';
+import {Product, Staff, Team, TeamStaff} from '../../models';
 import {
   CompanyRepository,
   EventRepository,
@@ -30,7 +30,7 @@ import {
   StaffRepository,
   TeamRepository,
   TeamStaffRepository,
-} from '../../repositories/v1';
+} from '../../repositories';
 import {ProductService} from '../../services';
 import {transactionWrapper} from '../../shared/database';
 import {uniqueBy} from '../../utils/query';

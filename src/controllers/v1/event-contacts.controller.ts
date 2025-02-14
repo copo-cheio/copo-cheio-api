@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Contacts, Event} from '../../models/v1';
-import {EventRepository} from '../../repositories/v1';
+import {Contacts, Event} from '../../models';
+import {EventRepository} from '../../repositories';
 
 export class EventContactsController {
   constructor(

@@ -1,8 +1,8 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
 import {IncludeScheduleRelation} from '../../blueprints/shared/schedule.include';
-import {Event, Schedule} from '../../models/v1';
-import {EventRepository, ScheduleRepository} from '../../repositories/v1';
+import {Event, Schedule} from '../../models';
+import {EventRepository, ScheduleRepository} from '../../repositories';
 
 export class EventScheduleController {
   constructor(

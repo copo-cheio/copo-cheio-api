@@ -21,12 +21,12 @@ import {
   IncludeScheduleRangeRelation,
   ScheduleTypes,
 } from '../../blueprints/shared/schedule.include';
-import {DateTime} from '../../models/v1';
+import {DateTime} from '../../models';
 import {
   DateTimeRepository,
   EventRepository,
   ScheduleRepository,
-} from '../../repositories/v1';
+} from '../../repositories';
 
 export class DateTimeController {
   constructor(

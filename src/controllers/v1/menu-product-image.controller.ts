@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Image, MenuProduct} from '../../models/v1';
-import {MenuProductRepository} from '../../repositories/v1';
+import {Image, MenuProduct} from '../../models';
+import {MenuProductRepository} from '../../repositories';
 
 export class MenuProductImageController {
   constructor(

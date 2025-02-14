@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Event, EventInstance} from '../../models/v1';
-import {EventRepository} from '../../repositories/v1';
+import {Event, EventInstance} from '../../models';
+import {EventRepository} from '../../repositories';
 
 export class EventEventInstanceController {
   constructor(

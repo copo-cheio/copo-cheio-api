@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Event, Favorite} from '../../models/v1';
-import {FavoriteRepository} from '../../repositories/v1';
+import {Event, Favorite} from '../../models';
+import {FavoriteRepository} from '../../repositories';
 
 export class FavoriteEventController {
   constructor(

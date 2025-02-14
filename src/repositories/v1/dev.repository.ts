@@ -903,14 +903,3 @@ export class DevRepository extends BaseRepository<
     }
   }
 }
-
-// getBalconyOrders Where balconyId = 09f763fa-eea6-48b1-bb6b-fd8cfd69b069
-// Get staff from that balcony
-// Find all staff where active = true
-
-/*
-
-balconyOrders = this.devRepository.findOne({where:{app:'staff',refId:'09f763fa-eea6-48b1-bb6b-fd8cfd69b069',action:'balcony-orders'}})"
-orders = this.devRepository.findOne({where:{app:'system',refId:'system',action:'orders'}})
-order = this.devRepository.getOrder('0b2811f2-aa86-4486-8e85-6046490c40e6')
-*/

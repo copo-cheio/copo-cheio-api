@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Credential, User} from '../../models/v1';
-import {CredentialRepository} from '../../repositories/v1';
+import {Credential, User} from '../../models';
+import {CredentialRepository} from '../../repositories';
 
 export class CredentialUserController {
   constructor(

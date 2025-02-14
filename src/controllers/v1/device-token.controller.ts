@@ -12,8 +12,8 @@ import {
 } from '@loopback/rest';
 import {FirebaseAuthHelper} from '../../auth-strategies/firebase-strategy';
 import {sendNotification} from '../../firebase-config';
-import {DeviceToken} from '../../models/v1';
-import {DeviceTokenRepository} from '../../repositories/v1';
+import {DeviceToken} from '../../models';
+import {DeviceTokenRepository} from '../../repositories';
 // import {sendNotification} from '../utils/notifications';
 
 export class DeviceTokenController {

@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Company, Event} from '../../models/v1';
-import {CompanyRepository} from '../../repositories/v1';
+import {Company, Event} from '../../models';
+import {CompanyRepository} from '../../repositories';
 
 export class CompanyEventController {
   constructor(

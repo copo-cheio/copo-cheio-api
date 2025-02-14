@@ -15,8 +15,8 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import {Menu, MenuProduct} from '../../models/v1';
-import {MenuRepository} from '../../repositories/v1';
+import {Menu, MenuProduct} from '../../models';
+import {MenuRepository} from '../../repositories';
 
 export class MenuMenuProductController {
   constructor(

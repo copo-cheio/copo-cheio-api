@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Event, Team} from '../../models/v1';
-import {EventRepository} from '../../repositories/v1';
+import {Event, Team} from '../../models';
+import {EventRepository} from '../../repositories';
 
 export class EventTeamController {
   constructor(

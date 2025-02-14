@@ -1,7 +1,7 @@
 import {repository} from '@loopback/repository';
 import {get, getModelSchemaRef, param} from '@loopback/rest';
-import {Artist, Image} from '../../models/v1';
-import {ArtistRepository} from '../../repositories/v1';
+import {Artist, Image} from '../../models';
+import {ArtistRepository} from '../../repositories';
 
 export class ArtistImageController {
   constructor(
