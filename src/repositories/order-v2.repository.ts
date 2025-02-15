@@ -271,7 +271,7 @@ export const OrderV2Transformers: any = {
           itemMap[i.menuProductId].totalPrice.toFixed(2);
         itemMap[i.menuProductId].items.push({
           menuProductId: i.menuProductId,
-          menuId: '2803cf91-2311-4ca9-8991-c0f145086442',
+          menuId: '2803cf91-2311-4ca9-8991-c0f145086442', // mudar isto dsp @TODO
           thumbnailId: i.menuProduct.product?.thumbnailId, //'64829554-6ad4-4f27-b192-1680eea924fb',
           priceId: i.menuProduct.priceId, //'e5f5499a-424d-4402-bfe5-d3b6a5efcbc0',
           productId: i.menuProduct.productId, //'a66c6897-bd27-41c7-8c09-3a159a5dc1b8',
