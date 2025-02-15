@@ -38,6 +38,12 @@ export class BaseRepository<
     // this.getCurrentUser = getCurrentUser;
   }
 
+  // Override updateById to set `updatedAt`
+  async updateById(id: any, data: any, options?: object): Promise<void> {
+    data.updated_at = new Date(); // Set current timestamp
+    await super.updateById(id, data, options);
+  }
+
   async getIdentifier() {
     // sconsole.log("identifier");
 

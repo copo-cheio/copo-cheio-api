@@ -17,25 +17,33 @@ export class QrFactoryService {
     data: any,
     refId: string,
     description: string = '',
+    v2?: boolean,
   ) {
     const basePath = '../../data/';
     const objectName =
-      'qr-output.' + v4().replace(/\d+/g, '').replace('-g', '') + Date.now();
+      'qr-output.' +
+      v4().replace(/\d+/g, '').replace('-g', '') +
+      Date.now() +
+      '.png';
     const outputPath = path.join(__dirname, basePath + objectName + '.png');
     const logoPath = path.join(__dirname, '../../data/logo.png');
     try {
       // Generate QR code with logo
+      const query: any = {
+        refId,
+        description,
+        type: 'qr',
+      };
+      if (v2) {
+        query.orderV2Id = refId;
+      }
       let qrRecord: any = await this.imageRepository.findOne({
-        where: {
-          refId,
-          description,
-          type: 'qr',
-        },
+        where: query,
       });
 
       if (qrRecord) return qrRecord;
       await generateQrWithLogo(
-        typeof data == 'string' ? data : JSON.stringify(data),
+        typeof data == 'string' ? {data} : data, //JSON.stringify(data),
         logoPath,
         outputPath,
       );
@@ -44,10 +52,8 @@ export class QrFactoryService {
       const {url} = await storageService().uploadQr(outputPath, objectName);
 
       qrRecord = await this.imageRepository.create({
-        refId,
         url,
-        type: 'qr',
-        description: description,
+        ...query,
       });
 
       console.log('QR code with logo generated and uploaded successfully.');

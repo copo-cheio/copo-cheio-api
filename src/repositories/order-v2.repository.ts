@@ -9,6 +9,7 @@ import {
 import {PostgresSqlDataSource} from '../datasources';
 import {
   Event,
+  Image,
   OrderDetailsV2,
   OrderItemsV2,
   OrderTimeline,
@@ -30,6 +31,8 @@ import {QueryFilterBaseBlueprint} from '../blueprints/shared/query-filter.interf
 import {Balcony} from '../models';
 import {BalconyRepository} from './v1/balcony.repository';
 import {EventRepository} from './v1/event.repository';
+
+import {ImageRepository} from '.';
 import {OrderTimelineRepository} from './v1/order-timeline.repository';
 import {PlaceRepository} from './v1/place.repository';
 import {PriceRepository} from './v1/price.repository';
@@ -70,6 +73,11 @@ export class OrderV2Repository extends BaseRepository<
     typeof OrderV2.prototype.id
   >;
 
+  public readonly qrCode: HasOneRepositoryFactory<
+    Image,
+    typeof OrderV2.prototype.id
+  >;
+
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
     @repository.getter('BalconyRepository')
@@ -88,8 +96,15 @@ export class OrderV2Repository extends BaseRepository<
     protected orderItemsV2RepositoryGetter: Getter<OrderItemsV2Repository>,
     @repository.getter('OrderTimelineRepository')
     protected orderTimelineRepositoryGetter: Getter<OrderTimelineRepository>,
+    @repository.getter('ImageRepository')
+    protected imageRepositoryGetter: Getter<ImageRepository>,
   ) {
     super(OrderV2, dataSource);
+    this.qrCode = this.createHasOneRepositoryFactoryFor(
+      'qrCode',
+      imageRepositoryGetter,
+    );
+    this.registerInclusionResolver('qrCode', this.qrCode.inclusionResolver);
     this.orderTimelines = this.createHasManyRepositoryFactoryFor(
       'orderTimelines',
       orderTimelineRepositoryGetter,
@@ -145,10 +160,12 @@ export class OrderV2Repository extends BaseRepository<
 export const OrderV2Queries: any = {
   full: {
     ...QueryFilterBaseBlueprint,
+    order: ['created_at ASC'],
     include: [
       IncludeBalconyRelation,
       IncludePriceRelation,
       {relation: 'user'},
+      {relation: 'qrCode'},
       {
         relation: 'orderTimelines',
         scope: {
@@ -190,7 +207,12 @@ export const OrderV2Queries: any = {
                             ],
                           },
                         },
-                        {relation: 'tags'},
+                        {
+                          relation: 'tags',
+                          scope: {
+                            include: [{relation: 'translation'}],
+                          },
+                        },
                         //IncludeIngredientRelation
                         //IncludePriceRelation,
                       ],
@@ -206,7 +228,7 @@ export const OrderV2Queries: any = {
   },
 };
 
-export const Orderv2Transformers: any = {
+export const OrderV2Transformers: any = {
   full: (data: any = {}) => {
     const transformer = (item: any = {}) => {
       const timeline = item?.orderTimelines || [];
@@ -283,7 +305,7 @@ export const Orderv2Transformers: any = {
       }
 
       return {
-        original: item,
+        //original: item,
         active: true,
         placeId: item.placeId,
         balconyId: item.balconyId,
@@ -294,6 +316,7 @@ export const Orderv2Transformers: any = {
         created_at: item.created_at,
         items: Object.values(itemMap),
         itemMap,
+        qr: item?.qrCode?.url,
         timeline: timeline.map((t: any) => {
           return {
             id: t.id,

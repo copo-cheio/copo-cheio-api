@@ -30,39 +30,44 @@ export class PushNotificationService {
   ) {}
 
   async registerToken(userId: string, token: string): Promise<void> {
-    const payload: any = {
+    /*    const payload: any = {
       key: 'fcmPushNotificationToken',
       userId: userId,
       value: token,
-    };
-    const credential = await this.credentialRepository.findOne({
+    }; */
+    const user = await this.userRepository.updateById(userId, {
+      pushNotificationToken: token,
+    });
+    return user;
+    /*    const credential = await this.credentialRepository.findOne({
       where: payload,
     });
     if (!credential) {
       this.credentialRepository.create(payload);
-    }
+    } */
   }
 
   async notifyUser(userId: string, notification: any, data: any = {}) {
-    const devices =
-      (await this.credentialRepository.find({
+    const devices = await this.userRepository.findById(userId);
+    /*      (await this.credentialRepository.find({
         where: {userId, key: 'fcmPushNotificationToken'},
-      })) || [];
+      })) || []; */
     // console.log({ devices, userId, notification });
     // const tokens = devices?.map((device:any)=> device.value);
     // data = this.parseData(data);
-    for (const device of devices) {
+    for (const device of [devices]) {
       try {
-        const token = device.value;
+        const token = device.pushNotificationToken;
         await this.sendPushNotification(token, notification, data);
         console.log('passou');
       } catch (ex) {
-        try {
+        console.log('N passou', device);
+        /*  try {
           await this.credentialRepository.deleteById(device.id);
           console.log(' n passou');
         } catch (ex) {
           console.log('falou cred');
-        }
+        } */
       }
     }
   }

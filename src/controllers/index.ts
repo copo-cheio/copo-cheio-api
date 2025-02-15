@@ -14,3 +14,14 @@ export * from './v2';
 /* export * from './order-timeline-order-v2.controller';
 export * from './order-v-2-order-timeline.controller';
  */
+export * from './user-order-v2.controller';
+export * from './check-in-v-2-user.controller';
+export * from './user-check-in-v2.controller';
+export * from './check-in-v-2-balcony.controller';
+export * from './check-in-v-2-event.controller';
+export * from './check-in-v-2-place.controller';
+export * from './balcony-check-in-v2.controller';
+export * from './event-check-in-v2.controller';
+export * from './place-check-in-v2.controller';
+export * from './check-in-v-2-order-v2.controller';
+export * from './order-v-2-image.controller';

@@ -5,25 +5,31 @@ import {
   repository,
 } from '@loopback/repository';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
-import {
-  ImageRepository,
-  MenuRepository,
-  OrderRepository,
-  PlaceRepository,
-} from '.';
-import {StockRepository} from '..';
+
 import {PostgresSqlDataSource} from '../../datasources';
 import {
   Balcony,
   BalconyRelations,
+  CheckInV2,
   Image,
   Menu,
   Order,
+  ORDER_BALCONY_STATUS,
   OrderV2,
   Place,
   Stock,
 } from '../../models';
-import {OrderV2Repository} from '../order-v2.repository';
+import {CheckInV2Repository} from '../check-in-v2.repository';
+import {
+  OrderV2Queries,
+  OrderV2Repository,
+  OrderV2Transformers,
+} from '../order-v2.repository';
+import {ImageRepository} from './image.repository';
+import {MenuRepository} from './menu.repository';
+import {OrderRepository} from './order.repository';
+import {PlaceRepository} from './place.repository';
+import {StockRepository} from './stock.repository';
 
 export class BalconyRepository extends SoftCrudRepository<
   Balcony,
@@ -51,6 +57,11 @@ export class BalconyRepository extends SoftCrudRepository<
     typeof Balcony.prototype.id
   >;
 
+  public readonly checkInsV2: HasManyRepositoryFactory<
+    CheckInV2,
+    typeof Balcony.prototype.id
+  >;
+
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
     @repository.getter('PlaceRepository')
@@ -65,8 +76,18 @@ export class BalconyRepository extends SoftCrudRepository<
     protected stockRepositoryGetter: Getter<StockRepository>,
     @repository.getter('OrderV2Repository')
     protected orderV2RepositoryGetter: Getter<OrderV2Repository>,
+    @repository.getter('CheckInV2Repository')
+    protected checkInV2RepositoryGetter: Getter<CheckInV2Repository>,
   ) {
     super(Balcony, dataSource);
+    this.checkInsV2 = this.createHasManyRepositoryFactoryFor(
+      'checkInsV2',
+      checkInV2RepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'checkInsV2',
+      this.checkInsV2.inclusionResolver,
+    );
     this.ordersV2 = this.createHasManyRepositoryFactoryFor(
       'ordersV2',
       orderV2RepositoryGetter,
@@ -100,3 +121,48 @@ export class BalconyRepository extends SoftCrudRepository<
     });
   }
 }
+
+export const BalconyQueries: any = {
+  staffOrdersPage: {
+    include: [
+      {
+        relation: 'ordersV2',
+        scope: {
+          ...OrderV2Queries.full,
+          where: {
+            ...OrderV2Queries.full.where,
+            status: {inq: ORDER_BALCONY_STATUS},
+          },
+        },
+      },
+    ],
+  },
+};
+
+export const BalconyTransformers: any = {
+  staffOrdersPage: (data: any = {}) => {
+    const transformer = (item: any = {}) => {
+      return {
+        ...item,
+        orders: item?.ordersV2 ? OrderV2Transformers.full(item.ordersV2) : [],
+      };
+    };
+    return Array.isArray(data) ? data.map(transformer) : transformer(data);
+  },
+  staffOrdersWithMap(data: any = {}) {
+    data = BalconyTransformers.staffOrdersPage(data);
+    data.orderMap = {};
+    for (const status of ORDER_BALCONY_STATUS) {
+      data.orderMap[status] = [];
+    }
+
+    for (const order of data.orders) {
+      const status = order.status;
+      if (data.orderMap[status]) {
+        data.orderMap[status].push(order);
+      }
+    }
+
+    return data;
+  },
+};

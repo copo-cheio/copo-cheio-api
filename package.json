@@ -38,7 +38,7 @@
     "start:watch": "tsc-watch --target es2017 --outDir ./dist --onSuccess \"node .\"",
     "clean": "lb-clean dist *.tsbuildinfo .eslintcache",
     "rebuild": "npm run clean && npm run build",
-    "render:build:cmd": "npm install --legacy-peer-deps  && npm run rebuild"
+    "render:build:cmd": "npm install --legacy-peer-deps && npm run rebuild"
   },
   "repository": {
     "type": "git",
@@ -79,7 +79,7 @@
     "sharp": "^0.33.5",
     "socket.io": "^4.8.1",
     "stripe": "^17.6.0",
-    "tslib": "^2.8.1",
+    "tslib": "^2.0.0",
     "uuid": "^11.0.5"
   },
   "devDependencies": {
@@ -89,17 +89,17 @@
     "@types/crypto-js": "^4.2.2",
     "@types/express-serve-static-core": "^5.0.6",
     "@types/multer": "^1.4.12",
-    "@types/node": "^22.13.4",
+    "@types/node": "^16.18.126",
     "@types/nodemailer": "^6.4.17",
     "@types/request": "^2.48.12",
     "@types/sanitize-html": "^2.13.0",
     "@types/uuid": "^10.0.0",
     "bcrypt": "^5.1.1",
-    "eslint":"8.57.1",
+    "eslint": "^8.57.1",
     "nodemon": "^3.1.9",
     "source-map-support": "^0.5.21",
     "tsc-watch": "^6.2.1",
-    "typescript": "~5.7.3"
+    "typescript": "~5.2.2"
   },
   "nodemonConfig": {
     "verbose": true,

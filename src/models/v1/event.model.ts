@@ -17,6 +17,7 @@ import {Rule} from './rule.model';
 import {Schedule} from './schedule.model';
 
 import {ScheduleTypes} from '../../blueprints/shared/schedule.include';
+import {CheckInV2} from '../check-in-v2.model';
 import {Contacts} from './contacts.model';
 import {EventInstance} from './event-instance.model';
 import {OpeningHours} from './opening-hours.model';
@@ -145,6 +146,9 @@ export class Event extends Base {
 
   @belongsTo(() => Team)
   teamId: string;
+
+  @hasMany(() => CheckInV2)
+  checkInsV2: CheckInV2[];
   /* ********************************** */
 
   @property({

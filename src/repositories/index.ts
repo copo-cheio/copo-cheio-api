@@ -1,4 +1,4 @@
-/* export * from './check-in-v2.repository'; */
+export * from './check-in-v2.repository';
 export * from './order-details-v2.repository';
 export * from './order-items-v2.repository';
 export * from './order-v2.repository';

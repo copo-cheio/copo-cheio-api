@@ -10,6 +10,7 @@ import {
 import {PostgresSqlDataSource} from '../../datasources';
 import {
   Address,
+  CheckInV2,
   Contacts,
   Event,
   EventInstance,
@@ -37,6 +38,7 @@ import {RuleRepository} from './rule.repository';
 import {ScheduleRepository} from './schedule.repository';
 // import {TagReferencesRepository} from "./tag-references.repository";
 import {SoftCrudRepository} from 'loopback4-soft-delete';
+import {CheckInV2Repository} from '../check-in-v2.repository';
 import {ContactsRepository} from './contacts.repository';
 import {EventInstanceRepository} from './event-instance.repository';
 import {OpeningHoursRepository} from './opening-hours.repository';
@@ -116,6 +118,11 @@ export class EventRepository extends SoftCrudRepository<
 
   public readonly team: BelongsToAccessor<Team, typeof Event.prototype.id>;
 
+  public readonly checkInsV2: HasManyRepositoryFactory<
+    CheckInV2,
+    typeof Event.prototype.id
+  >;
+
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
     @repository.getter('ImageRepository')
@@ -150,8 +157,18 @@ export class EventRepository extends SoftCrudRepository<
     protected contactsRepositoryGetter: Getter<ContactsRepository>,
     @repository.getter('TeamRepository')
     protected teamRepositoryGetter: Getter<TeamRepository>,
+    @repository.getter('CheckInV2Repository')
+    protected checkInV2RepositoryGetter: Getter<CheckInV2Repository>,
   ) {
     super(Event, dataSource);
+    this.checkInsV2 = this.createHasManyRepositoryFactoryFor(
+      'checkInsV2',
+      checkInV2RepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'checkInsV2',
+      this.checkInsV2.inclusionResolver,
+    );
     this.team = this.createBelongsToAccessorFor('team', teamRepositoryGetter);
     this.registerInclusionResolver('team', this.team.inclusionResolver);
     this.contacts = this.createHasOneRepositoryFactoryFor(

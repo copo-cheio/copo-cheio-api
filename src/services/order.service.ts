@@ -3,15 +3,17 @@ import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {IsolationLevel, repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
-import {v4} from 'uuid';
+import {v4, v7} from 'uuid';
 import {OrderSingleFull} from '../blueprints/shared/order.include';
 import {DEFAULT_MODEL_ID} from '../constants';
 import {
+  ORDER_BALCONY_STATUS,
   ORDER_COMPLETE_STATUS,
   ORDER_READY_STATUS,
   ORDER_STATUS,
 } from '../models';
 import {
+  CheckInV2Repository,
   CredentialRepository,
   DevRepository,
   ImageRepository,
@@ -22,9 +24,10 @@ import {
   OrderTimelineRepository,
   OrderV2Queries,
   OrderV2Repository,
-  Orderv2Transformers,
+  OrderV2Transformers,
   PriceRepository,
 } from '../repositories';
+import {EncryptionProvider} from './encryption.service';
 import {
   PUSH_NOTIFICATION_SUBSCRIPTIONS,
   PushNotificationService,
@@ -54,6 +57,8 @@ export class OrderService {
     public orderItemRepository: OrderItemRepository,
     @repository('DevRepository')
     public devRepository: DevRepository,
+    @repository('CheckInV2Repository')
+    public checkInV2Repository: CheckInV2Repository,
     @inject('services.PushNotificationService')
     private pushNotificationService: PushNotificationService,
     @inject('services.QrFactoryService')
@@ -64,6 +69,10 @@ export class OrderService {
     private currentUser: UserProfile, // Inject the current user profile
     @inject('services.TransactionService')
     private transactionService: TransactionService,
+
+    @inject('services.QrFactoryService') public qrService: QrFactoryService,
+    @inject('services.EncryptionProvider')
+    public encriptionService: EncryptionProvider,
   ) {}
 
   /* -------------------------------------------------------------------------- */
@@ -93,6 +102,48 @@ totalPrice : 12.9
    * @param order
    * @returns
    */
+
+  validateOrderV2(payload: any = {}) {
+    const currentUser = this.currentUser;
+    let success = false;
+    let order: any = {};
+    return this.transactionService.execute(async tx => {
+      const orderV2 = await this.orderV2Repository.findById(payload.refId);
+      const status = 'COMPLETE';
+      if (orderV2.status == 'READY') {
+        const code = orderV2.code;
+        const decription = await this.encriptionService.comparePassword(
+          payload.code,
+          code,
+        );
+        if (decription) {
+          await this.orderV2Repository.updateById(orderV2.id, {
+            status,
+            code: '',
+            active: false,
+          });
+          await this.orderTimelineRepository.create({
+            orderV2Id: orderV2.id,
+            action: status,
+            title: status,
+            timelineKey: status,
+            staffId: currentUser.id,
+          });
+          /*   await this.updateSystemOrderStatusByOrderId(refId, 'COMPLETE'); */
+          success = true;
+          order = await this.orderV2Repository.findById(
+            orderV2.id,
+            OrderV2Queries.full,
+          );
+          this.notifyUserV2(order.userId, 'ORDER_COMPLETE', {});
+          this.notifyUserV2(order.userId, 'ORDER_UPDATE', {});
+        }
+      }
+      return success
+        ? {...OrderV2Transformers.full(order), success}
+        : {success};
+    });
+  }
   createOrderV2(payload: any) {
     const currentUser = this.currentUser;
     return this.transactionService.execute(async tx => {
@@ -178,10 +229,92 @@ totalPrice : 12.9
         OrderV2Queries.full,
       );
 
-      this.notifyBalconyStaffV2(order.balconyId, 'ORDER_RECIEVED', {});
+      const checkIn = await this.checkInV2Repository.findUserCheckIn(
+        this.currentUser.id,
+      );
+      await this.checkInV2Repository.updateById(checkIn.id, {
+        orderV2Id: orderId,
+      });
+
+      this.notifyBalconyStaffV2(order.balconyId, 'ORDER_RECIEVE', {})
+        .then(console.log)
+        .catch(console.warn);
 
       return order;
     });
+  }
+
+  onUpdateOrderV2(orderId, status) {
+    const currentUser = this.currentUser;
+
+    return this.transactionService.execute(async tx => {
+      const order = await this.orderV2Repository.findById(orderId);
+
+      const currentStatus = order.status;
+      const currentStatusIndex = ORDER_BALCONY_STATUS.indexOf(currentStatus);
+      const statusIndex = ORDER_BALCONY_STATUS.indexOf(status);
+
+      if (
+        [currentStatusIndex, statusIndex].indexOf(-1) > -1 ||
+        currentStatusIndex >= statusIndex
+      ) {
+        throw new Error('Invalid status');
+      }
+      let notifyBalcony = false;
+      if (status == 'ONGOING') {
+        notifyBalcony = true;
+        // Notify the balcony that someone has changed a status
+      }
+      let code: any | undefined;
+      let qrCode: any | undefined;
+      const payload: any = {status};
+      if (status == 'READY') {
+        const codes: any = await this.generateOrderQrCode(order, status);
+        code = codes.order.code;
+
+        payload.code = code;
+      }
+      await this.orderV2Repository.updateById(orderId, payload);
+      await this.orderTimelineRepository.create({
+        orderV2Id: orderId,
+        action: status,
+        title: status,
+        timelineKey: status,
+        staffId: this.currentUser.id,
+      });
+
+      const updatedOrder = await this.orderV2Repository.findById(
+        orderId,
+        OrderV2Queries.full,
+      );
+
+      if (notifyBalcony) {
+        this.notifyBalconyStaffV2(updatedOrder.balconyId, 'ORDER_UPDATE', {})
+          .then(console.log)
+          .catch(console.log);
+      }
+      this.notifyUserV2(order.userId, 'ORDER_UPDATE', {});
+
+      return updatedOrder;
+    });
+  }
+
+  async generateOrderQrCode(order: any = {}, status: string) {
+    const code = v7();
+    order.code = await this.encriptionService.hashPassword(code);
+
+    const payload = {
+      action: 'VALIDATE_ORDER',
+      type: 'order',
+      code: code,
+      refId: order.orderId || order.id,
+    };
+    const qrCode = await this.qrService.generateAndUploadQrCode(
+      payload,
+      order.orderId || order.id,
+      'qr code for dev order',
+    );
+    return {order, code, qrCode};
   }
 
   async findByOrderByIdV2(id: string) {
@@ -191,24 +324,98 @@ totalPrice : 12.9
       OrderV2Queries.full,
     );
 
-    return Orderv2Transformers.full(order);
+    return OrderV2Transformers.full(order);
   }
 
-  notifyBalconyStaffV2(balconyId: string, action: string, data: any = {}) {
+  async notifyBalconyStaffV2(
+    balconyId: string,
+    action: string,
+    data: any = {},
+  ) {
     const ACTIONS: any = {
       ORDER_RECIEVED: {
         title: 'staff',
         body: 'new order',
       },
+      ORDER_RECIEVE: {
+        title: 'staff',
+        body: 'new order',
+      },
+      ORDER_UPDATE: {
+        title: 'staff',
+        body: 'new orders updated',
+      },
+    };
+    console.log({action});
+    const {title, body} = ACTIONS[action];
+    const balconyStaff = await this.checkInV2Repository.findAll({
+      where: {
+        and: [{app: 'staff'}, {balconyId}, {active: true}],
+      },
+      include: [{relation: 'user'}],
+    });
+
+    for (const staff of balconyStaff || []) {
+      const staffId = staff.userId;
+      try {
+        if (staffId) {
+          console.log('Will notify staff', staffId);
+          this.pushNotificationService
+            .notifyUser(staffId, {title, body}, {action, data})
+            .then(console.log)
+            .catch(console.warn);
+        }
+      } catch (ex) {
+        console.log('Failed to notify staff');
+      }
+    }
+    return '';
+  }
+  notifyUserV2(userId: string, action: string, data: any = {}) {
+    const ACTIONS: any = {
+      ORDER_RECIEVED: {
+        title: 'user',
+        body: 'new order',
+      },
+      ORDER_RECIEVE: {
+        title: 'user',
+        body: 'new order',
+      },
+      ORDER_UPDATE: {
+        title: 'user',
+        body: 'order updated',
+      },
+    };
+
+    const {title, body} = ACTIONS[action] || {};
+    this.pushNotificationService
+      .notifyUser(userId, {...ACTIONS[action]}, {action, payload: data})
+      .then(console.log)
+      .catch(console.warn);
+  }
+  notifyUser(userId: string, action: string, data: any = {}) {
+    const ACTIONS: any = {
+      ORDER_RECIEVED: {
+        title: 'user',
+        body: 'new order',
+      },
+      ORDER_UPDATE: {
+        title: 'user',
+        body: 'Order status updated',
+      },
     };
     const {title, body} = ACTIONS[action];
-    this.devRepository
+    this.pushNotificationService
+      .notifyUser(userId, {...ACTIONS[action]}, {action, payload: data})
+      .then(console.log)
+      .catch(console.warn);
+    /*   this.devRepository
       .notifyBalconyStaff(balconyId, title, body, {
         action,
         payload: data,
       })
       .then(console.log)
-      .catch(console.warn);
+      .catch(console.warn); */
   }
 
   /*
@@ -262,11 +469,6 @@ totalPrice : 12.9
         action: data.status,
         title: data.status,
       });
-
-      // const order: any = await this.orderRepository.findOne({
-      //   ...OrderSingleFull,
-      //   where: { id: id },
-      // });
 
       const _order = await this.notifyOrderStatusUpdate(id);
       await transaction.commit();

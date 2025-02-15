@@ -7,6 +7,7 @@ import {
   referencesMany,
 } from '@loopback/repository';
 
+import {CheckInV2} from '../check-in-v2.model';
 import {Address} from './address.model';
 import {Balcony} from './balcony.model';
 import {Base} from './base.model';
@@ -94,6 +95,8 @@ export class Place extends Base {
   teamId: string;
 
   // @property(() => Company)
+  @hasMany(() => CheckInV2)
+  checkInsV2: CheckInV2[];
   // companyId: string;
   @property({
     type: 'string',

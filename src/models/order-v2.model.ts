@@ -12,6 +12,7 @@ import {Base} from './v1/base.model';
 import {Event} from './v1/event.model';
 import {Place} from './v1/place.model';
 
+import {Image} from './v1/image.model';
 import {OrderTimeline} from './v1/order-timeline.model';
 import {User} from './v1/user.model';
 
@@ -27,6 +28,7 @@ export class OrderV2 extends Base {
   @property({
     type: 'string',
     required: false,
+    hidden: true,
   })
   code: string;
 
@@ -60,6 +62,9 @@ export class OrderV2 extends Base {
 
   @hasMany(() => OrderTimeline)
   orderTimelines: OrderTimeline[];
+
+  @hasOne(() => Image, {name: 'qrCode', keyFrom: 'id', keyTo: 'refId'})
+  qrCode: Image;
 
   constructor(data?: Partial<OrderV2>) {
     super(data);

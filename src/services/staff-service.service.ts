@@ -4,20 +4,38 @@ import {AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {UserProfile} from '@loopback/security';
-import {DevRepository, StockRepository} from '../repositories';
-import {AuthService, PushNotificationService} from '../services';
+import {
+  BalconyQueries,
+  BalconyRepository,
+  BalconyTransformers,
+  CheckInV2Repository,
+  DevRepository,
+  OrderV2Queries,
+  OrderV2Repository,
+  OrderV2Transformers,
+  StockRepository,
+} from '../repositories';
+import {AuthService, OrderService, PushNotificationService} from '../services';
 import {PlaceService} from './place.service';
 @injectable({scope: BindingScope.TRANSIENT})
 export class StaffService {
   constructor(
     @repository('DevRepository') public devRepository: DevRepository,
     @repository('StockRepository') public stockRepository: StockRepository,
+    @repository('BalconyRepository')
+    public balconyRepository: BalconyRepository,
+    @repository('CheckInV2Repository')
+    public checkInV2Repository: CheckInV2Repository,
+    @repository('OrderV2Repository')
+    public orderV2Repository: OrderV2Repository,
     @inject('services.AuthService')
     protected authService: AuthService,
     @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
     private currentUser: UserProfile, // Inject the current user profile
     @inject('services.PlaceService')
     protected placeService: PlaceService,
+    @inject('services.OrderService')
+    protected orderService: OrderService,
     @inject('services.PushNotificationService')
     private pushNotificationService: PushNotificationService,
   ) {
@@ -41,8 +59,67 @@ export class StaffService {
    * Notifies the admins
    * Notifies all the checked in users in that place to refresh the menu
    */
+
+  /* -------------------------------------------------------------------------- */
+  /*                                     V2                                     */
+  /* -------------------------------------------------------------------------- */
+
+  /*
+  const response: any = {
+    success: false,
+    };
+    const systemOrder = await this.findByIdInList(
+    () => this.findByAction('system', 'orders', 'system'),
+    refId,
+    'orderId',
+  );
+
+  if (systemOrder.item.status == 'READY') {
+    const code = systemOrder.item.code;
+    const decription = await this.encriptionService.comparePassword(
+      data.code,
+      code,
+    );
+    if (decription) {
+      await this.updateOrder('staff', refId, {
+        status: 'COMPLETE',
+        staffId: data.staffId,
+      });
+      await this.updateSystemOrderStatusByOrderId(refId, 'COMPLETE');
+      response.success = true;
+    }
+    response.order = await this.getOrder(refId);
+
+    return response;
+    */
+  async validateOrderV2(payload: any = {}) {
+    return this.orderService.validateOrderV2(payload);
+  }
+  async getStaffOrdersPage() {
+    const checkIn = await this.checkInV2Repository.findStaffCheckIn(
+      this.currentUser.id,
+    );
+    const balconyId = checkIn?.balconyId;
+    const balconyOrders = await this.balconyRepository.findById(
+      balconyId,
+      BalconyQueries.staffOrdersPage,
+    );
+    return BalconyTransformers.staffOrdersWithMap(balconyOrders);
+  }
+  async getStaffOrderPage(id: string) {
+    const order = await this.orderV2Repository.findById(
+      id,
+      OrderV2Queries.full,
+    );
+    return OrderV2Transformers.full(order);
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                     V1                                     */
+  /* -------------------------------------------------------------------------- */
+
   async updateOrderStatus({orderId, status}) {
-    const staff = await this.getActiveStaffInfo();
+    return this.orderService.onUpdateOrderV2(orderId, status);
   }
 
   /**

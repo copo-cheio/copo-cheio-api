@@ -1,5 +1,7 @@
 import {hasMany, hasOne, model, property} from '@loopback/repository';
 import {IUser} from 'loopback4-soft-delete';
+import {CheckInV2} from '../check-in-v2.model';
+import {OrderV2} from '../order-v2.model';
 import {Base} from './base.model';
 import {Favorite} from './favorite.model';
 import {ShoppingCart} from './shopping-cart.model';
@@ -23,6 +25,11 @@ export class User extends Base implements IUser {
     type: 'string',
   })
   firebaseUserId: string;
+
+  @property({
+    type: 'string',
+  })
+  pushNotificationToken: string;
 
   @hasOne(() => ShoppingCart)
   shoppingCart: ShoppingCart;
@@ -59,6 +66,12 @@ export class User extends Base implements IUser {
 
   @hasMany(() => Favorite)
   favorites: Favorite[];
+
+  @hasMany(() => OrderV2)
+  ordersV2: OrderV2[];
+
+  @hasOne(() => CheckInV2)
+  checkInV2: CheckInV2;
 
   getIdentifier() {
     return this.id;

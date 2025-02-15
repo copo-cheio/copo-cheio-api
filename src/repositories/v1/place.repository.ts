@@ -12,6 +12,7 @@ import {PostgresSqlDataSource} from '../../datasources';
 import {
   Address,
   Balcony,
+  CheckInV2,
   Contacts,
   Event,
   Image,
@@ -28,6 +29,7 @@ import {
 import {AddressRepository} from './address.repository';
 
 // import { CompanyRepository } from "./company.repository";
+import {CheckInV2Repository} from '../check-in-v2.repository';
 import {BalconyRepository} from './balcony.repository';
 import {ContactsRepository} from './contacts.repository';
 import {EventRepository} from './event.repository';
@@ -106,6 +108,10 @@ export class PlaceRepository extends SoftCrudRepository<
 
   public readonly team: BelongsToAccessor<Team, typeof Place.prototype.id>;
 
+  public readonly checkInsV2: HasManyRepositoryFactory<
+    CheckInV2,
+    typeof Place.prototype.id
+  >;
   // public readonly company: BelongsToAccessor<Company, typeof Place.prototype.id>;
   // public readonly tags: ReferencesManyAccessor<Tag, typeof Artist.prototype.id>;
 
@@ -136,8 +142,18 @@ export class PlaceRepository extends SoftCrudRepository<
     protected contactsRepositoryGetter: Getter<ContactsRepository>,
     @repository.getter('TeamRepository')
     protected teamRepositoryGetter: Getter<TeamRepository>,
+    @repository.getter('CheckInV2Repository')
+    protected checkInV2RepositoryGetter: Getter<CheckInV2Repository>,
   ) {
     super(Place, dataSource);
+    this.checkInsV2 = this.createHasManyRepositoryFactoryFor(
+      'checkInsV2',
+      checkInV2RepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'checkInsV2',
+      this.checkInsV2.inclusionResolver,
+    );
 
     this.team = this.createBelongsToAccessorFor('team', teamRepositoryGetter);
     this.registerInclusionResolver('team', this.team.inclusionResolver);

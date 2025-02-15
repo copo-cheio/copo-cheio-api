@@ -5,8 +5,17 @@ import {
   repository,
 } from '@loopback/repository';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Favorite, ShoppingCart, User, UserRelations} from '../../models';
+import {
+  CheckInV2,
+  Favorite,
+  OrderV2,
+  ShoppingCart,
+  User,
+  UserRelations,
+} from '../../models';
 import {BaseRepository} from '../base.repository.base';
+import {CheckInV2Repository} from '../check-in-v2.repository';
+import {OrderV2Repository} from '../order-v2.repository';
 import {FavoriteRepository} from './favorite.repository';
 import {ShoppingCartRepository} from './shopping-cart.repository';
 
@@ -25,16 +34,43 @@ export class UserRepository extends BaseRepository<
     typeof User.prototype.id
   >;
 
+  public readonly ordersV2: HasManyRepositoryFactory<
+    OrderV2,
+    typeof User.prototype.id
+  >;
+
+  public readonly checkInV2: HasOneRepositoryFactory<
+    CheckInV2,
+    typeof User.prototype.id
+  >;
+
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
     @repository.getter('ShoppingCartRepository')
     protected shoppingCartRepositoryGetter: Getter<ShoppingCartRepository>,
     @repository.getter('FavoriteRepository')
     protected favoriteRepositoryGetter: Getter<FavoriteRepository>,
+    @repository.getter('OrderV2Repository')
+    protected orderV2RepositoryGetter: Getter<OrderV2Repository>,
+    @repository.getter('CheckInV2Repository')
+    protected checkInV2RepositoryGetter: Getter<CheckInV2Repository>,
     // @inject.getter(AuthenticationBindings.CURRENT_USER, {optional: true})
     // protected readonly getCurrentUser?: Getter<User | undefined>,
   ) {
     super(User, dataSource);
+    this.checkInV2 = this.createHasOneRepositoryFactoryFor(
+      'checkInV2',
+      checkInV2RepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'checkInV2',
+      this.checkInV2.inclusionResolver,
+    );
+    this.ordersV2 = this.createHasManyRepositoryFactoryFor(
+      'ordersV2',
+      orderV2RepositoryGetter,
+    );
+    this.registerInclusionResolver('ordersV2', this.ordersV2.inclusionResolver);
     this.favorites = this.createHasManyRepositoryFactoryFor(
       'favorites',
       favoriteRepositoryGetter,
@@ -60,8 +96,8 @@ export class UserRepository extends BaseRepository<
       events: [],
       places: [],
     };
-    for (let i = 0; i < favorites.length; i++) {
-      const fav: any = favorites[i];
+    for (const fav of favorites) {
+      /*       const fav: any = favorites[i]; */
       const id: any = fav.eventId || fav.placeId;
       if (fav.eventId && result.events.indexOf(id) == -1)
         result.events.push(id);
@@ -72,17 +108,3 @@ export class UserRepository extends BaseRepository<
     return result;
   }
 }
-
-/*
-    "deleted": false,
-    "deletedOn": null,
-    "deletedBy": null,
-    "name": "Filipe",
-    "avatar": "https://lh3.googleusercontent.com/a/ACg8ocI-GCGkmacL9DIKSmik1s-asg3Tib0F62HU4s0VfbmmgFwA9g=s96-c",
-    "email": "pihh.backup@gmail.com",
-    "firebaseUserId": "IrU8vmqxK8R9qcp1EP2Yl4Ddvx92",
-    "id": "e5ed35ae-f951-4a70-a129-e298a92c07cc",
-    "created_at": "2024-09-30T04:30:23.982Z",
-    "updated_at": "2024-09-30T04:30:23.982Z",
-    "isDeleted": false
-    */

@@ -3,6 +3,7 @@ import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {UserProfile} from '@loopback/security';
 import {
+  CheckInV2Repository,
   DevRepository,
   StaffRepository,
   TeamRepository,
@@ -30,9 +31,28 @@ export class UserService {
     @repository(StaffRepository) public staffRepository: StaffRepository,
     @repository(TeamRepository) public teamRepository: TeamRepository,
     @repository('DevRepository') public devRepository: DevRepository,
+    @repository('CheckInV2Repository')
+    public checkInV2Repository: CheckInV2Repository,
     @repository(TeamStaffRepository)
     public teamStaffRepository: TeamStaffRepository,
   ) {}
+
+  /* -------------------------------------------------------------------------- */
+  /*                                     V2                                     */
+  /* -------------------------------------------------------------------------- */
+  async findCheckInOngoingOrder() {
+    return this.checkInV2Repository.findUserCheckWithInOrder(
+      this.currentUser.id,
+    );
+  }
+
+  async findCheckInOrders() {
+    /* const checkIn = await */
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                     V1                                     */
+  /* -------------------------------------------------------------------------- */
 
   async getUserByFirebaseUserId(firebaseUserId: string) {
     return this.userRepository.findOne({
@@ -118,16 +138,19 @@ export class UserService {
       throw new Error('User not authenticated');
     }
 
-    const signIn = await this.devRepository.findByAction(
+    /*     const signIn = await this.devRepository.findByAction(
       'user',
       'sign-in',
       user.uid,
-    );
+    ); */
 
-    await this.devRepository.updateById(signIn.id, {
-      data: {...signIn.data, pushNotificationToken: token},
+    await this.userRepository.updateById(this.currentUser.id, {
+      pushNotificationToken: token,
     });
-    return {success: true};
+    /*     await this.devRepository.updateById(signIn.id, {
+      data: {...signIn.data, pushNotificationToken: token},
+    }); */
+    return {success: true, cu: this.currentUser.id, token};
   }
   async getActiveCheckIn() {
     const user = await this.getUserDetails();
@@ -158,32 +181,4 @@ export class UserService {
 
     return {user, checkIn: checkIn.data}; // This contains details like id, name, roles, etc.
   }
-  /*
-   * Add service methods here
-   */
-
-  // async queryLoop(callbackFn: any) {
-  //   let eventIds: any = [];
-  //   let keepRunning = true;
-  //   let records: any = [];
-  //   let i = 0;
-  //   while (keepRunning) {
-  //     if (i >= 100) break;
-  //     i++;
-  //     try {
-  //       const record = await callbackFn(eventIds);
-  //       if (record) {
-  //         record.event.startDate = record.startDate;
-  //         record.event.endDate = record.endDate;
-  //         records.push(record);
-  //         eventIds.push(record.eventId);
-  //       } else {
-  //         keepRunning = false;
-  //       }
-  //     } catch (ex) {
-  //       keepRunning = false;
-  //     }
-  //   }
-  //   return records;
-  // }
 }

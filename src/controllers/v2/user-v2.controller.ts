@@ -25,6 +25,73 @@ export class UserV2Controller {
     protected orderService: OrderService,
   ) {}
 
+  /* -------------------------------------------------------------------------- */
+  /*                                    FIND                                    */
+  /* -------------------------------------------------------------------------- */
+  @get('/v2/user/order/{id}')
+  @response(200, {
+    description: 'Artist model instance',
+    content: {},
+  })
+  async findUserOrderById(@param.path.string('id') id: string): Promise<any> {
+    return this.orderService.findByOrderByIdV2(id);
+  }
+  @get('/v2/user/check-in/orders')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Artist model instance',
+    content: {},
+  })
+  async findCheckInOrders(): Promise<any> {
+    return this.userService.findCheckInOrders();
+  }
+  @get('/v2/user/check-in/current-order')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Artist model instance',
+    content: {},
+  })
+  async findCheckInOrder(): Promise<any> {
+    return this.userService.findCheckInOngoingOrder();
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   CREATE                                   */
+  /* -------------------------------------------------------------------------- */
+  @post('/v2/user/check-in')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async checkIn(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    //this.orderService.createOrderV2(body);
+    return this.authService.checkInV2({
+      app: 'user',
+      role: 'client',
+      userId: this.currentUser.id,
+      ...body,
+    });
+  }
+  @post('/v2/user/check-out')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async checkOut(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    //this.orderService.createOrderV2(body);
+    return this.authService.checkOutV2({
+      app: 'user',
+      role: 'client',
+      userId: this.currentUser.id,
+    });
+  }
+
   @post('/v2/user/create-order')
   @authenticate('firebase')
   @response(200, {
@@ -41,6 +108,7 @@ export class UserV2Controller {
       body,
     );
   }
+
   @post('/v2/user/create-order-2')
   @authenticate('firebase')
   @response(200, {
@@ -65,15 +133,9 @@ export class UserV2Controller {
     return this.orderService.onOrderPaymentCompleteV2(body);
   }
 
-  @get('/v2/user/order/{id}')
-  @response(200, {
-    description: 'Artist model instance',
-    content: {},
-  })
-  async findById(@param.path.string('id') id: string): Promise<any> {
-    return this.orderService.findByOrderByIdV2(id);
-  }
-
+  /* -------------------------------------------------------------------------- */
+  /*                                   UPDATE                                   */
+  /* -------------------------------------------------------------------------- */
   @post('/v2/user/update-push-token')
   @authenticate('firebase')
   @response(200, {

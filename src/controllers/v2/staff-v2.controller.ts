@@ -3,7 +3,7 @@
 import {authenticate, AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {get, post, requestBody, response} from '@loopback/rest';
+import {get, param, post, requestBody, response} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 import {DevRepository} from '../../repositories';
 import {AuthService, StaffService} from '../../services';
@@ -20,6 +20,24 @@ export class StaffV2Controller {
     protected staffService: StaffService,
   ) {}
 
+  @get('/v2/staff/orders-page')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Activity model instance',
+  })
+  async getOrdersPage(): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
+  Promise<any> {
+    return this.staffService.getStaffOrdersPage();
+  }
+  @get('/v2/staff/order-page/{id}')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Activity model instance',
+  })
+  async getOrderPage(@param.path.string('id') id: string): Promise<any> {
+    return this.staffService.getStaffOrderPage(id);
+  }
+
   @get('/v2/staff/balcony-orders')
   @authenticate('firebase')
   @response(200, {
@@ -30,6 +48,27 @@ export class StaffV2Controller {
     return this.staffService.getBalconyOrders();
   }
 
+  @get('/v2/staff/info')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Activity model instance',
+  })
+  async getCurrentUser(): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
+  Promise<any> {
+    return this.staffService.getActiveStaffInfo();
+  }
+
+  @post('/v2/staff/validate-order')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async validateOrderV2(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.staffService.validateOrderV2(body);
+  }
   @post('/v2/staff/update-stock-status')
   @authenticate('firebase')
   @response(200, {
@@ -51,15 +90,5 @@ export class StaffV2Controller {
     body: any,
   ): Promise<any> {
     return this.staffService.updateOrderStatus(body);
-  }
-
-  @get('/v2/staff/info')
-  @authenticate('firebase')
-  @response(200, {
-    description: 'Activity model instance',
-  })
-  async getCurrentUser(): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
-  Promise<any> {
-    return this.staffService.getActiveStaffInfo();
   }
 }

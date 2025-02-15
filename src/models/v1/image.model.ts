@@ -1,5 +1,5 @@
 import {model, property} from '@loopback/repository';
-import {Base} from './base.model';
+import {Base} from '.';
 
 /*
 [
@@ -49,6 +49,11 @@ export class Image extends Base {
     type: 'string',
   })
   orderId?: string;
+
+  @property({
+    type: 'string',
+  })
+  orderV2Id?: string;
 
   constructor(data?: Partial<Image>) {
     super(data);
