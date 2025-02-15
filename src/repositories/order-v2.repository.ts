@@ -232,8 +232,9 @@ export const OrderV2Queries: any = {
 export const OrderV2Transformers: any = {
   full: (data: any = {}) => {
     const transformer = (item: any = {}) => {
-      const timeline = item?.orderTimelines || [];
       const itemMap: any = {};
+      let timeline = item?.orderTimelines || [];
+      timeline = timeline.slice(1, 6);
 
       for (const i of item.items) {
         if (!itemMap[i.menuProductId]) {
