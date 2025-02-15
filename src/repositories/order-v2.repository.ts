@@ -170,6 +170,7 @@ export const OrderV2Queries: any = {
         relation: 'orderTimelines',
         scope: {
           include: [{relation: 'staff'}],
+          order: ['created_at ASC'],
         },
       },
       {relation: 'userV2'},
