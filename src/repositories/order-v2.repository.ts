@@ -326,7 +326,7 @@ export const OrderV2Transformers: any = {
             orderId: null,
             action: t.action,
             title: t.title,
-            staffId: '6e6fcbef-886c-486e-8e15-f4ac5e234b5c',
+            staffId: t.staff.id || '6e6fcbef-886c-486e-8e15-f4ac5e234b5c',
             orderV2Id: t.orderV2id,
             timelineKey: t.timelineKey,
             staff: {
