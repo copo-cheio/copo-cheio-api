@@ -25,8 +25,8 @@ export class QrFactoryService {
       v4().replace(/\d+/g, '').replace('-g', '') +
       Date.now() +
       '.png';
-    const outputPath = path.join(__dirname, basePath + objectName + '.png');
-    const logoPath = path.join(__dirname, '../../data/logo.png');
+    const outputPath = path.join(__dirname, basePath + objectName);
+    const logoPath = path.join(__dirname, '../../data/logo-100.png');
     try {
       // Generate QR code with logo
       const query: any = {
@@ -43,7 +43,7 @@ export class QrFactoryService {
 
       if (qrRecord) return qrRecord;
       await generateQrWithLogo(
-        typeof data == 'string' ? {data} : data, //JSON.stringify(data),
+        typeof data == 'string' ? JSON.parse(data) : data, //JSON.stringify(data),
         logoPath,
         outputPath,
       );

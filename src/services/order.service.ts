@@ -70,7 +70,6 @@ export class OrderService {
     @inject('services.TransactionService')
     private transactionService: TransactionService,
 
-    @inject('services.QrFactoryService') public qrService: QrFactoryService,
     @inject('services.EncryptionProvider')
     public encriptionService: EncryptionProvider,
   ) {}
@@ -309,7 +308,7 @@ totalPrice : 12.9
       code: code,
       refId: order.orderId || order.id,
     };
-    const qrCode = await this.qrService.generateAndUploadQrCode(
+    const qrCode = await this.qrFactoryService.generateAndUploadQrCode(
       payload,
       order.orderId || order.id,
       'qr code for dev order',
