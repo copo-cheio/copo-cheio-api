@@ -203,10 +203,11 @@ export class EventController {
           },
         ],
       });
-      console.log({record, currentDateTime});
+
       if (record) {
         record.event.startDate = record.startDate;
         record.event.endDate = record.endDate;
+        record.event.now = currentDateTime;
         records.push(record);
         eventIds.push(record.eventId);
       } else {

@@ -28,6 +28,15 @@ export class UserV2Controller {
   /* -------------------------------------------------------------------------- */
   /*                                    FIND                                    */
   /* -------------------------------------------------------------------------- */
+  @get('/v2/user/page/upcoming')
+  @response(200, {
+    description: 'Artist model instance',
+    content: {},
+  })
+  async getPageUpcoming(): Promise<any> {
+    return this.userService.getPageUpcoming();
+  }
+
   @get('/v2/user/order/{id}')
   @response(200, {
     description: 'Artist model instance',

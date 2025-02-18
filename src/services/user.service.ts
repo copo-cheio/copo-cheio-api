@@ -11,6 +11,7 @@ import {
   UserRepository,
 } from '../repositories';
 import {AuthService} from './auth.service';
+import {EventService} from './event.service';
 
 /*
  * Fix the service type. Possible options can be:
@@ -28,6 +29,8 @@ export class UserService {
     protected authService: AuthService,
     @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
     private currentUser: UserProfile, // Inject the current user profile
+    @inject('services.EventService')
+    protected eventService: EventService,
     @repository(StaffRepository) public staffRepository: StaffRepository,
     @repository(TeamRepository) public teamRepository: TeamRepository,
     @repository('DevRepository') public devRepository: DevRepository,
@@ -50,6 +53,64 @@ export class UserService {
     /* const checkIn = await */
   }
 
+  async getPageUpcoming() {
+    const ongoingEvents = await this.eventService.ongoing();
+    const upcomingEvents = await this.eventService.upcomming();
+
+    return [
+      ...ongoingEvents.map((evt: any) => {
+        const instance = {
+          id: evt.id,
+          created_at: evt.created_at,
+          updated_at: evt.updated_at,
+          startDate: evt.startDate,
+          endDate: evt.endDate,
+          latitude: evt.latitude,
+          longitude: evt.longitude,
+          configuration: evt.configuration,
+          eventId: evt.eventId,
+          teamId: evt.teamId,
+        };
+        return {
+          ...evt.event,
+          startDate: evt.startDate,
+          endDate: evt.endDate,
+          instance,
+        };
+      }),
+      ...upcomingEvents
+        .filter(
+          (evt: any) =>
+            ongoingEvents.map(oe => oe.eventId).indexOf(evt.eventId) == -1,
+        )
+        .map((evt: any) => {
+          const instance = {
+            id: evt.id,
+            created_at: evt.created_at,
+            updated_at: evt.updated_at,
+            startDate: evt.startDate,
+            endDate: evt.endDate,
+            latitude: evt.latitude,
+            longitude: evt.longitude,
+            configuration: evt.configuration,
+            eventId: evt.eventId,
+            teamId: evt.teamId,
+          };
+          return {
+            ...evt.event,
+            startDate: evt.startDate,
+            endDate: evt.endDate,
+            instance,
+          };
+        }),
+    ]
+      .sort((evt1: any, evt2: any) =>
+        new Date(evt1.startDate) > new Date(evt2.startDate) ? 1 : -1,
+      )
+      .filter(
+        (obj, index, self) => self.findIndex(o => o.id === obj.id) === index,
+      );
+  }
   /* -------------------------------------------------------------------------- */
   /*                                     V1                                     */
   /* -------------------------------------------------------------------------- */
