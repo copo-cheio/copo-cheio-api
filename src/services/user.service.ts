@@ -2,9 +2,14 @@ import {AuthenticationBindings} from '@loopback/authentication';
 import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {UserProfile} from '@loopback/security';
+import {EventsQuery} from '../blueprints/event.blueprint';
+import {PlacesQuery} from '../blueprints/place.blueprint';
 import {
+  ActivityV2Repository,
   CheckInV2Repository,
   DevRepository,
+  EventRepository,
+  PlaceRepository,
   StaffRepository,
   TeamRepository,
   TeamStaffRepository,
@@ -34,8 +39,12 @@ export class UserService {
     @repository(StaffRepository) public staffRepository: StaffRepository,
     @repository(TeamRepository) public teamRepository: TeamRepository,
     @repository('DevRepository') public devRepository: DevRepository,
+    @repository('PlaceRepository') public placeRepository: PlaceRepository,
+    @repository('EventRepository') public eventRepository: EventRepository,
     @repository('CheckInV2Repository')
     public checkInV2Repository: CheckInV2Repository,
+    @repository('ActivityV2Repository')
+    public activityV2Repository: ActivityV2Repository,
     @repository(TeamStaffRepository)
     public teamStaffRepository: TeamStaffRepository,
   ) {}
@@ -111,6 +120,48 @@ export class UserService {
         (obj, index, self) => self.findIndex(o => o.id === obj.id) === index,
       );
   }
+
+  async getPageActivityPlaces() {
+    const activity = await this.activityV2Repository.findAll({
+      where: {
+        and: [
+          {userId: this.currentUser.id},
+          {action: 'check-in--place'},
+          {app: 'user'},
+        ],
+      },
+    });
+    const places = await this.placeRepository.findAll({
+      ...PlacesQuery,
+      where: {id: {inq: [...new Set(activity.map(a => a.referenceId))]}},
+    });
+
+    return {
+      places,
+      activity,
+    };
+  }
+  async getPageActivityEvents() {
+    const activity = await this.activityV2Repository.findAll({
+      where: {
+        and: [
+          {userId: this.currentUser.id},
+          {action: 'check-in--event'},
+          {app: 'user'},
+        ],
+      },
+    });
+    const events = await this.eventRepository.findAll({
+      ...EventsQuery,
+      where: {id: {inq: [...new Set(activity.map(a => a.referenceId))]}},
+    });
+
+    return {
+      events,
+      activity,
+    };
+  }
+
   /* -------------------------------------------------------------------------- */
   /*                                     V1                                     */
   /* -------------------------------------------------------------------------- */

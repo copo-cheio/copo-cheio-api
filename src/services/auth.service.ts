@@ -2,7 +2,11 @@ import {inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 
 import * as admin from 'firebase-admin';
-import {CheckInV2Repository, PlaceRepository} from '../repositories';
+import {
+  ActivityV2Repository,
+  CheckInV2Repository,
+  PlaceRepository,
+} from '../repositories';
 import {TransactionService} from './transaction.service';
 
 @injectable()
@@ -10,6 +14,8 @@ export class AuthService {
   constructor(
     @repository('CheckInV2Repository')
     public checkInV2Repository: CheckInV2Repository,
+    @repository('ActivityV2Repository')
+    public activityV2Repository: ActivityV2Repository,
     @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
     @inject('services.TransactionService')
@@ -58,10 +64,27 @@ export class AuthService {
         }
         if (reload) {
           differences.expiresAt = expiresAt;
+          this.checkInOutActivityV2(
+            active ? 'in' : 'out',
+            app,
+            userId,
+            placeId,
+            balconyId,
+            placeInstanceId,
+          );
           await this.checkInV2Repository.updateById(checkIn.id, differences);
+
           return this.checkInV2Repository.findById(checkIn.id);
         }
       } else {
+        this.checkInOutActivityV2(
+          active ? 'in' : 'out',
+          app,
+          userId,
+          placeId,
+          balconyId,
+          placeInstanceId,
+        );
         return this.checkInV2Repository.create({
           app,
           role,
@@ -76,6 +99,45 @@ export class AuthService {
         });
       }
     });
+  }
+
+  checkInOutActivityV2(
+    direction: string,
+    app,
+    userId,
+    placeId,
+    balconyId,
+    placeInstanceId,
+  ) {
+    const signature = 'check-' + direction + '--';
+    voidPromiseCall(() =>
+      this.activityV2Repository.create({
+        app,
+        userId,
+        action: signature + 'place',
+        referenceId: placeId,
+      }),
+    );
+    if (placeInstanceId) {
+      voidPromiseCall(() =>
+        this.activityV2Repository.create({
+          app,
+          userId,
+          action: signature + 'place-instance',
+          referenceId: placeInstanceId,
+        }),
+      );
+    }
+    if (app == 'staff') {
+      voidPromiseCall(() =>
+        this.activityV2Repository.create({
+          app,
+          userId,
+          action: signature + 'balcony',
+          referenceId: balconyId,
+        }),
+      );
+    }
   }
 
   async checkInV2(payload: any = {}) {
@@ -143,3 +205,7 @@ export class AuthService {
     }
   }
 }
+
+const voidPromiseCall = (fn: any): void => {
+  fn();
+};

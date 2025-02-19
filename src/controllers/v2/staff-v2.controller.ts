@@ -20,6 +20,25 @@ export class StaffV2Controller {
     protected staffService: StaffService,
   ) {}
 
+  @get('/v2/staff/page/activity/places')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Artist model instance',
+    content: {},
+  })
+  async getPageActivityPlaces(): Promise<any> {
+    return this.staffService.getPageActivityPlaces();
+  }
+  @get('/v2/staff/page/activity/events')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Artist model instance',
+    content: {},
+  })
+  async getPageActivityEvents(): Promise<any> {
+    return this.staffService.getPageActivityEvents();
+  }
+
   @get('/v2/staff/orders-page')
   @authenticate('firebase')
   @response(200, {

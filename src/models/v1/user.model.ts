@@ -1,5 +1,6 @@
 import {hasMany, hasOne, model, property} from '@loopback/repository';
 import {IUser} from 'loopback4-soft-delete';
+import {ActivityV2} from '../activity-v2.model';
 import {CheckInV2} from '../check-in-v2.model';
 import {OrderV2} from '../order-v2.model';
 import {Base} from './base.model';
@@ -72,6 +73,9 @@ export class User extends Base implements IUser {
 
   @hasOne(() => CheckInV2)
   checkInV2: CheckInV2;
+
+  @hasMany(() => ActivityV2)
+  activitiesV2: ActivityV2[];
 
   getIdentifier() {
     return this.id;

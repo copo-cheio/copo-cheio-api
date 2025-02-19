@@ -4,15 +4,20 @@ import {AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {UserProfile} from '@loopback/security';
+import {EventsQuery} from '../blueprints/event.blueprint';
+import {PlacesQuery} from '../blueprints/place.blueprint';
 import {
+  ActivityV2Repository,
   BalconyQueries,
   BalconyRepository,
   BalconyTransformers,
   CheckInV2Repository,
   DevRepository,
+  EventRepository,
   OrderV2Queries,
   OrderV2Repository,
   OrderV2Transformers,
+  PlaceRepository,
   StockRepository,
 } from '../repositories';
 import {AuthService, OrderService, PushNotificationService} from '../services';
@@ -38,6 +43,10 @@ export class StaffService {
     protected orderService: OrderService,
     @inject('services.PushNotificationService')
     private pushNotificationService: PushNotificationService,
+    @repository('ActivityV2Repository')
+    public activityV2Repository: ActivityV2Repository,
+    @repository('PlaceRepository') public placeRepository: PlaceRepository,
+    @repository('EventRepository') public eventRepository: EventRepository,
   ) {
     //  @repository(DevRepository) public devRepository: DevRepository
   }
@@ -64,6 +73,46 @@ export class StaffService {
   /*                                     V2                                     */
   /* -------------------------------------------------------------------------- */
 
+  async getPageActivityPlaces() {
+    const activity = await this.activityV2Repository.findAll({
+      where: {
+        and: [
+          {userId: this.currentUser.id},
+          {action: 'check-in--place'},
+          {app: 'staff'},
+        ],
+      },
+    });
+    const places = await this.placeRepository.findAll({
+      ...PlacesQuery,
+      where: {id: {inq: [...new Set(activity.map(a => a.referenceId))]}},
+    });
+
+    return {
+      places,
+      activity,
+    };
+  }
+  async getPageActivityEvents() {
+    const activity = await this.activityV2Repository.findAll({
+      where: {
+        and: [
+          {userId: this.currentUser.id},
+          {action: 'check-in--event'},
+          {app: 'staff'},
+        ],
+      },
+    });
+    const events = await this.eventRepository.findAll({
+      ...EventsQuery,
+      where: {id: {inq: [...new Set(activity.map(a => a.referenceId))]}},
+    });
+
+    return {
+      events,
+      activity,
+    };
+  }
   /*
   const response: any = {
     success: false,

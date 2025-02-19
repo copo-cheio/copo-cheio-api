@@ -6,6 +6,7 @@ import {
 } from '@loopback/repository';
 import {PostgresSqlDataSource} from '../../datasources';
 import {
+  ActivityV2,
   CheckInV2,
   Favorite,
   OrderV2,
@@ -13,6 +14,7 @@ import {
   User,
   UserRelations,
 } from '../../models';
+import {ActivityV2Repository} from '../activity-v2.repository';
 import {BaseRepository} from '../base.repository.base';
 import {CheckInV2Repository} from '../check-in-v2.repository';
 import {OrderV2Repository} from '../order-v2.repository';
@@ -44,6 +46,11 @@ export class UserRepository extends BaseRepository<
     typeof User.prototype.id
   >;
 
+  public readonly activitiesV2: HasManyRepositoryFactory<
+    ActivityV2,
+    typeof User.prototype.id
+  >;
+
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
     @repository.getter('ShoppingCartRepository')
@@ -54,10 +61,20 @@ export class UserRepository extends BaseRepository<
     protected orderV2RepositoryGetter: Getter<OrderV2Repository>,
     @repository.getter('CheckInV2Repository')
     protected checkInV2RepositoryGetter: Getter<CheckInV2Repository>,
+    @repository.getter('ActivityV2Repository')
+    protected activityV2RepositoryGetter: Getter<ActivityV2Repository>,
     // @inject.getter(AuthenticationBindings.CURRENT_USER, {optional: true})
     // protected readonly getCurrentUser?: Getter<User | undefined>,
   ) {
     super(User, dataSource);
+    this.activitiesV2 = this.createHasManyRepositoryFactoryFor(
+      'activitiesV2',
+      activityV2RepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'activitiesV2',
+      this.activitiesV2.inclusionResolver,
+    );
     this.checkInV2 = this.createHasOneRepositoryFactoryFor(
       'checkInV2',
       checkInV2RepositoryGetter,

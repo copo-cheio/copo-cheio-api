@@ -25,9 +25,6 @@ export class UserV2Controller {
     protected orderService: OrderService,
   ) {}
 
-  /* -------------------------------------------------------------------------- */
-  /*                                    FIND                                    */
-  /* -------------------------------------------------------------------------- */
   @get('/v2/user/page/upcoming')
   @response(200, {
     description: 'Artist model instance',
@@ -37,6 +34,38 @@ export class UserV2Controller {
     return this.userService.getPageUpcoming();
   }
 
+  @get('/v2/user/page/activity/places')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Artist model instance',
+    content: {},
+  })
+  async getPageActivityPlaces(): Promise<any> {
+    return this.userService.getPageActivityPlaces();
+  }
+  @get('/v2/user/page/activity/events')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Artist model instance',
+    content: {},
+  })
+  async getPageActivityEvents(): Promise<any> {
+    return this.userService.getPageActivityEvents();
+  }
+
+  @get('/v2/user/page/activity/orders')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Artist model instance',
+    content: {},
+  })
+  async getPageActivityOrders(): Promise<any> {
+    return this.orderService.findUserOrders();
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                    FIND                                    */
+  /* -------------------------------------------------------------------------- */
   @get('/v2/user/order/{id}')
   @response(200, {
     description: 'Artist model instance',
