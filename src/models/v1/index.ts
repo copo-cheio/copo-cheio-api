@@ -24,12 +24,12 @@ export * from './tag.model';
 export * from './ticket.model';
 export * from './translation.model';
 
+export * from './device-token.model';
 export * from './line-up-artist.model';
 export * from './lineup.model';
+export * from './place-instance.model';
 export * from './place-rule.model';
 export * from './playlist-song.model';
-
-export * from './device-token.model';
 
 export * from './activity.model';
 export * from './cart-item.model';

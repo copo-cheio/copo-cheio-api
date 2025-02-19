@@ -9,13 +9,11 @@ import {
   Where,
 } from '@loopback/repository';
 import {
-  del,
   get,
   getModelSchemaRef,
   param,
   patch,
   post,
-  put,
   requestBody,
   response,
 } from '@loopback/rest';
@@ -28,11 +26,14 @@ import {
   PlaceRepository,
   PlaylistRepository,
 } from '../../repositories';
+import {ManagerService} from '../../services/manager-service.service';
 import {PlaceService} from '../../services/place.service';
 export class PlaceController {
   constructor(
     @inject('services.PlaceService')
     protected placeService: PlaceService,
+    @inject('services.ManagerService')
+    protected managerService: ManagerService,
     @repository(PlaceRepository)
     public placeRepository: PlaceRepository,
     @repository(OpeningHoursRepository)
@@ -126,7 +127,15 @@ export class PlaceController {
       }
 
       const record: any = await this.placeRepository.create(place);
+      const openHourInstances = [];
       for (const openingHour of openingHours || []) {
+        openHourInstances.push({
+          dayofweek: openingHour.dayofweek,
+          openhour: openingHour.openhour,
+          closehour: openingHour.closehour,
+          placeId: record.id,
+          active: openingHour.open || openingHour.active || false,
+        });
         await this.openingHourRepository.create({
           dayofweek: openingHour.dayofweek,
           openhour: openingHour.openhour,
@@ -145,6 +154,10 @@ export class PlaceController {
         refId: record.id,
       };
       await this.contactsRepository.create(placeContactsPayload);
+      await this.placeService.updatePlaceOpeningHours(
+        record.id,
+        openHourInstances,
+      );
       await this.placeService.findOrCreateCheckInQrCode(record.id);
       const result = await this.placeRepository.findById(
         record.id,
@@ -221,7 +234,7 @@ export class PlaceController {
   }
   @get('/places/list/{id}')
   @response(200, {
-    description: 'Place model instance',
+    description: 'List of places where id in []',
     content: {
       'application/json': {
         schema: getModelSchemaRef(Place, {includeRelations: true}),
@@ -272,17 +285,10 @@ export class PlaceController {
     })
     place: any,
   ): Promise<void> {
-    const openingHours: any = place.openingHours;
-    delete place.openingHours;
-    if (Array.isArray(openingHours)) {
-      await this.placeService.updatePlaceOpeningHours(id, openingHours);
-    }
-    const record: any = await this.placeRepository.updateById(id, place);
-    // const record:any = await this.placeRepository.create(place);
-    await this.placeService.findOrCreateCheckInQrCode(id);
-    return record;
+    return this.managerService.updatePlace(id, place);
   }
 
+  /*
   @put('/places/{id}')
   @response(204, {
     description: 'Place PUT success',
@@ -301,4 +307,5 @@ export class PlaceController {
   async deleteById(@param.path.string('id') id: string): Promise<void> {
     await this.placeRepository.deleteById(id);
   }
+    */
 }

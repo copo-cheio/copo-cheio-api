@@ -18,6 +18,7 @@ import {
   Image,
   OpeningHours,
   Place,
+  PlaceInstance,
   PlaceRelations,
   PlaceRule,
   Playlist,
@@ -35,6 +36,8 @@ import {ContactsRepository} from './contacts.repository';
 import {EventRepository} from './event.repository';
 import {ImageRepository} from './image.repository';
 import {OpeningHoursRepository} from './opening-hours.repository';
+
+import {PlaceInstanceRepository} from './place-instance.repository';
 import {PlaceRuleRepository} from './place-rule.repository';
 import {PlaylistRepository} from './playlist.repository';
 import {RuleRepository} from './rule.repository';
@@ -112,6 +115,11 @@ export class PlaceRepository extends SoftCrudRepository<
     CheckInV2,
     typeof Place.prototype.id
   >;
+
+  public readonly instances: HasManyRepositoryFactory<
+    PlaceInstance,
+    typeof Place.prototype.id
+  >;
   // public readonly company: BelongsToAccessor<Company, typeof Place.prototype.id>;
   // public readonly tags: ReferencesManyAccessor<Tag, typeof Artist.prototype.id>;
 
@@ -144,8 +152,18 @@ export class PlaceRepository extends SoftCrudRepository<
     protected teamRepositoryGetter: Getter<TeamRepository>,
     @repository.getter('CheckInV2Repository')
     protected checkInV2RepositoryGetter: Getter<CheckInV2Repository>,
+    @repository.getter('PlaceInstanceRepository')
+    protected placeInstanceRepositoryGetter: Getter<PlaceInstanceRepository>,
   ) {
     super(Place, dataSource);
+    this.instances = this.createHasManyRepositoryFactoryFor(
+      'instances',
+      placeInstanceRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'instances',
+      this.instances.inclusionResolver,
+    );
     this.checkInsV2 = this.createHasManyRepositoryFactoryFor(
       'checkInsV2',
       checkInV2RepositoryGetter,
@@ -301,5 +319,19 @@ export class PlaceRepository extends SoftCrudRepository<
     const params = [time, dayofweek, prevdayofweek, placeId];
 
     return this.dataSource.execute(query, params);
+  }
+
+  async findCurrentInstanceById(id: string) {
+    const placeInstanceRepositoryGetter =
+      await this.placeInstanceRepositoryGetter();
+    const now = new Date().toISOString();
+
+    const instance = await placeInstanceRepositoryGetter.findOne({
+      where: {
+        and: [{placeId: id}, {startDate: {lte: now}}, {endDate: {gte: now}}],
+      },
+    });
+
+    return instance;
   }
 }

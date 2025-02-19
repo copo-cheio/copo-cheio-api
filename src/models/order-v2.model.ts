@@ -14,6 +14,7 @@ import {Place} from './v1/place.model';
 
 import {Image} from './v1/image.model';
 import {OrderTimeline} from './v1/order-timeline.model';
+import {PlaceInstance} from './v1/place-instance.model';
 import {User} from './v1/user.model';
 
 @model()
@@ -65,6 +66,9 @@ export class OrderV2 extends Base {
 
   @hasOne(() => Image, {name: 'qrCode', keyFrom: 'id', keyTo: 'refId'})
   qrCode: Image;
+
+  @belongsTo(() => PlaceInstance)
+  placeInstanceId?: string;
 
   constructor(data?: Partial<OrderV2>) {
     super(data);

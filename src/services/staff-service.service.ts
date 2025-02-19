@@ -102,7 +102,7 @@ export class StaffService {
     const balconyId = checkIn?.balconyId;
     const balconyOrders = await this.balconyRepository.findById(
       balconyId,
-      BalconyQueries.staffOrdersPage,
+      BalconyQueries.staffCheckInOrdersPage(checkIn.placeInstanceId),
     );
     return BalconyTransformers.staffOrdersWithMap(balconyOrders);
   }

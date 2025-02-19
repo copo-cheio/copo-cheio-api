@@ -10,6 +10,7 @@ import {
   OpeningHoursRepository,
   PlaceRepository,
 } from '../repositories';
+import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
 import {QrFactoryService} from './qr-factory.service';
 
 export class PlaceService {
@@ -22,6 +23,8 @@ export class PlaceService {
     public eventRepository: EventRepository,
     @repository('EventInstanceRepository')
     public eventInstanceRepository: EventInstanceRepository,
+    @repository('PlaceInstanceRepository')
+    public placeInstanceRepository: PlaceInstanceRepository,
     @repository('ImageRepository')
     public imageRepository: ImageRepository,
     @repository('OpeningHoursRepository')
@@ -220,8 +223,80 @@ export class PlaceService {
    * @param openingHoursList
    */
   async updatePlaceOpeningHours(placeId: string, openingHoursList: any[]) {
+    // @here
+
+    async function processLoop(
+      finnishDate,
+      startDay,
+      payload,
+      openDurationInMinutes,
+    ) {
+      let count = 0;
+      while (finnishDate > startDay) {
+        console.log(
+          `Iteration ${count}`,
+          finnishDate > startDay,
+          finnishDate,
+          startDay,
+        );
+        count++;
+        if (count > 200) throw new Error('Reached max iterations ');
+        startDay = await createOrUpdatePlaceInstance(
+          payload,
+          startDay,
+          openDurationInMinutes,
+        ); // Waits for the async function to complete before continuing
+      }
+      return true;
+    }
+
+    const createOrUpdatePlaceInstance = async (
+      payload: any,
+      startDay,
+      openDurationInMinutes,
+    ) => {
+      const record = await this.placeInstanceRepository.findOne({
+        where: {
+          and: [
+            {
+              placeId: payload.placeId,
+              date: startDay,
+            },
+          ],
+        },
+      });
+      const startDate = new Date(startDay);
+      startDate.setHours(Number(payload.openhour.split(':')[0]));
+      startDate.setMinutes(Number(payload.openhour.split(':')[1]));
+      const endDate = new Date(startDate);
+      endDate.setMinutes(endDate.getMinutes() + openDurationInMinutes);
+      const placeInstancePayload: any = {
+        dayofweek: payload.dayofweek,
+        placeId: payload.placeId,
+        date: new Date(startDay),
+        active: payload.active,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+      };
+      if (!record) {
+        await this.placeInstanceRepository.create(placeInstancePayload);
+      } else {
+        await this.placeInstanceRepository.updateById(
+          record.id,
+          placeInstancePayload,
+        );
+      }
+      /*    return new Promise(resolve => setTimeout(() => {
+          console.log("Async task done");
+          resolve();
+      }, 1000)); */
+
+      startDay.setDate(startDay.getDate() + 7);
+      return startDay;
+    };
+
     for (const openingHour of openingHoursList) {
-      const record = await this.openingHoursRepository.findOne({
+      let record = await this.openingHoursRepository.findOne({
         where: {
           dayofweek: openingHour.dayofweek,
           placeId,
@@ -235,14 +310,24 @@ export class PlaceService {
         active: !openingHour.open && !openingHour.active ? false : true,
         placeId: placeId,
       };
+      const openDurationInMinutes = this.getOpenDurationInMinutes(
+        payload.openhour,
+        payload.closehour,
+      );
+      const startDay = this.getStartDay(payload.dayofweek);
       if (record) {
         await this.openingHoursRepository.updateById(record.id, payload);
       } else {
-        await this.openingHoursRepository.create(payload);
+        record = await this.openingHoursRepository.create(payload);
       }
+      // Update next 2 years
+      const finnishDate = new Date(startDay);
+      finnishDate.setFullYear(finnishDate.getFullYear() + 2);
+
+      // @ts-ignore
+      processLoop(finnishDate, startDay, payload, openDurationInMinutes);
     }
   }
-
   async getTodayOpeningHours(placeId: string) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -330,5 +415,43 @@ export class PlaceService {
       start: startDate.toISOString(),
       end: endDate.toISOString(),
     };
+  }
+
+  getOpenDurationInMinutes(openhour, closehour) {
+    // Convert HH:mm to minutes since midnight
+    const timeToMinutes = time => {
+      const [hours, minutes] = time.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+
+    const openMinutes = timeToMinutes(openhour);
+    const closeMinutes = timeToMinutes(closehour);
+
+    if (openMinutes === closeMinutes) {
+      return 24 * 60; // 24 hours in minutes
+    } else if (closeMinutes < openMinutes) {
+      return 1440 - openMinutes + closeMinutes; // Minutes until midnight + minutes from midnight
+    } else {
+      return closeMinutes - openMinutes; // Normal case: time difference
+    }
+  }
+
+  getStartDay(dayofweek) {
+    const now = new Date();
+    const todayWeekday = now.getDay(); // Get current day of week (0 = Sunday, 6 = Saturday)
+
+    // Calculate days until the next occurrence of the given dayofweek
+    const daysUntilNext = (dayofweek - todayWeekday + 7) % 7;
+    const nextDate = new Date(now);
+
+    // If it's today, return today at 00:00, otherwise set to the next occurrence
+    if (daysUntilNext === 0) {
+      nextDate.setHours(0, 0, 0, 0);
+    } else {
+      nextDate.setDate(now.getDate() + daysUntilNext);
+      nextDate.setHours(0, 0, 0, 0);
+    }
+
+    return nextDate;
   }
 }

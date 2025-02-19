@@ -25,6 +25,7 @@ import {
   OrderV2Queries,
   OrderV2Repository,
   OrderV2Transformers,
+  PlaceRepository,
   PriceRepository,
 } from '../repositories';
 import {EncryptionProvider} from './encryption.service';
@@ -59,6 +60,8 @@ export class OrderService {
     public devRepository: DevRepository,
     @repository('CheckInV2Repository')
     public checkInV2Repository: CheckInV2Repository,
+    @repository('PlaceRepository')
+    public placeRepository: PlaceRepository,
     @inject('services.PushNotificationService')
     private pushNotificationService: PushNotificationService,
     @inject('services.QrFactoryService')
@@ -155,6 +158,9 @@ totalPrice : 12.9
         price: payload.order.totalPrice,
         currencyId: DEFAULT_MODEL_ID.currencyId,
       });
+      const placeInstance = await this.placeRepository.findCurrentInstanceById(
+        payload.placeId,
+      );
       const orderV2Payload = {
         userId,
         balconyId: payload.balconyId,
@@ -162,7 +168,9 @@ totalPrice : 12.9
         placeId: payload.placeId,
         status,
         priceId: price.id,
+        placeInstanceId: placeInstance?.id,
       };
+
       const orderV2 = await this.orderV2Repository.create(orderV2Payload);
 
       const orderDetailsV2Payload = {

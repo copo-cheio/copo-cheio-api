@@ -7,7 +7,9 @@ import {
   DevRepository,
   MenuProductRepository,
   MenuRepository,
+  PlaceRepository,
 } from '../repositories';
+import {PlaceService} from './place.service';
 import {StockService} from './stock-service.service';
 
 @injectable({scope: BindingScope.TRANSIENT})
@@ -15,6 +17,8 @@ export class ManagerService {
   constructor(
     @inject('services.StockService')
     protected stockService: StockService,
+    @inject('services.PlaceService')
+    protected placeService: PlaceService,
     @repository('MenuProductRepository')
     public menuProductRepository: MenuProductRepository,
     @repository('BalconyRepository')
@@ -23,6 +27,8 @@ export class ManagerService {
     public devRepository: DevRepository,
     @repository('MenuRepository')
     public menuRepository: MenuRepository,
+    @repository('PlaceRepository')
+    public placeRepository: PlaceRepository,
   ) {}
 
   /**
@@ -37,6 +43,9 @@ export class ManagerService {
    * 3. Ruptura / actualização de stock
    */
 
+  /* -------------------------------------------------------------------------- */
+  /*                              MANAGER APP PAGES                             */
+  /* -------------------------------------------------------------------------- */
   async getHomePage() {
     const now = Date.now();
     const balconyOrders = await this.devRepository.findAll({
@@ -62,27 +71,22 @@ export class ManagerService {
     return {totalRevenue, orders: revenue.length};
   }
 
-  async addOrUpdateMenuProduct(menuId, productId, priceId, thumbnailId) {
-    const record = await this.menuProductRepository.findOne({
-      where: {
-        and: [{menuId}, {productId}],
-      },
-    });
-
-    if (record) {
-      await this.menuProductRepository.updateById(record.id, {
-        priceId,
-        thumbnailId,
-      });
-    } else {
-      await this.menuProductRepository.create({
-        menuId,
-        productId,
-        priceId,
-        thumbnailId,
-      });
-      await this.stockService.updateBalconyStockRequirementsByMenu(menuId);
+  /* -------------------------------------------------------------------------- */
+  /*                               MANAGER ROUTES                               */
+  /* -------------------------------------------------------------------------- */
+  async createPlace(payload: any = {}) {
+    //...
+  }
+  async updatePlace(id: string, place: any = {}) {
+    const openingHours: any = place.openingHours;
+    delete place.openingHours;
+    if (Array.isArray(openingHours)) {
+      await this.placeService.updatePlaceOpeningHours(id, openingHours);
     }
+    const record: any = await this.placeRepository.updateById(id, place);
+    // const record:any = await this.placeRepository.create(place);
+    await this.placeService.findOrCreateCheckInQrCode(id);
+    return record;
   }
 
   async updateBalcony(id, payload: any = {}) {
@@ -120,5 +124,32 @@ export class ManagerService {
       balconies.push(balcony);
     }
     return balconyId ? balconies[0] : balconies;
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   HELPERS                                  */
+  /* -------------------------------------------------------------------------- */
+
+  async addOrUpdateMenuProduct(menuId, productId, priceId, thumbnailId) {
+    const record = await this.menuProductRepository.findOne({
+      where: {
+        and: [{menuId}, {productId}],
+      },
+    });
+
+    if (record) {
+      await this.menuProductRepository.updateById(record.id, {
+        priceId,
+        thumbnailId,
+      });
+    } else {
+      await this.menuProductRepository.create({
+        menuId,
+        productId,
+        priceId,
+        thumbnailId,
+      });
+      await this.stockService.updateBalconyStockRequirementsByMenu(menuId);
+    }
   }
 }

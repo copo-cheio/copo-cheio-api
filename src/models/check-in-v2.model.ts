@@ -3,6 +3,7 @@ import {OrderV2} from './order-v2.model';
 import {Balcony} from './v1/balcony.model';
 import {Base} from './v1/base.model';
 import {Event} from './v1/event.model';
+import {PlaceInstance} from './v1/place-instance.model';
 import {Place} from './v1/place.model';
 import {User} from './v1/user.model';
 
@@ -64,6 +65,9 @@ export class CheckInV2 extends Base {
 
   @belongsTo(() => OrderV2)
   orderV2Id: string;
+
+  @belongsTo(() => PlaceInstance)
+  placeInstanceId: string;
 
   constructor(data?: Partial<CheckInV2>) {
     super(data);

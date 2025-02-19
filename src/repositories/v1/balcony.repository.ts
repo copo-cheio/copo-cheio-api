@@ -138,6 +138,24 @@ export const BalconyQueries: any = {
       },
     ],
   },
+  staffCheckInOrdersPage(placeInstanceId) {
+    return {
+      include: [
+        {
+          relation: 'ordersV2',
+          scope: {
+            ...OrderV2Queries.full,
+            where: {
+              ...OrderV2Queries.full.where,
+              placeInstanceId: placeInstanceId,
+              status: {inq: ORDER_BALCONY_STATUS},
+              created_at: {gt: new Date(Date.now() - 24 * 60 * 60 * 1000)},
+            },
+          },
+        },
+      ],
+    };
+  },
 };
 
 export const BalconyTransformers: any = {

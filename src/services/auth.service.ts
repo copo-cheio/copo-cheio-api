@@ -2,7 +2,7 @@ import {inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 
 import * as admin from 'firebase-admin';
-import {CheckInV2Repository} from '../repositories';
+import {CheckInV2Repository, PlaceRepository} from '../repositories';
 import {TransactionService} from './transaction.service';
 
 @injectable()
@@ -10,6 +10,8 @@ export class AuthService {
   constructor(
     @repository('CheckInV2Repository')
     public checkInV2Repository: CheckInV2Repository,
+    @repository('PlaceRepository')
+    public placeRepository: PlaceRepository,
     @inject('services.TransactionService')
     private transactionService: TransactionService,
   ) {}
@@ -34,7 +36,9 @@ export class AuthService {
       const checkIn: any = await this.checkInV2Repository.findOne({
         where: {and: [{userId}, {app}]},
       });
-
+      const placeInstance =
+        await this.placeRepository.findCurrentInstanceById(placeId);
+      const placeInstanceId = placeInstance?.id;
       if (checkIn?.id) {
         let reload = false;
         const differences: any = {
@@ -44,6 +48,7 @@ export class AuthService {
           type,
           balconyId,
           eventId,
+          placeInstanceId,
         };
         for (const key of Object.keys(differences)) {
           if (differences[key] !== checkIn[key]) {
@@ -67,6 +72,7 @@ export class AuthService {
           userId,
           active,
           expiresAt,
+          placeInstanceId,
         });
       }
     });

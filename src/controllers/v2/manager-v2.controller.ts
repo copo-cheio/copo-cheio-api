@@ -22,50 +22,9 @@ export class ManagerV2Controller {
     public managerService: ManagerService,
   ) {}
 
-  @get('/v2/manager/balconies/stocks')
-  @response(200, {
-    description: 'Array of available models',
-  })
-  async getBalconiesWithStock() {
-    return this.managerService.findBalconyStocks();
-  }
-
-  @post('/v2/manager/balconies')
-  @response(200, {
-    description: 'Array of available models',
-  })
-  async updateStockStatus(
-    @requestBody({})
-    body: any,
-  ): Promise<any> {
-    return this.managerService.createBalcony(body);
-  }
-
-  @patch('/v2/manager/balconies/{id}')
-  @response(204, {
-    description: 'Balcony PATCH success',
-  })
-  async updateById(
-    @param.path.string('id') id: string,
-    @requestBody({})
-    body: any,
-  ): Promise<void> {
-    await this.managerService.updateBalcony(id, body);
-  }
-
-  @get('/v2/manager/menus')
-  @response(200, {
-    description: 'Balcony PATCH success',
-  })
-  async getManagerMenus(): Promise<any> {
-    try {
-      const menus = await this.managerService.findMenus();
-      return menus || [];
-    } catch (ex) {
-      console.warn(ex);
-      return [];
-    }
-  }
+  /* -------------------------------------------------------------------------- */
+  /*                                    PAGES                                   */
+  /* -------------------------------------------------------------------------- */
   @get('/v2/manager/home')
   @response(200, {
     description: 'Balcony PATCH success',
@@ -78,5 +37,71 @@ export class ManagerV2Controller {
       console.warn(ex);
       return [];
     }
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                     GET                                    */
+  /* -------------------------------------------------------------------------- */
+  @get('/v2/manager/menus')
+  @response(200, {
+    description: 'Manager menu list',
+  })
+  async getManagerMenus(): Promise<any> {
+    try {
+      const menus = await this.managerService.findMenus();
+      return menus || [];
+    } catch (ex) {
+      console.warn(ex);
+      return [];
+    }
+  }
+
+  @get('/v2/manager/balconies/stocks')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async getBalconiesWithStock() {
+    return this.managerService.findBalconyStocks();
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   CREATE                                   */
+  /* -------------------------------------------------------------------------- */
+
+  @post('/v2/manager/balconies')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async createBalcony(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.createBalcony(body);
+  }
+  @post('/v2/manager/place')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async createPlace(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.createPlace(body);
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   UPDATE                                   */
+  /* -------------------------------------------------------------------------- */
+
+  @patch('/v2/manager/balconies/{id}')
+  @response(204, {
+    description: 'Balcony PATCH success',
+  })
+  async updateBalconyById(
+    @param.path.string('id') id: string,
+    @requestBody({})
+    body: any,
+  ): Promise<void> {
+    await this.managerService.updateBalcony(id, body);
   }
 }

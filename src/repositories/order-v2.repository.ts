@@ -16,6 +16,7 @@ import {
   OrderV2,
   OrderV2Relations,
   Place,
+  PlaceInstance,
   Price,
   User,
 } from '../models';
@@ -34,6 +35,7 @@ import {EventRepository} from './v1/event.repository';
 
 import {ImageRepository} from '.';
 import {OrderTimelineRepository} from './v1/order-timeline.repository';
+import {PlaceInstanceRepository} from './v1/place-instance.repository';
 import {PlaceRepository} from './v1/place.repository';
 import {PriceRepository} from './v1/price.repository';
 import {UserRepository} from './v1/user.repository';
@@ -78,6 +80,11 @@ export class OrderV2Repository extends BaseRepository<
     typeof OrderV2.prototype.id
   >;
 
+  public readonly placeInstance: BelongsToAccessor<
+    PlaceInstance,
+    typeof OrderV2.prototype.id
+  >;
+
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
     @repository.getter('BalconyRepository')
@@ -98,8 +105,18 @@ export class OrderV2Repository extends BaseRepository<
     protected orderTimelineRepositoryGetter: Getter<OrderTimelineRepository>,
     @repository.getter('ImageRepository')
     protected imageRepositoryGetter: Getter<ImageRepository>,
+    @repository.getter('PlaceInstanceRepository')
+    protected placeInstanceRepositoryGetter: Getter<PlaceInstanceRepository>,
   ) {
     super(OrderV2, dataSource);
+    this.placeInstance = this.createBelongsToAccessorFor(
+      'placeInstance',
+      placeInstanceRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'placeInstance',
+      this.placeInstance.inclusionResolver,
+    );
     this.qrCode = this.createHasOneRepositoryFactoryFor(
       'qrCode',
       imageRepositoryGetter,

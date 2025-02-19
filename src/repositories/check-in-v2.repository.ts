@@ -8,6 +8,7 @@ import {
   Event,
   OrderV2,
   Place,
+  PlaceInstance,
   User,
 } from '../models';
 import {BaseRepository} from './base.repository.base';
@@ -18,6 +19,7 @@ import {
 } from './order-v2.repository';
 import {BalconyRepository} from './v1/balcony.repository';
 import {EventRepository} from './v1/event.repository';
+import {PlaceInstanceRepository} from './v1/place-instance.repository';
 import {PlaceRepository} from './v1/place.repository';
 import {UserRepository} from './v1/user.repository';
 
@@ -48,6 +50,11 @@ export class CheckInV2Repository extends BaseRepository<
     typeof CheckInV2.prototype.id
   >;
 
+  public readonly placeInstance: BelongsToAccessor<
+    PlaceInstance,
+    typeof CheckInV2.prototype.id
+  >;
+
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
     @repository.getter('UserRepository')
@@ -60,8 +67,18 @@ export class CheckInV2Repository extends BaseRepository<
     protected placeRepositoryGetter: Getter<PlaceRepository>,
     @repository.getter('OrderV2Repository')
     protected orderV2RepositoryGetter: Getter<OrderV2Repository>,
+    @repository.getter('PlaceInstanceRepository')
+    protected placeInstanceRepositoryGetter: Getter<PlaceInstanceRepository>,
   ) {
     super(CheckInV2, dataSource);
+    this.placeInstance = this.createBelongsToAccessorFor(
+      'placeInstance',
+      placeInstanceRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'placeInstance',
+      this.placeInstance.inclusionResolver,
+    );
     this.orderV2 = this.createBelongsToAccessorFor(
       'orderV2',
       orderV2RepositoryGetter,
