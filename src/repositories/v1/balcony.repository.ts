@@ -132,6 +132,7 @@ export const BalconyQueries: any = {
           where: {
             ...OrderV2Queries.full.where,
             status: {inq: ORDER_BALCONY_STATUS},
+            created_at: {gt: new Date(Date.now() - 24 * 60 * 60 * 1000)},
           },
         },
       },
@@ -162,6 +163,14 @@ export const BalconyTransformers: any = {
         data.orderMap[status].push(order);
       }
     }
+    data.orderMap.COMPLETE = data.orderMap.COMPLETE || [];
+    data.orderMap.COMPLETE = data.orderMap.COMPLETE.sort((a, b) =>
+      new Date(a.updated_at) > new Date(b.updated_at) ? -1 : 1,
+    );
+    data.orderMap.READY = data.orderMap.COMPLETE || [];
+    data.orderMap.READY = data.orderMap.COMPLETE.sort((a, b) =>
+      new Date(a.updated_at) > new Date(b.updated_at) ? -1 : 1,
+    );
 
     return data;
   },

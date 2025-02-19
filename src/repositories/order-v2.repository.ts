@@ -316,6 +316,7 @@ export const OrderV2Transformers: any = {
         id: item.id,
         orderId: item.id,
         created_at: item.created_at,
+        updated_at: item.updated_at,
         items: Object.values(itemMap),
         itemMap,
         qr: item?.qrCode?.url,
