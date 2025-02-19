@@ -116,8 +116,8 @@ export class UserV2Controller {
   ): Promise<any> {
     //this.orderService.createOrderV2(body);
     return this.authService.checkInV2({
-      app: 'user',
-      role: 'client',
+      /* app: 'user',
+      role: 'client', */
       userId: this.currentUser.id,
       ...body,
     });
@@ -133,9 +133,10 @@ export class UserV2Controller {
   ): Promise<any> {
     //this.orderService.createOrderV2(body);
     return this.authService.checkOutV2({
-      app: 'user',
-      role: 'client',
+      /*    app: 'user',
+      role: 'client', */
       userId: this.currentUser.id,
+      ...body,
     });
   }
 

@@ -12,7 +12,7 @@ const ACTIONS: any = {
   'sign-in': 'signIn',
   'check-in': 'checkIn',
   'sign-out': 'signOut',
-  'check-out': 'checkIn',
+  'check-out': 'checkOut',
   'create-user-order': 'createUserOrder',
   'user-order': 'getUserOrder',
   'user-orders': 'onGetUserOrders',

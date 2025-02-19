@@ -11,7 +11,11 @@ import {
 } from '../../blueprints/place.blueprint';
 import {PostgresSqlDataSource} from '../../datasources';
 import {Dev, DevRelations} from '../../models';
-import {EncryptionProvider, QrFactoryService} from '../../services';
+import {
+  AuthService,
+  EncryptionProvider,
+  QrFactoryService,
+} from '../../services';
 import {createTimeline} from '../../services/dev/dev.utils';
 import {PushNotificationService} from '../../services/push-notification.service';
 
@@ -19,6 +23,7 @@ import {BaseRepository} from '../base.repository.base';
 import {MenuRepository} from './menu.repository';
 import {OrderRepository} from './order.repository';
 
+import {CheckInV2Repository} from '../check-in-v2.repository';
 import {BalconyRepository} from './balcony.repository';
 import {PlaceRepository} from './place.repository';
 import {StockRepository} from './stock.repository';
@@ -56,8 +61,13 @@ export class DevRepository extends BaseRepository<
     private getOrderRepository: Getter<OrderRepository>,
     @repository.getter('StockRepository')
     private getStockRepository: Getter<StockRepository>,
+    @repository.getter('CheckInV2Repository')
+    private getCheckInV2Repository: Getter<CheckInV2Repository>,
     @inject('services.PushNotificationService')
     private pushNotificationService: PushNotificationService,
+    @inject('services.AuthService')
+    private authService: AuthService,
+
     @inject('services.EncryptionProvider')
     public encriptionService: EncryptionProvider,
     @inject('services.QrFactoryService') public qrService: QrFactoryService,
@@ -626,14 +636,28 @@ export class DevRepository extends BaseRepository<
   }
 
   async checkOut(app: any, refId: any, data: any) {
+    const action = app == 'staff' ? 'findStaffCheckIn' : 'findUserCheckIn';
+    const checkInV2Repository = await this.getCheckInV2Repository();
+    const checkIn = await checkInV2Repository[action](refId);
+    return this.authService.checkInOutV2(
+      false,
+      refId,
+      app,
+      'place',
+      checkIn?.role,
+      checkIn?.expiresAt,
+      checkIn?.placeId,
+      checkIn?.balconyId,
+      checkIn?.eventId,
+    );
     // Is signed up?
 
-    const record = await this.findByAction(app, refId, 'check-in');
+    /*     const record = await this.findByAction(app, refId, 'check-in');
     await this.updateById(record.id, {
       ...record,
       data: {...record.data, active: false},
     });
-    return {success: true};
+    return {success: true}; */
   }
 
   async signIn(app: any, refId: any, data: any) {
