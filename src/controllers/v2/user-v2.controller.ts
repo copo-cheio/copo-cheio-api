@@ -45,6 +45,15 @@ export class UserV2Controller {
   async findUserOrderById(@param.path.string('id') id: string): Promise<any> {
     return this.orderService.findByOrderByIdV2(id);
   }
+  @get('/v2/user/orders')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Artist model instance',
+    content: {},
+  })
+  async findUserOrders(): Promise<any> {
+    return this.orderService.findUserOrders();
+  }
   @get('/v2/user/check-in/orders')
   @authenticate('firebase')
   @response(200, {

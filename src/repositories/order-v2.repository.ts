@@ -34,6 +34,7 @@ import {BalconyRepository} from './v1/balcony.repository';
 import {EventRepository} from './v1/event.repository';
 
 import {ImageRepository} from '.';
+import {IncludePlaceRelation} from '../blueprints/shared/place.include';
 import {OrderTimelineRepository} from './v1/order-timeline.repository';
 import {PlaceInstanceRepository} from './v1/place-instance.repository';
 import {PlaceRepository} from './v1/place.repository';
@@ -180,6 +181,7 @@ export const OrderV2Queries: any = {
     order: ['created_at ASC'],
     include: [
       IncludeBalconyRelation,
+      IncludePlaceRelation,
       IncludePriceRelation,
       {relation: 'user'},
       {relation: 'qrCode'},
@@ -334,9 +336,11 @@ export const OrderV2Transformers: any = {
         orderId: item.id,
         created_at: item.created_at,
         updated_at: item.updated_at,
+        placeInstanceId: item?.placeInstanceId,
         items: Object.values(itemMap),
         itemMap,
         qr: item?.qrCode?.url,
+        place: item?.place,
         timeline: timeline.map((t: any) => {
           return {
             id: t.id,

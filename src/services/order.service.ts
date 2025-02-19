@@ -334,6 +334,15 @@ totalPrice : 12.9
     return OrderV2Transformers.full(order);
   }
 
+  async findUserOrders() {
+    const orders = await this.orderV2Repository.findAll({
+      ...OrderV2Queries.full,
+      where: {...OrderV2Queries.full.where, userId: this.currentUser.id},
+    });
+
+    return OrderV2Transformers.full(orders);
+  }
+
   async notifyBalconyStaffV2(
     balconyId: string,
     action: string,

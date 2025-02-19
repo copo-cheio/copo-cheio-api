@@ -109,7 +109,10 @@ export class CheckInV2Repository extends BaseRepository<
   async findUserCheckWithInOrder(userId) {
     const checkIn = await this.findUserCheckIn(userId);
     if (checkIn && checkIn?.orderV2Id) {
-      const response = await this.findById(checkIn.id, CheckInV2Queries.order);
+      const response = await this.findById(
+        checkIn.id,
+        CheckInV2Queries.userOnCheckInOrder(checkIn.placeInstanceId),
+      );
       return CheckInV2Transformers.order(response);
     }
     return checkIn;
@@ -126,6 +129,19 @@ export class CheckInV2Repository extends BaseRepository<
 export const CheckInV2Queries: any = {
   order: {
     include: [{relation: 'orderV2', scope: OrderV2Queries.full}],
+  },
+  userOnCheckInOrder(placeInstanceId: string) {
+    return {
+      include: [
+        {
+          relation: 'orderV2',
+          scope: {
+            ...OrderV2Queries.full,
+            where: {...OrderV2Queries.where, placeInstanceId},
+          },
+        },
+      ],
+    };
   },
 };
 
