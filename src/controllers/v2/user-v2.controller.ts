@@ -140,6 +140,24 @@ export class UserV2Controller {
     });
   }
 
+  @post('/v2/user/check-in/verify')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Verify if is checked in',
+  })
+  async verifyCheckIn(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    //this.orderService.createOrderV2(body);
+    return this.authService.verifyCheckIn({
+      /*    app: 'user',
+      role: 'client', */
+      userId: this.currentUser.id,
+      ...body,
+    });
+  }
+
   @post('/v2/user/create-order')
   @authenticate('firebase')
   @response(200, {

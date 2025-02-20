@@ -173,6 +173,14 @@ export class AuthService {
     );
   }
 
+  async verifyCheckIn(body: {userId: string; app: string}) {
+    const action: any =
+      body.app == 'user' ? 'findUserCheckIn' : 'findStaffCheckIn';
+
+    const result = await this.checkInV2Repository[action](body.userId);
+    return result;
+  }
+
   /* -------------------------------------------------------------------------- */
   /*                                     V1                                     */
   /* -------------------------------------------------------------------------- */
