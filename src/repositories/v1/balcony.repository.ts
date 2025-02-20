@@ -185,8 +185,8 @@ export const BalconyTransformers: any = {
     data.orderMap.COMPLETE.sort((a, b) =>
       new Date(a.updated_at) > new Date(b.updated_at) ? -1 : 1,
     );
-    data.orderMap.READY = data.orderMap.COMPLETE || [];
-    data.orderMap.COMPLETE.sort((a, b) =>
+    data.orderMap.READY = data.orderMap.READy || [];
+    data.orderMap.READY.sort((a, b) =>
       new Date(a.updated_at) > new Date(b.updated_at) ? -1 : 1,
     );
 
