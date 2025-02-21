@@ -21,6 +21,7 @@ import {EventService} from './event.service';
 /*
  * Fix the service type. Possible options can be:
  * - import {User} from 'your-module';
+import { checkIn } from '../../../cc-refactor/copo-cheio-modules/src/lib/containers/Policies/CheckInApi';
  * - export type User = string;
  * - export interface User {}
  */
@@ -276,6 +277,8 @@ export class UserService {
       balconyId: user.checkIn.balconyId,
       placeId: user.checkIn.placeId,
       role: user.checkIn.role,
+      orderV2Id: user.checkIn.orderV2Id,
+      placeInstanceId: user.checkIn.placeInstanceId,
     };
   }
   async getUserDetails() {
@@ -284,13 +287,17 @@ export class UserService {
     if (!user) {
       throw new Error('User not authenticated');
     }
-
-    const checkIn = await this.devRepository.findByAction(
+    const checkIn = await this.checkInV2Repository.findOne({
+      where: {
+        and: [{app: 'user', userId: user.id, active: true}],
+      },
+    });
+    /*  const checkIn = await this.devRepository.findByAction(
       'user',
       'check-in',
       user.uid,
-    );
+    ); */
 
-    return {user, checkIn: checkIn.data}; // This contains details like id, name, roles, etc.
+    return {user, checkIn: checkIn}; // This contains details like id, name, roles, etc.
   }
 }

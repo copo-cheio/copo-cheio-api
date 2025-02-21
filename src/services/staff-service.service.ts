@@ -153,7 +153,10 @@ export class StaffService {
       balconyId,
       BalconyQueries.staffCheckInOrdersPage(checkIn.placeInstanceId),
     );
-    return BalconyTransformers.staffOrdersWithMap(balconyOrders);
+    return BalconyTransformers.staffOrdersWithMap(
+      balconyOrders,
+      this.currentUser.id,
+    );
   }
   async getStaffOrderPage(id: string) {
     const order = await this.orderV2Repository.findById(
@@ -269,7 +272,7 @@ export class StaffService {
   async getBalconyOrders() {
     const staff = await this.getActiveStaffInfo();
     const timeSpan = await this.getSessionTimeSpan(staff.placeId);
-    console.log({staff, timeSpan});
+
     const balconyOrdersRecord = await this.devRepository.findOne({
       where: {
         and: [{app: 'staff', refId: staff.balconyId, action: 'balcony-orders'}],
@@ -335,6 +338,7 @@ export class StaffService {
       balconyId: staff.checkIn.balconyId,
       placeId: staff.checkIn.placeId,
       role: staff.checkIn.role,
+      placeInstanceId: staff.checkIn.placeInstanceId,
     };
   }
   async getUserDetails() {
@@ -344,12 +348,17 @@ export class StaffService {
       throw new Error('User not authenticated');
     }
 
-    const checkIn = await this.devRepository.findByAction(
+    const checkIn = await this.checkInV2Repository.findOne({
+      where: {
+        and: [{app: 'staff', userId: user.id, active: true}],
+      },
+    });
+    /*   const checkIn = await this.devRepository.findByAction(
       'staff',
       'check-in',
       user.uid,
-    );
+    ); */
 
-    return {user, checkIn: checkIn.data}; // This contains details like id, name, roles, etc.
+    return {user, checkIn}; // This contains details like id, name, roles, etc.
   }
 }

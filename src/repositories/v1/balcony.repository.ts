@@ -168,7 +168,7 @@ export const BalconyTransformers: any = {
     };
     return Array.isArray(data) ? data.map(transformer) : transformer(data);
   },
-  staffOrdersWithMap(data: any = {}) {
+  staffOrdersWithMap(data: any = {}, userId: string) {
     data = BalconyTransformers.staffOrdersPage(data);
     data.orderMap = {};
     for (const status of ORDER_BALCONY_STATUS) {
@@ -178,6 +178,10 @@ export const BalconyTransformers: any = {
     for (const order of data.orders) {
       const status = order.status;
       if (data.orderMap[status]) {
+        const timeline = order?.timeline || [];
+        const isMine = timeline.find((t: any) => t.staffId == userId);
+        order.isMine = isMine ? true : false;
+
         data.orderMap[status].push(order);
       }
     }
