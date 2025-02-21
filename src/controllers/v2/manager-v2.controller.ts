@@ -55,6 +55,19 @@ export class ManagerV2Controller {
       return [];
     }
   }
+  @get('/v2/manager/orders')
+  @response(200, {
+    description: 'Manager menu list',
+  })
+  async getManagerOrders(): Promise<any> {
+    try {
+      const orders: any = await this.managerService.findOrders();
+      return orders || [];
+    } catch (ex) {
+      console.warn(ex);
+      return [];
+    }
+  }
 
   @get('/v2/manager/balconies/stocks')
   @response(200, {

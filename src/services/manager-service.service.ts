@@ -2,11 +2,13 @@ import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
 import {MenuFullQuery} from '../blueprints/menu.blueprint';
+import {QueryFilterBaseBlueprint} from '../blueprints/shared/query-filter.interface';
 import {
   BalconyRepository,
   DevRepository,
   MenuProductRepository,
   MenuRepository,
+  OrderV2Repository,
   PlaceRepository,
 } from '../repositories';
 import {PlaceService} from './place.service';
@@ -29,6 +31,8 @@ export class ManagerService {
     public menuRepository: MenuRepository,
     @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
+    @repository('OrderV2Repository')
+    public orderV2Repository: OrderV2Repository,
   ) {}
 
   /**
@@ -71,6 +75,23 @@ export class ManagerService {
     return {totalRevenue, orders: revenue.length};
   }
 
+  async findOrders() {
+    return this.orderV2Repository.findAll({
+      ...QueryFilterBaseBlueprint,
+      where: {
+        ...QueryFilterBaseBlueprint.where,
+        status: {neq: 'WAITING_PAYMENT'},
+      },
+      limit: 100,
+      order: ['created_at DESC'],
+      include: [
+        {
+          relation: 'details',
+        },
+        {relation: 'place'},
+      ],
+    });
+  }
   /* -------------------------------------------------------------------------- */
   /*                               MANAGER ROUTES                               */
   /* -------------------------------------------------------------------------- */
