@@ -6,19 +6,25 @@ import {QueryFilterBaseBlueprint} from '../blueprints/shared/query-filter.interf
 import {
   BalconyRepository,
   DevRepository,
+  IngredientRepository,
   MenuProductRepository,
   MenuRepository,
   OrderV2Repository,
   PlaceRepository,
+  ProductRepository,
 } from '../repositories';
 import {PlaceService} from './place.service';
+import {ProductService} from './product.service';
 import {StockService} from './stock-service.service';
+import {TransactionService} from './transaction.service';
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class ManagerService {
   constructor(
     @inject('services.StockService')
     protected stockService: StockService,
+    @inject('services.ProductService')
+    protected productService: ProductService,
     @inject('services.PlaceService')
     protected placeService: PlaceService,
     @repository('MenuProductRepository')
@@ -33,6 +39,13 @@ export class ManagerService {
     public placeRepository: PlaceRepository,
     @repository('OrderV2Repository')
     public orderV2Repository: OrderV2Repository,
+
+    @repository('ProductRepository')
+    public productRepository: ProductRepository | any,
+    @repository('IngredientRepository')
+    public ingredientRepository: IngredientRepository | any,
+    @inject('services.TransactionService')
+    private transactionService: TransactionService,
   ) {}
 
   /**
@@ -95,6 +108,47 @@ export class ManagerService {
   /* -------------------------------------------------------------------------- */
   /*                               MANAGER ROUTES                               */
   /* -------------------------------------------------------------------------- */
+  async createProduct(payload: any = {}) {
+    const {name, description, thumbnailId, tagIds} = payload;
+    const {ingredientIds, optionIngredientIds} = payload;
+    return this.transactionService.execute(async tx => {
+      const parseProductIngredient = (ingredientId: any) => {
+        return {
+          id: ingredientId,
+        };
+      };
+      const product = await this.productService.create({
+        name,
+        description,
+        thumbnailId,
+        tagIds,
+        ingredients: ingredientIds.map(parseProductIngredient),
+        options: optionIngredientIds.map(parseProductIngredient),
+      });
+      return product;
+    });
+  }
+  async updateProductById(id, payload: any = {}) {
+    const {name, description, thumbnailId, tagIds} = payload;
+    const {ingredientIds, optionIngredientIds} = payload;
+    return this.transactionService.execute(async tx => {
+      const parseProductIngredient = (ingredientId: any) => {
+        return {
+          id: ingredientId,
+        };
+      };
+      const product = await this.productService.updateProduct(id, {
+        name,
+        description,
+        thumbnailId,
+        tagIds,
+        ingredients: ingredientIds.map(parseProductIngredient),
+        options: optionIngredientIds.map(parseProductIngredient),
+      });
+      return product;
+    });
+  }
+
   async createPlace(payload: any = {}) {
     //...
   }

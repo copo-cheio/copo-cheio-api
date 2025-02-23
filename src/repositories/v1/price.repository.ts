@@ -33,7 +33,7 @@ export class PriceRepository extends SoftCrudRepository<
   async updateOrCreateById(id: string, payload: any = {}, options: any = {}) {
     let record: any;
     payload = {
-      price: payload.price || '0,00',
+      price: payload.price || '0.00',
       currencyId: payload.currencyId || DEFAULT_MODEL_ID.currencyId,
     };
     if (id && validateUuid(id, '').valid) {

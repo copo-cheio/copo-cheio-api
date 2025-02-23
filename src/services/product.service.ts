@@ -3,6 +3,7 @@ import {repository} from '@loopback/repository';
 import {DEFAULT_MODEL_ID} from '../constants';
 import {Product} from '../models';
 import {
+  IngredientRepository,
   PriceRepository,
   ProductIngredientRepository,
   ProductOptionRepository,
@@ -29,6 +30,8 @@ export class ProductService {
     public productOptionRepository: ProductOptionRepository,
     @repository('ProductIngredientRepository')
     public productIngredientRepository: ProductIngredientRepository,
+    @repository('IngredientRepository')
+    public ingredientRepository: IngredientRepository,
     @repository('PriceRepository')
     public priceRepository: PriceRepository,
   ) {}
@@ -81,8 +84,55 @@ export class ProductService {
     payload: any = {},
     transaction: any,
   ) {
-    const optionsPayload = payload.options || [];
     const productOptionIds: any[] = [];
+    let optionsPayload: any = payload.options || [];
+    if (optionsPayload.length > 0) {
+      if (!optionsPayload[0]?.ingredientId) {
+        const newOptionsPayload: any = [];
+        for (const op of optionsPayload) {
+          let record: any = await this.productOptionRepository.findOne({
+            where: {
+              and: [{productId}, {ingredientId: op.id}, {deleted: false}],
+            },
+            include: [{relation: 'price'}],
+          });
+          if (!record) {
+            const price = await this.priceRepository.updateOrCreateById(
+              undefined,
+              {},
+              transaction,
+            );
+            console.log({price});
+            const ingredient: any = await this.ingredientRepository.findById(
+              op.id,
+              {include: [{relation: 'tags'}]},
+            );
+            const group = (ingredient?.tags || []).find(
+              (tag: any) => tag.type == 'ingredient-category',
+            )?.name;
+
+            record = await this.productOptionRepository.create({
+              productId,
+              ingredientId: ingredient.id,
+              group,
+              priceId: price.id,
+            });
+            record = await this.productOptionRepository.findOne({
+              where: {
+                and: [{productId}, {ingredientId: op.id}, {deleted: false}],
+              },
+              include: [{relation: 'price'}],
+            });
+            /* option.ingredientId = ingredient.id;
+            option.group = group;
+            ingredientId = ingredient.id; */
+          }
+          newOptionsPayload.push(record);
+        }
+        optionsPayload = [...newOptionsPayload];
+      }
+    }
+    console.log({optionsPayload});
     for (const option of optionsPayload) {
       const price = await this.priceRepository.updateOrCreateById(
         option?.price?.id,
@@ -93,9 +143,12 @@ export class ProductService {
       const ingredientId = option.ingredientId;
       const group = option.group;
 
-      const productOption =
+      let productOption: any = await this.productOptionRepository.findOne({
+        where: {and: [{productId}, {ingredientId}, {deleted: false}]},
+      });
+      if (productOption) {
         await this.productOptionRepository.updateOrCreateById(
-          option.id,
+          productOption.id,
           {
             productId,
             priceId,
@@ -105,6 +158,18 @@ export class ProductService {
           },
           transaction,
         );
+      } else {
+        productOption = await this.productOptionRepository.create(
+          {
+            productId,
+            priceId,
+            ingredientId,
+            includedByDefault: option.includedByDefault || false,
+            group,
+          },
+          transaction,
+        );
+      }
 
       productOptionIds.push(productOption.id);
     }
@@ -119,7 +184,6 @@ export class ProductService {
     const productIngredientIds: any = [];
     const productIngredients: any = payload.ingredients || [];
     for (const productIngredient of productIngredients) {
-      console.log({productIngredient});
       let record;
       if (productIngredient.ingredientId) {
         record = await this.productIngredientRepository.updateOrCreateById(
@@ -128,11 +192,23 @@ export class ProductService {
           transaction,
         );
       } else {
-        record = await this.productIngredientRepository.create(
-          {productId, ingredientId: productIngredient.id},
-          transaction,
-        );
+        record = await this.productIngredientRepository.findOne({
+          where: {
+            and: [
+              {productId},
+              {deleted: false},
+              {ingredientId: productIngredient.id},
+            ],
+          },
+        });
+        if (!record) {
+          record = await this.productIngredientRepository.create(
+            {productId, ingredientId: productIngredient.id},
+            transaction,
+          );
+        }
       }
+
       productIngredientIds.push(record.id);
     }
 

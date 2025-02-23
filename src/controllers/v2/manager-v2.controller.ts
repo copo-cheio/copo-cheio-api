@@ -2,18 +2,15 @@
 
 import {AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
-import {repository} from '@loopback/repository';
 import {get, param, patch, post, requestBody, response} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 
-import {DevRepository} from '../../repositories';
 import {AuthService, ManagerService} from '../../services';
 
 // import {inject} from '@loopback/core';
 
 export class ManagerV2Controller {
   constructor(
-    @repository('DevRepository') public devRepository: DevRepository | any,
     @inject('services.AuthService')
     protected authService: AuthService,
     @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
@@ -81,6 +78,16 @@ export class ManagerV2Controller {
   /*                                   CREATE                                   */
   /* -------------------------------------------------------------------------- */
 
+  @post('/v2/manager/products')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async createProduct(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.createProduct(body);
+  }
   @post('/v2/manager/balconies')
   @response(200, {
     description: 'Array of available models',
@@ -116,5 +123,17 @@ export class ManagerV2Controller {
     body: any,
   ): Promise<void> {
     await this.managerService.updateBalcony(id, body);
+  }
+
+  @patch('/v2/manager/products/{id}')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async updateProductById(
+    @param.path.string('id') id: string,
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.updateProductById(id, body);
   }
 }
