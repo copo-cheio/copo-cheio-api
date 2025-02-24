@@ -35,4 +35,8 @@ export class TagRepository extends SoftCrudRepository<
       this.translation.inclusionResolver,
     );
   }
+
+  async getDistinctTagTypes() {
+    return this.dataSource.execute('SELECT DISTINCT type FROM Tag');
+  }
 }

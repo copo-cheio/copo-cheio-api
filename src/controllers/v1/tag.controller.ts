@@ -13,7 +13,6 @@ import {
   param,
   patch,
   post,
-  put,
   requestBody,
   response,
 } from '@loopback/rest';
@@ -90,6 +89,58 @@ export class TagController {
     }
     console.log({status});
     return status;
+  }
+
+  @patch('/v2/manager/tags/{id}')
+  @response(200, {
+    description: 'Tag model instance',
+    content: {'application/json': {schema: getModelSchemaRef(Tag)}},
+  })
+  async updateTagV2(
+    @requestBody({
+      content: {},
+    })
+    payload: any,
+  ): Promise<any> {
+    const status = this.parseSinglePayload(payload);
+    const {tag, translation} = status;
+    if (tag.update) await this.tagRepository.updateById(tag.id, tag.payload);
+    if (translation.update)
+      await this.translationRepository.updateById(
+        translation.id,
+        translation.payload,
+      );
+
+    return {tag, translation};
+  }
+
+  @post('/v2/manager/tags')
+  @response(200, {
+    description: 'Tag model instance',
+    content: {'application/json': {schema: getModelSchemaRef(Tag)}},
+  })
+  async createTagV2(
+    @requestBody({
+      content: {},
+    })
+    payload: any,
+  ): Promise<Tag> {
+    const status = this.parseSinglePayload(payload);
+    const {tag, translation} = status;
+
+    if (!tag.create || !translation.create) {
+      throw status;
+    }
+    tag.payload.name = replaceAll(translation.payload.en, ' ', '-');
+    const translationRecord = await this.translationRepository.create(
+      translation.payload,
+    );
+    const tagRecord = await this.tagRepository.create({
+      ...tag.payload,
+      translationId: translationRecord.id,
+    });
+
+    return tagRecord;
   }
 
   @post('/create/tag')
@@ -175,6 +226,14 @@ export class TagController {
     return this.tagRepository.count(where);
   }
 
+  @get('/tags/type')
+  @response(200, {
+    description: 'List of distinct tag types',
+  })
+  async getDistinctTagTypes(): Promise<any> {
+    return this.tagRepository.getDistinctTagTypes();
+  }
+
   @get('/tags')
   @response(200, {
     description: 'Array of Tag model instances',
@@ -210,7 +269,7 @@ export class TagController {
     return this.tagRepository.find(TagQueryFull);
   }
 
-  @patch('/tags')
+  /*   @patch('/tags')
   @response(200, {
     description: 'Tag PATCH success count',
     content: {'application/json': {schema: CountSchema}},
@@ -229,7 +288,7 @@ export class TagController {
   ): Promise<Count> {
     return this.tagRepository.updateAll(tag, where);
   }
-
+ */
   @get('/tags/{id}')
   @response(200, {
     description: 'Tag model instance',
@@ -244,6 +303,26 @@ export class TagController {
     @param.filter(Tag, {exclude: 'where'}) filter?: FilterExcludingWhere<Tag>,
   ): Promise<Tag> {
     return this.tagRepository.findById(id, filter);
+  }
+
+  @get('/tags/{id}/full')
+  @response(200, {
+    description: 'Tag model instance',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(Tag, {includeRelations: true}),
+      },
+    },
+  })
+  async findByIdFull(
+    @param.path.string('id') id: string,
+    @param.filter(Tag, {exclude: 'where'}) filter?: Filter<Tag>,
+  ): Promise<Tag> {
+    const query = {...TagQueryFull};
+    if (filter?.where) {
+      query.where = filter.where;
+    }
+    return this.tagRepository.findById(id, query);
   }
 
   @patch('/tags/{id}')
@@ -264,7 +343,7 @@ export class TagController {
   ): Promise<void> {
     await this.tagRepository.updateById(id, tag);
   }
-
+  /*
   @put('/tags/{id}')
   @response(204, {
     description: 'Tag PUT success',
@@ -283,7 +362,7 @@ export class TagController {
   async deleteById(@param.path.string('id') id: string): Promise<void> {
     await this.tagRepository.deleteById(id);
   }
-
+ */
   /* ********************************** */
   /*              HELPER                */
   /* ********************************** */
