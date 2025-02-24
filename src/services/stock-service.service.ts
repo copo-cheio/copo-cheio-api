@@ -244,4 +244,50 @@ export class StockService {
     balcony.inStock = inStock;
     return balcony;
   }
+
+  async getManagerStockStatusOverview() {
+    const balconies = await this.balconyRepository.findAll();
+    const stocks = await this.stockRepository.findAll({
+      where: {balconyId: {inq: balconies.map((b: any) => b.id)}},
+    });
+
+    const totalStocks = stocks.length;
+    let missingStocks = 0;
+    const affectedBalconies = [];
+    const affectedPlaces = [];
+    const totalIngredients = [];
+    const missingIngredients = [];
+    for (const stock of stocks) {
+      const {status, ingredientId, balconyId} = stock;
+      if (totalIngredients.indexOf(ingredientId) == -1)
+        totalIngredients.push(ingredientId);
+      if (status == 'OUT_OF_STOCK') {
+        missingStocks += 1;
+        if (missingIngredients.indexOf(ingredientId) == -1)
+          missingIngredients.push(ingredientId);
+        if (affectedBalconies.indexOf(balconyId) == -1) {
+          const placeId = balconies.find(
+            (b: any = {}) => b.id == balconyId,
+          )?.placeId;
+
+          affectedBalconies.push(balconyId);
+          if (placeId && affectedPlaces.indexOf(placeId) == -1) {
+            affectedPlaces.push(placeId);
+          }
+        }
+      }
+    }
+    return {
+      total: totalStocks,
+      missingTotal: missingStocks,
+      affectedBalconies: affectedBalconies.length,
+      affectedPlaces: affectedPlaces.length,
+      totalBalconies: balconies.length,
+      totalPlaces: [
+        ...new Set(balconies.map((b: any) => b.placeId).filter(id => id)),
+      ].length,
+      totalIngredients: totalIngredients.length,
+      missingIngredients: missingIngredients.length,
+    };
+  }
 }

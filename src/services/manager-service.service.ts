@@ -64,8 +64,53 @@ export class ManagerService {
   /*                              MANAGER APP PAGES                             */
   /* -------------------------------------------------------------------------- */
   async getHomePage() {
-    const now = Date.now();
-    const balconyOrders = await this.devRepository.findAll({
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    const places =
+      await this.placeService.getManagerPlacesWhichAreOrWillOpenToday();
+    const orders = await this.findOrders({
+      limit: 100000,
+      where: {created_at: {gte: oneDayAgo.toISOString()}},
+    });
+    const totalRevenue = orders.reduce(
+      (a: any, b: any) => a + parseFloat(b.details?.totalPrice),
+      0,
+    );
+
+    const averagePrice =
+      orders.length > 0
+        ? (parseFloat(totalRevenue) / parseFloat('' + orders.length)).toFixed(2)
+        : '0.00';
+
+    const stockStatus = await this.stockService.getManagerStockStatusOverview();
+    return {
+      count: {
+        orders: {
+          profit: totalRevenue,
+          total: orders.length,
+          average: averagePrice,
+        },
+        places: {
+          ongoing: places.ongoing.length,
+          today: places.today.length,
+          total: places.total,
+          full: {ongoing: places.ongoingFull, upcoming: places.upcomingFull},
+        },
+        stocks: {
+          total: stockStatus.total,
+          missing: stockStatus.missingTotal,
+          affectedBalconies: stockStatus.affectedBalconies,
+          affectedPlaces: stockStatus.affectedPlaces,
+          totalBalconies: stockStatus.totalBalconies,
+          totalPlaces: stockStatus.totalPlaces,
+          totalIngredients: stockStatus.totalIngredients,
+          missingIngredients: stockStatus.missingIngredients,
+        },
+      },
+      totalRevenue,
+      orders: orders.length,
+    };
+    /* const balconyOrders = await this.devRepository.findAll({
       where: {and: [{app: 'staff', action: 'balcony-orders'}]},
     });
     const balconyOrdersData = balconyOrders.map(
@@ -84,18 +129,20 @@ export class ManagerService {
       item => new Date(item.created_at) < oneDayAgo,
     );
     const totalRevenue = filtered.reduce((a, b) => a + b.price, 0);
-
-    return {totalRevenue, orders: revenue.length};
+ */
   }
 
-  async findOrders() {
-    return this.orderV2Repository.findAll({
+  async findOrders(filters: any = {}) {
+    const where: any = {
+      ...QueryFilterBaseBlueprint.where,
+      status: {neq: 'WAITING_PAYMENT'},
+      ...(filters?.where || {}),
+    };
+
+    const query: any = {
       ...QueryFilterBaseBlueprint,
-      where: {
-        ...QueryFilterBaseBlueprint.where,
-        status: {neq: 'WAITING_PAYMENT'},
-      },
-      limit: 100,
+      where,
+      limit: filters?.limit || 100,
       order: ['created_at DESC'],
       include: [
         {
@@ -103,7 +150,8 @@ export class ManagerService {
         },
         {relation: 'place'},
       ],
-    });
+    };
+    return this.orderV2Repository.findAll(query);
   }
   /* -------------------------------------------------------------------------- */
   /*                               MANAGER ROUTES                               */
