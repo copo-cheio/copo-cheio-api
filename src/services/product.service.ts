@@ -132,7 +132,7 @@ export class ProductService {
         optionsPayload = [...newOptionsPayload];
       }
     }
-    console.log({optionsPayload});
+
     for (const option of optionsPayload) {
       const price = await this.priceRepository.updateOrCreateById(
         option?.price?.id,

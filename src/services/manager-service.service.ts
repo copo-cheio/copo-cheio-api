@@ -3,6 +3,7 @@ import {repository} from '@loopback/repository';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
 import {MenuFullQuery} from '../blueprints/menu.blueprint';
 import {QueryFilterBaseBlueprint} from '../blueprints/shared/query-filter.interface';
+import {DEFAULT_MODEL_ID} from '../constants';
 import {
   BalconyRepository,
   DevRepository,
@@ -11,6 +12,8 @@ import {
   MenuRepository,
   OrderV2Repository,
   PlaceRepository,
+  PriceRepository,
+  ProductOptionRepository,
   ProductRepository,
 } from '../repositories';
 import {PlaceService} from './place.service';
@@ -37,11 +40,15 @@ export class ManagerService {
     public menuRepository: MenuRepository,
     @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
+    @repository('PriceRepository')
+    public priceRepository: PriceRepository,
     @repository('OrderV2Repository')
     public orderV2Repository: OrderV2Repository,
 
     @repository('ProductRepository')
     public productRepository: ProductRepository | any,
+    @repository('ProductOptionRepository')
+    public productOptionRepository: ProductOptionRepository | any,
     @repository('IngredientRepository')
     public ingredientRepository: IngredientRepository | any,
     @inject('services.TransactionService')
@@ -110,26 +117,6 @@ export class ManagerService {
       totalRevenue,
       orders: orders.length,
     };
-    /* const balconyOrders = await this.devRepository.findAll({
-      where: {and: [{app: 'staff', action: 'balcony-orders'}]},
-    });
-    const balconyOrdersData = balconyOrders.map(
-      (balconyOrder: any) => balconyOrder.data,
-    );
-    const revenue = balconyOrdersData.flat().map(b => {
-      return {
-        created_at: b.created_at,
-        price: b?.order?.totalPrice || b?.data?.order?.totalPrice,
-      };
-    });
-    const oneDayAgo = new Date();
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-
-    const filtered = revenue.filter(
-      item => new Date(item.created_at) < oneDayAgo,
-    );
-    const totalRevenue = filtered.reduce((a, b) => a + b.price, 0);
- */
   }
 
   async findOrders(filters: any = {}) {
@@ -197,6 +184,64 @@ export class ManagerService {
     });
   }
 
+  async createMenuProduct(payload: any) {
+    const price = await this.priceRepository.create({
+      price: payload.price,
+      currencyId: DEFAULT_MODEL_ID.currencyId,
+    });
+
+    for (const option of payload.options) {
+      const productOption = await this.productOptionRepository.findById(
+        option.id,
+      );
+      await this.priceRepository.updateById(productOption.priceId, {
+        price: option.price.price,
+      });
+      await this.productOptionRepository.updateById(productOption.id, {
+        ...productOption,
+        includedByDefault: option.includedByDefault,
+      });
+    }
+    const menuProduct = await this.addOrUpdateMenuProduct(
+      payload.menuId,
+      payload.productId,
+      price.id,
+      payload.thumbnailId,
+    );
+
+    return menuProduct;
+  }
+  async updateMenuProduct(id: string, payload: any) {
+    let menuProduct = await this.menuProductRepository.findById(id);
+    if (menuProduct && payload.price) {
+      await this.priceRepository.updateById(menuProduct.priceId, {
+        price: payload.price,
+        currencyId: DEFAULT_MODEL_ID.currencyId,
+      });
+    }
+
+    for (const option of payload.options) {
+      const productOption = await this.productOptionRepository.findById(
+        option.id,
+      );
+      await this.priceRepository.updateById(productOption.priceId, {
+        price: option.price.price,
+      });
+      await this.productOptionRepository.updateById(productOption.id, {
+        ...productOption,
+        includedByDefault: option.includedByDefault,
+      });
+    }
+    menuProduct = await this.addOrUpdateMenuProduct(
+      menuProduct.menuId,
+      menuProduct.productId,
+      menuProduct.priceId,
+      payload.thumbnailId || menuProduct.thumbnailId,
+    );
+
+    return menuProduct;
+  }
+
   async createPlace(payload: any = {}) {
     //...
   }
@@ -254,7 +299,7 @@ export class ManagerService {
   /* -------------------------------------------------------------------------- */
 
   async addOrUpdateMenuProduct(menuId, productId, priceId, thumbnailId) {
-    const record = await this.menuProductRepository.findOne({
+    let record = await this.menuProductRepository.findOne({
       where: {
         and: [{menuId}, {productId}],
       },
@@ -274,5 +319,11 @@ export class ManagerService {
       });
       await this.stockService.updateBalconyStockRequirementsByMenu(menuId);
     }
+    record = await this.menuProductRepository.findOne({
+      where: {
+        and: [{menuId}, {productId}],
+      },
+    });
+    return record;
   }
 }
