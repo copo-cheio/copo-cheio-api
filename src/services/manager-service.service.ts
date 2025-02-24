@@ -16,6 +16,7 @@ import {
   ProductOptionRepository,
   ProductRepository,
 } from '../repositories';
+import {EventService} from './event.service';
 import {PlaceService} from './place.service';
 import {ProductService} from './product.service';
 import {StockService} from './stock-service.service';
@@ -30,6 +31,8 @@ export class ManagerService {
     protected productService: ProductService,
     @inject('services.PlaceService')
     protected placeService: PlaceService,
+    @inject('services.EventService')
+    protected eventService: EventService,
     @repository('MenuProductRepository')
     public menuProductRepository: MenuProductRepository,
     @repository('BalconyRepository')
@@ -75,6 +78,8 @@ export class ManagerService {
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
     const places =
       await this.placeService.getManagerPlacesWhichAreOrWillOpenToday();
+    const events =
+      await this.eventService.getManagerEventsWhichAreOrWillOpenToday();
     const orders = await this.findOrders({
       limit: 100000,
       where: {created_at: {gte: oneDayAgo.toISOString()}},
@@ -98,10 +103,12 @@ export class ManagerService {
           average: averagePrice,
         },
         places: {
-          ongoing: places.ongoing.length,
-          today: places.today.length,
-          total: places.total,
+          ...places,
           full: {ongoing: places.ongoingFull, upcoming: places.upcomingFull},
+        },
+        events: {
+          ...events,
+          full: {ongoing: events.ongoingFull, upcoming: events.upcomingFull},
         },
         stocks: {
           total: stockStatus.total,

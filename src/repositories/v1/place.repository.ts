@@ -324,7 +324,7 @@ export class PlaceRepository extends SoftCrudRepository<
   async findCurrentInstanceById(id: string) {
     const placeInstanceRepositoryGetter =
       await this.placeInstanceRepositoryGetter();
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const instance = await placeInstanceRepositoryGetter.findOne({
       where: {

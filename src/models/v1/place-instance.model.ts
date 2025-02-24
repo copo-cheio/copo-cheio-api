@@ -15,19 +15,19 @@ export class PlaceInstance extends Base {
     type: 'date',
     required: true,
   })
-  date: string;
+  date: Date;
 
   @property({
     type: 'date',
     required: true,
   })
-  startDate: string;
+  startDate: Date;
 
   @property({
     type: 'date',
     required: true,
   })
-  endDate: string;
+  endDate: Date;
 
   @property({
     type: 'boolean',

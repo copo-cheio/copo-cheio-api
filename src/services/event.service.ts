@@ -483,4 +483,47 @@ ORDER BY eventid,startdate ASC;
       },
     );
   }
+
+  async getManagerEventsWhichAreOrWillOpenToday() {
+    const now = new Date().toISOString(); // Get current date in ISO format
+
+    let ongoing = [];
+    let ongoingInstancesIds = [];
+    const events = await this.eventRepository.findAll();
+    const ongoingInstances = await this.eventInstanceRepository.findAll({
+      where: {
+        and: [
+          {eventId: {inq: events.map((p: any) => p.id)}},
+          {startDate: {lte: now}}, // PlaceInstance.date >= now
+          {endDate: {gte: now}}, // PlaceInstance.endDate <= now
+          {deleted: false},
+        ],
+      },
+    });
+
+    ongoing = ongoingInstances; //.filter((place: any) => place?.instances?.[0]);
+    ongoingInstancesIds = [...ongoing.map((place: any) => place.id)];
+
+    let upcoming = [];
+
+    const upcomingTodayInstances = await this.eventInstanceRepository.findAll({
+      where: {
+        and: [
+          {id: {nin: ongoingInstancesIds}},
+          {startDate: {gte: now}}, // PlaceInstance.date >= now
+          {endDate: {lte: now}}, // PlaceInstance.endDate <= now
+          {deleted: false},
+        ],
+      },
+    });
+    upcoming = upcomingTodayInstances;
+
+    return {
+      ongoing: ongoing.length,
+      today: upcoming.length,
+      total: ongoingInstances.length + upcomingTodayInstances.length,
+      ongoingFull: ongoing,
+      upcomingFull: upcoming,
+    };
+  }
 }

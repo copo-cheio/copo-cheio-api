@@ -84,7 +84,7 @@ export class PlaceService {
         ],
       },
     });
-    // let eventId = "7b8ae7e3-37b0-4c19-b1ab-476426afc730";
+    // let eventId = '7b8ae7e3-37b0-4c19-b1ab-476426afc730';
     let event: any = {};
     if (instance?.eventId) {
       event = await this.eventRepository.findById(
@@ -287,7 +287,7 @@ export class PlaceService {
         );
       }
       /*    return new Promise(resolve => setTimeout(() => {
-          console.log("Async task done");
+          console.log('Async task done');
           resolve();
       }, 1000)); */
 
@@ -460,58 +460,40 @@ export class PlaceService {
 
     let ongoing = [];
     let ongoingInstancesIds = [];
-    const ongoingInstances = await this.placeRepository.findAll({
-      include: [
-        {
-          relation: 'instances', // Ensure this matches the relation name in Place model
-          scope: {
-            limit: 1,
-            where: {
-              and: [
-                {active: true},
-                {startDate: {gte: now}}, // PlaceInstance.date >= now
-                {endDate: {lte: now}}, // PlaceInstance.endDate <= now
-                {deleted: false},
-              ],
-            },
-          },
-        },
-      ],
+    const places = await this.placeRepository.findAll();
+    const ongoingInstances = await this.placeInstanceRepository.findAll({
+      where: {
+        and: [
+          {placeId: {inq: places.map((p: any) => p.id)}},
+          {startDate: {lte: now}}, // PlaceInstance.date >= now
+          {endDate: {gte: now}}, // PlaceInstance.endDate <= now
+          {deleted: false},
+        ],
+      },
     });
-    ongoing = ongoingInstances.filter((place: any) => place?.instances?.[0]);
-    ongoingInstancesIds = [
-      ...ongoing.map((place: any) => place.instances[0].id),
-    ];
+
+    ongoing = ongoingInstances; //.filter((place: any) => place?.instances?.[0]);
+    ongoingInstancesIds = [...ongoing.map((place: any) => place.id)];
 
     let upcoming = [];
-    const upcomingTodayInstances = await this.placeRepository.findAll({
-      include: [
-        {
-          relation: 'instances', // Ensure this matches the relation name in Place model
-          scope: {
-            limit: 1,
-            where: {
-              and: [
-                {id: {nin: ongoingInstancesIds}},
-                {active: true},
-                {date: {lte: now}}, // PlaceInstance.date >= now
-                {startDate: {gte: now}}, // PlaceInstance.endDate <= now
-                {deleted: false},
-              ],
-            },
-          },
-        },
-      ],
+
+    const upcomingTodayInstances = await this.placeInstanceRepository.findAll({
+      where: {
+        and: [
+          {id: {nin: ongoingInstancesIds}},
+          {startDate: {gte: now}}, // PlaceInstance.date >= now
+          {endDate: {lte: now}}, // PlaceInstance.endDate <= now
+          {deleted: false},
+        ],
+      },
     });
-    upcoming = upcomingTodayInstances.filter(
-      (place: any) => place?.instances?.[0],
-    );
+    upcoming = upcomingTodayInstances;
 
     return {
-      ongoing: ongoing,
-      today: upcoming,
+      ongoing: ongoing.length,
+      today: upcoming.length,
       total: ongoingInstances.length + upcomingTodayInstances.length,
-      ongoingFull: ongoingInstancesIds,
+      ongoingFull: ongoing,
       upcomingFull: upcoming,
     };
   }
