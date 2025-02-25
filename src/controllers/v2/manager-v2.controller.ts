@@ -119,6 +119,17 @@ export class ManagerV2Controller {
     return this.managerService.createMenuProduct(body);
   }
 
+  @post('/v2/manager/company')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async createCompany(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.createCompany(body);
+  }
+
   /* -------------------------------------------------------------------------- */
   /*                                   UPDATE                                   */
   /* -------------------------------------------------------------------------- */
@@ -157,5 +168,16 @@ export class ManagerV2Controller {
     body: any,
   ): Promise<any> {
     return this.managerService.updateMenuProduct(id, body);
+  }
+  @patch('/v2/manager/company/{id}')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async updateCompany(
+    @param.path.string('id') id: string,
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.updateCompany(id, body);
   }
 }

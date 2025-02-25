@@ -6,6 +6,8 @@ import {QueryFilterBaseBlueprint} from '../blueprints/shared/query-filter.interf
 import {DEFAULT_MODEL_ID} from '../constants';
 import {
   BalconyRepository,
+  CompanyRepository,
+  ContactsRepository,
   DevRepository,
   IngredientRepository,
   MenuProductRepository,
@@ -47,6 +49,10 @@ export class ManagerService {
     public priceRepository: PriceRepository,
     @repository('OrderV2Repository')
     public orderV2Repository: OrderV2Repository,
+    @repository('CompanyRepository')
+    public companyRepository: CompanyRepository,
+    @repository('ContactsRepository')
+    public contactRepository: ContactsRepository,
 
     @repository('ProductRepository')
     public productRepository: ProductRepository | any,
@@ -150,6 +156,95 @@ export class ManagerService {
   /* -------------------------------------------------------------------------- */
   /*                               MANAGER ROUTES                               */
   /* -------------------------------------------------------------------------- */
+  async createCompany(payload: any = {}) {
+    const {name, description, coverId} = payload;
+    const {
+      email,
+      phone,
+      website,
+      social_facebook,
+      social_instagram,
+      social_threads,
+    } = payload.contacts || {};
+
+    return this.transactionService.execute(async tx => {
+      const company = await this.companyRepository.create({
+        name,
+        description,
+        coverId,
+      });
+      const contacts = await this.contactRepository.create({
+        refId: company.id,
+        email,
+        phone,
+        website,
+        social_facebook,
+        social_instagram,
+        social_threads,
+      });
+
+      return {...company, contacts};
+    });
+  }
+  async updateCompany(id, payload: any = {}) {
+    const {name, description, coverId} = payload;
+    const {
+      email,
+      phone,
+      website,
+      social_facebook,
+      social_instagram,
+      social_threads,
+    } = payload.contacts || {};
+
+    return this.transactionService.execute(async tx => {
+      let company = await this.companyRepository.findById(id);
+      let contacts = await this.contactRepository.findOne({
+        where: {and: [{refId: id}, {deleted: false}]},
+      });
+      const companyPayload: any = {};
+      for (const key of Object.keys({name, description, coverId})) {
+        const value = payload?.[key];
+        if (!value) continue;
+        if (company[key] !== value) {
+          companyPayload[key] = value;
+        }
+      }
+
+      if (Object.keys(companyPayload).length > 0) {
+        await this.companyRepository.updateById(id, companyPayload);
+        company = await this.companyRepository.findById(id);
+      }
+
+      if (!contacts) {
+        return company;
+      }
+
+      const contactsPayload: any = {};
+      for (const key of Object.keys({
+        email,
+        phone,
+        website,
+        social_facebook,
+        social_instagram,
+        social_threads,
+      })) {
+        const value = payload?.contacts?.[key];
+        if (!value) continue;
+        if (contacts?.[key] !== value) {
+          contactsPayload[key] = value;
+        }
+      }
+
+      if (Object.keys(contactsPayload).length > 0) {
+        await this.contactRepository.updateById(contacts.id, contactsPayload);
+        contacts = await this.contactRepository.findById(contacts.id);
+      }
+
+      return {...company, contacts};
+    });
+  }
+
   async createProduct(payload: any = {}) {
     const {name, description, thumbnailId, tagIds} = payload;
     const {ingredientIds, optionIngredientIds} = payload;
