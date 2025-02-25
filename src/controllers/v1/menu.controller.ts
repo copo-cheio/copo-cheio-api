@@ -13,11 +13,11 @@ import {
   param,
   patch,
   post,
-  put,
   requestBody,
   response,
 } from '@loopback/rest';
 import {MenuFullQuery} from '../../blueprints/menu.blueprint';
+import {DEFAULT_MODEL_ID} from '../../constants';
 import {Menu} from '../../models';
 import {MenuRepository} from '../../repositories';
 
@@ -72,7 +72,7 @@ export class MenuController {
   async find(@param.filter(Menu) filter?: Filter<Menu>): Promise<Menu[]> {
     return this.menuRepository.find(filter);
   }
-
+  /*
   @patch('/menus')
   @response(200, {
     description: 'Menu PATCH success count',
@@ -90,7 +90,7 @@ export class MenuController {
     @param.where(Menu) where?: Where<Menu>,
   ): Promise<Count> {
     return this.menuRepository.updateAll(menu, where);
-  }
+  } */
 
   @get('/menus/{id}')
   @response(200, {
@@ -138,10 +138,13 @@ export class MenuController {
     })
     menu: Menu,
   ): Promise<void> {
+    if (id == DEFAULT_MODEL_ID.menu) {
+      throw new Error('unauthorized');
+    }
     await this.menuRepository.updateById(id, menu);
   }
 
-  @put('/menus/{id}')
+  /*   @put('/menus/{id}')
   @response(204, {
     description: 'Menu PUT success',
   })
@@ -151,7 +154,7 @@ export class MenuController {
   ): Promise<void> {
     await this.menuRepository.replaceById(id, menu);
   }
-
+ */
   @del('/menus/{id}')
   @response(204, {
     description: 'Menu DELETE success',
