@@ -134,7 +134,7 @@ ORDER BY eventid,startdate ASC;
     // return await this.queryLoop(callbackFn);
   }
   async ongoing() {
-    const currentDateTime = new Date().toISOString();
+    const currentDateTime = new Date(); //.toISOString();
     const callbackFn = (eventIds: any = []) =>
       this.eventInstanceRepository.findOne({
         where: {
@@ -274,7 +274,7 @@ ORDER BY eventid,startdate ASC;
             },
             {
               startDate: {
-                gte: event.startDate.toISOString(),
+                gte: event.startDate, //.toISOString(),
               },
             },
             {
@@ -485,7 +485,7 @@ ORDER BY eventid,startdate ASC;
   }
 
   async getManagerEventsWhichAreOrWillOpenToday() {
-    const now = new Date().toISOString(); // Get current date in ISO format
+    const now = new Date(); //.toISOString(); // Get current date in ISO format
 
     let ongoing = [];
     let ongoingInstancesIds = [];

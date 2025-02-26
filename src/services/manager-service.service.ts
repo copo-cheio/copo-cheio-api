@@ -9,6 +9,7 @@ import {
   CompanyRepository,
   ContactsRepository,
   DevRepository,
+  EventInstanceRepository,
   IngredientRepository,
   MenuProductRepository,
   MenuRepository,
@@ -18,6 +19,7 @@ import {
   ProductOptionRepository,
   ProductRepository,
 } from '../repositories';
+import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
 import {EventService} from './event.service';
 import {PlaceService} from './place.service';
 import {ProductService} from './product.service';
@@ -45,6 +47,10 @@ export class ManagerService {
     public menuRepository: MenuRepository,
     @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
+    @repository('PlaceInstanceRepository')
+    public placeInstanceRepository: PlaceInstanceRepository,
+    @repository('EventInstanceRepository')
+    public eventInstanceRepository: EventInstanceRepository,
     @repository('PriceRepository')
     public priceRepository: PriceRepository,
     @repository('OrderV2Repository')
@@ -129,6 +135,73 @@ export class ManagerService {
       },
       totalRevenue,
       orders: orders.length,
+    };
+  }
+
+  async getSchedulePage() {
+    const today = new Date();
+    today.setHours(0, 0, 0);
+
+    const future: any = new Date();
+    future.setFullYear(future.getFullYear() + 1);
+    future.setHours(0, 0, 0);
+
+    const eventNames: any = [];
+    const placeNames: any = [];
+
+    let placeInstances: any = await this.placeInstanceRepository.findAll({
+      where: {and: [{startDate: {gte: today}}, {endDate: {lte: future}}]},
+      include: [{relation: 'place', scope: {fields: {name: true}}}],
+    });
+    let eventInstances: any = await this.eventInstanceRepository.findAll({
+      where: {and: [{startDate: {gte: today}}, {endDate: {lte: future}}]},
+      include: [{relation: 'event', scope: {fields: {name: true}}}],
+    });
+    placeInstances = placeInstances.map((e: any) => {
+      if (placeNames.indexOf(e.place.name) == -1) {
+        placeNames.push(e.place.name);
+      }
+      return {
+        type: 'place',
+        id: e.id,
+        placeId: e.placeId,
+        title: e.place.name,
+        start: new Date(e.startDate),
+        end: new Date(e.endDate),
+      };
+    });
+    eventInstances = eventInstances.map((e: any) => {
+      if (eventNames.indexOf(e.event.name) == -1) {
+        eventNames.push(e.event.name);
+      }
+      return {
+        type: 'event',
+        id: e.id,
+        eventId: e.eventId,
+        title: e.event.name,
+        start: new Date(e.startDate),
+        end: new Date(e.endDate),
+      };
+    });
+
+    return {
+      items: [...placeInstances, ...eventInstances],
+      eventNames: eventNames.map((name: string) => {
+        return {
+          id: name,
+          name: name,
+          title: name,
+          type: 'schedule-event',
+        };
+      }),
+      placeNames: placeNames.map((name: string) => {
+        return {
+          id: name,
+          name: name,
+          title: name,
+          type: 'schedule-place',
+        };
+      }),
     };
   }
 

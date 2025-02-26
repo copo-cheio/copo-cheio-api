@@ -172,7 +172,7 @@ export class EventController {
     },
   })
   async findOngoingEvents(): Promise<EventInstance[]> {
-    const currentDateTime = new Date().toISOString();
+    const currentDateTime = new Date(); //.toISOString();
     const eventIds: any = [];
     let keepRunning = true;
     const records: any = [];

@@ -74,6 +74,14 @@ export class ManagerV2Controller {
     return this.managerService.findBalconyStocks();
   }
 
+  @get('/v2/manager/schedule')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async getSchedule() {
+    return this.managerService.getSchedulePage();
+  }
+
   /* -------------------------------------------------------------------------- */
   /*                                   CREATE                                   */
   /* -------------------------------------------------------------------------- */

@@ -9,12 +9,12 @@ export class EventInstance extends Base {
     type: 'date',
     required: true,
   })
-  startDate: string;
+  startDate: Date;
 
   @property({
     type: 'date',
   })
-  endDate?: string;
+  endDate?: Date;
 
   @property({
     type: 'number',

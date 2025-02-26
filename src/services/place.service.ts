@@ -78,7 +78,7 @@ export class PlaceService {
           {eventId: {inq: events.map((e: any) => e.id) || []}},
           {
             endDate: {
-              gte: new Date().toDateString(),
+              gte: new Date(),
             },
           },
         ],
