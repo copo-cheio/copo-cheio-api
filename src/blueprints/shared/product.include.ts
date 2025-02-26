@@ -9,11 +9,14 @@ export const IncludeProductRelation: any = {
     include: [
       {
         relation: 'ingredients',
-        scope: {include: [IncludeIngredientRelation]},
+        scope: {where: {deleted: false}, include: [IncludeIngredientRelation]},
       },
       {
         relation: 'options',
-        scope: {include: [IncludeIngredientRelation, IncludePriceRelation]},
+        scope: {
+          where: {deleted: false},
+          include: [IncludeIngredientRelation, IncludePriceRelation],
+        },
       },
       IncludeThumbnail,
       IncludeTagsRelation,

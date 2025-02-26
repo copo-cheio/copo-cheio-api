@@ -80,6 +80,13 @@ export class ManagerV2Controller {
   async getStocks() {
     return this.managerService.getStocksPage();
   }
+  @get('/v2/manager/stocks-2')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async getStocksV2() {
+    return this.managerService.getStocksPageV2();
+  }
 
   @get('/v2/manager/schedule')
   @response(200, {

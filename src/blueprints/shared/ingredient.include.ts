@@ -2,8 +2,11 @@ import {IncludeThumbnail} from './image.include';
 import {IncludeTagsRelation} from './tag.include';
 
 export const IncludeIngredientRelation: any = {
-  relation: "ingredient",
+  relation: 'ingredient',
   scope: {
-    include: [IncludeThumbnail, IncludeTagsRelation]
+    where: {
+      deleted: false,
+    },
+    include: [IncludeThumbnail, IncludeTagsRelation],
   },
 };

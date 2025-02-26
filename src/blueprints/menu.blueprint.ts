@@ -14,6 +14,9 @@ export const MenuFullQuery: any = {
     {
       relation: 'products',
       scope: {
+        where: {
+          deleted: false,
+        },
         include: [IncludePriceRelation, IncludeProductRelation],
       },
     },

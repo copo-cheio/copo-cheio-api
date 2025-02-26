@@ -141,6 +141,92 @@ export class ManagerService {
     };
   }
 
+  async getStocksPageV2() {
+    // PROOF OF CONCEPT
+    const balconies = await this.balconyRepository.findAll();
+    const response: any = [];
+    const outOfStockIngredientIds = [];
+    const outOfStockIngredients = [];
+    const stockIngredientIds = [];
+    const stockIngredients = [];
+    for (const b of balconies) {
+      const balconyId = b.id; //'efb6c280-f40b-403c-b32e-f9c4a58b21cc';
+      const balcony = await this.balconyRepository.findById(balconyId, {
+        include: [
+          {
+            relation: 'stocks',
+            scope: {
+              where: {
+                deleted: false,
+              },
+              include: [{relation: 'ingredient'}],
+            },
+          },
+        ],
+      });
+      const impact: any = await this.stockService.getMenuIngredientImpactList(
+        balcony.menuId,
+      );
+      const stock = balcony.stocks.map((s: any) => {
+        return {
+          id: s.id,
+          ingredientId: s.ingredientId,
+          status: s.status,
+          name: s.ingredient.name,
+        };
+      });
+      /* const balconyStock = /v2/manager/stocks-2 */
+      impact.outOfStockIngredientIds = [];
+      for (const item of stock) {
+        const ingredientId = item.ingredientId;
+        const index = impact.ingredients.findIndex(
+          (i: any) => i.id == ingredientId,
+        );
+        if (stockIngredientIds.indexOf(ingredientId) == -1) {
+          stockIngredientIds.push(ingredientId);
+          stockIngredients.push(item);
+        }
+        if (index > -1) {
+          impact.ingredients[index].status = item.status;
+          if (
+            item.status == 'OUT_OF_STOCK' &&
+            impact.outOfStockIngredientIds.indexOf(ingredientId) == -1
+          ) {
+            impact.outOfStockIngredientIds.push(ingredientId);
+          }
+          if (
+            item.status == 'OUT_OF_STOCK' &&
+            outOfStockIngredientIds.indexOf(ingredientId) == -1
+          ) {
+            outOfStockIngredientIds.push(ingredientId);
+            outOfStockIngredients.push(item);
+          }
+        } else {
+          console.log({index, ingredientId});
+        }
+      }
+      impact.products = impact.products.map((ip: any) => {
+        return {
+          ...ip,
+          status: ip.requiredIds.some(element =>
+            impact.outOfStockIngredientIds.includes(element),
+          )
+            ? 'OUT_OF_STOCK'
+            : ip.optionalIds.some(element =>
+                  impact.outOfStockIngredientIds.includes(element),
+                )
+              ? 'LIMITED'
+              : 'IN_STOCK',
+        };
+      });
+      response.push({balcony, impact});
+    }
+    response.sort((a: any, b: any) =>
+      a.balcony.name > b.balcony.name ? -1 : 1,
+    );
+    return {items: response, outOfStockIngredients, stockIngredients};
+  }
+
   async getStocksPage() {
     const menus: any = await this.menuRepository.findAll({
       ...MenuFullQuery,
@@ -194,7 +280,7 @@ export class ManagerService {
             if (stocks[ingredientId].balconyIds.indexOf(balconyId) == -1) {
               const stock = await this.stockRepository.findOne({
                 where: {
-                  and: [{balconyId}, {ingredientId}],
+                  and: [{balconyId}, {ingredientId}, {deleted: false}],
                 },
               });
               stocks[ingredientId].balconyIds.push(balconyId);
@@ -278,7 +364,7 @@ export class ManagerService {
             if (stocks[ingredientId].balconyIds.indexOf(balconyId) == -1) {
               const stock = await this.stockRepository.findOne({
                 where: {
-                  and: [{balconyId}, {ingredientId}],
+                  and: [{balconyId}, {ingredientId}, {deleted: false}],
                 },
               });
               stocks[ingredientId].balconyIds.push(balconyId);
@@ -614,7 +700,7 @@ export class ManagerService {
       price.id,
       payload.thumbnailId,
     );
-
+    this.devRepository.migrate();
     return menuProduct;
   }
   async updateMenuProduct(id: string, payload: any) {

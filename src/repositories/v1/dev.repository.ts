@@ -140,6 +140,7 @@ export class DevRepository extends BaseRepository<
         response.menus[b.menuId] = [...new Set(ingredientIds)];
       }
       response.balconies[b.id] = response.menus[b.menuId];
+
       for (const ing of response.menus[b.menuId]) {
         const entry = await stockRepository.findOne({
           where: {balconyId: b.id, ingredientId: ing},
@@ -152,6 +153,20 @@ export class DevRepository extends BaseRepository<
           });
         }
       }
+      console.log(
+        JSON.stringify({
+          and: [
+            {balconyId: b.id},
+            {ingredientId: {nin: response.menus[b.menuId]}},
+          ],
+        }),
+      );
+      await stockRepository.deleteAll({
+        and: [
+          {balconyId: b.id},
+          {ingredientId: {nin: response.menus[b.menuId]}},
+        ],
+      });
     }
 
     return response.balconies;

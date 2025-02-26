@@ -114,6 +114,140 @@ export class StockService {
     return [...new Set(ingredientIds)];
   }
 
+  async getMenuIngredientImpactList(menuId: string) {
+    const ingredientIds = [];
+    const ingredientImpact: any = {};
+    const productImpact: any = {};
+    const generateImpact = (pointer, id, name) => {
+      if (!Object.prototype.hasOwnProperty.call(pointer, id)) {
+        pointer[id] = {
+          id: id,
+          name: name,
+          requiredIds: [],
+          optionalIds: [],
+          required: [],
+          optional: [],
+        };
+      }
+    };
+
+    const menu: any = await this.menuRepository.findById(menuId, {
+      include: [
+        {
+          relation: 'products',
+          scope: {
+            where: {
+              deleted: false,
+            },
+            include: [
+              {
+                relation: 'product',
+                scope: {
+                  where: {
+                    deleted: false,
+                  },
+                  include: [
+                    {
+                      relation: 'ingredients',
+                      scope: {
+                        where: {
+                          deleted: false,
+                        },
+                        include: [
+                          {
+                            relation: 'ingredient',
+                            scope: {
+                              where: {
+                                deleted: false,
+                              },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      relation: 'options',
+
+                      scope: {
+                        where: {
+                          deleted: false,
+                        },
+                        include: [
+                          {
+                            relation: 'ingredient',
+                            scope: {
+                              where: {
+                                deleted: false,
+                              },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+    const products = menu.products || [];
+
+    for (const menuProduct of products) {
+      const ingredients = menuProduct?.product?.ingredients || [];
+      const options = menuProduct?.product?.options || [];
+      const productId = menuProduct?.productId;
+      generateImpact(productImpact, productId, menuProduct.product.name);
+
+      for (const ingredient of ingredients) {
+        const ingredientId = ingredient.ingredientId;
+        generateImpact(
+          ingredientImpact,
+          ingredientId,
+          ingredient.ingredient.name,
+        );
+
+        if (
+          ingredientImpact[ingredientId].requiredIds.indexOf(productId) == -1
+        ) {
+          ingredientImpact[ingredientId].requiredIds.push(productId);
+          ingredientImpact[ingredientId].required.push(menuProduct.product);
+        }
+        if (productImpact[productId].requiredIds.indexOf(ingredientId) == -1) {
+          productImpact[productId].requiredIds.push(ingredientId);
+          productImpact[productId].required.push(ingredient.ingredient);
+        }
+
+        ingredientIds.push(ingredient.ingredientId);
+      }
+      for (const ingredient of options) {
+        const ingredientId = ingredient.ingredientId;
+        generateImpact(
+          ingredientImpact,
+          ingredientId,
+          ingredient.ingredient.name,
+        );
+
+        if (
+          ingredientImpact[ingredientId].optionalIds.indexOf(productId) == -1
+        ) {
+          ingredientImpact[ingredientId].optionalIds.push(productId);
+          ingredientImpact[ingredientId].optional.push(menuProduct.product);
+        }
+        if (productImpact[productId].optionalIds.indexOf(ingredientId) == -1) {
+          productImpact[productId].optionalIds.push(ingredientId);
+          productImpact[productId].optional.push(ingredient.ingredient);
+        }
+        ingredientIds.push(ingredient.ingredientId);
+      }
+    }
+    return {
+      products: Object.values(productImpact),
+      ingredients: Object.values(ingredientImpact),
+    };
+  }
+
   /**
    * Will update stocks for all user balconies
    * @param balconyId
