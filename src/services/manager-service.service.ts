@@ -141,9 +141,10 @@ export class ManagerService {
     };
   }
 
-  async getStocksPageV2() {
+  async getStocksPageV2(managerBalconies?: any) {
     // PROOF OF CONCEPT
-    const balconies = await this.balconyRepository.findAll();
+    const balconies =
+      managerBalconies || (await this.balconyRepository.findAll());
     const response: any = [];
     const outOfStockIngredientIds = [];
     const outOfStockIngredients = [];
@@ -222,239 +223,15 @@ export class ManagerService {
       response.push({balcony, impact});
     }
     response.sort((a: any, b: any) =>
-      a.balcony.name > b.balcony.name ? -1 : 1,
+      a.balcony.name > b.balcony.name ? 1 : -1,
     );
     return {items: response, outOfStockIngredients, stockIngredients};
   }
 
-  async getStocksPage() {
-    const menus: any = await this.menuRepository.findAll({
-      ...MenuFullQuery,
-      include: [...MenuFullQuery.include, {relation: 'balconies'}],
-    });
-
-    const stocks: any = {};
-    for (const menu of menus || []) {
-      const menuId = menu.id;
-
-      const balconies = menu.balconies;
-      const balconyIds = balconies.map(b => b.id);
-      for (const product of menu.products || []) {
-        const productId = product.product.id;
-        for (const ingredient of product?.product?.ingredients || []) {
-          const ingredientId = ingredient.ingredientId;
-          if (!stocks[ingredientId]) {
-            stocks[ingredientId] = {
-              ingredient,
-              ingredientId,
-              productIds: [],
-              requiredIds: [],
-              balconyIds: [],
-              menuIds: [],
-              products: [],
-              required: [],
-              menus: [],
-              balconies: [],
-              optionalIds: [],
-              optional: [],
-              outOfStockBalconies: 0,
-              outOfStockProducts: 0,
-              outOfStockOptions: 0,
-            };
-          }
-
-          if (stocks[ingredientId].productIds.indexOf(productId) == -1) {
-            stocks[ingredientId].productIds.push(productId);
-            //stocks[ingredientId].products.push(product);
-          }
-          if (stocks[ingredientId].requiredIds.indexOf(productId) == -1) {
-            stocks[ingredientId].requiredIds.push(productId);
-            //stocks[ingredientId].required.push(product);
-          }
-          if (stocks[ingredientId].menuIds.indexOf(menuId) == -1) {
-            stocks[ingredientId].menuIds.push(menuId);
-            //stocks[ingredientId].menus.push(menu);
-          }
-          for (const balcony of balconies) {
-            const balconyId = balcony.id;
-            if (stocks[ingredientId].balconyIds.indexOf(balconyId) == -1) {
-              const stock = await this.stockRepository.findOne({
-                where: {
-                  and: [{balconyId}, {ingredientId}, {deleted: false}],
-                },
-              });
-              stocks[ingredientId].balconyIds.push(balconyId);
-              stocks[ingredientId].balconies.push({
-                /*     balcony,
-                stock, */
-                balconyId,
-                status: stock?.status,
-                required: [
-                  ...new Set(
-                    (menu.products || []).map(p =>
-                      [
-                        ...new Set(
-                          (p.product.ingredients || [])
-                            .map(i => i.ingredientId)
-                            .filter(i => i.indexOf(ingredientId) > -1)
-                            .flat()
-                            .flat(),
-                        ),
-                      ].flat(),
-                    ),
-                  ),
-                ],
-
-                optional: [
-                  ...new Set(
-                    (menu.products || [])
-                      .map(p =>
-                        [
-                          ...new Set(
-                            (p.product.options || [])
-                              .map(i => i.ingredientId)
-                              .filter(i => i.indexOf(ingredientId) > -1)
-                              .flat()
-                              .flat(),
-                          ),
-                        ].flat(),
-                      )
-                      .flat(),
-                  ),
-                ],
-                items: (menu.products || []).map(p => p.product.id),
-              });
-            }
-          }
-        }
-        for (const option of product?.product?.options || []) {
-          const ingredientId = option.ingredientId;
-
-          if (!stocks[ingredientId]) {
-            stocks[ingredientId] = {
-              ingredient: option,
-              ingredientId,
-
-              productIds: [],
-              requiredIds: [],
-              balconyIds: [],
-              menuIds: [],
-              products: [],
-              required: [],
-              menus: [],
-              balconies: [],
-              optionalIds: [],
-              optional: [],
-              outOfStockBalconies: 0,
-              outOfStockProducts: 0,
-              outOfStockOptions: 0,
-            };
-          }
-
-          if (stocks[ingredientId].optionalIds.indexOf(productId) == -1) {
-            stocks[ingredientId].optionalIds.push(productId);
-            // stocks[ingredientId].optional.push(product);
-          }
-          if (stocks[ingredientId].menuIds.indexOf(menuId) == -1) {
-            stocks[ingredientId].menuIds.push(menuId);
-            //stocks[ingredientId].menus.push(menu);
-          }
-          for (const balcony of balconies) {
-            const balconyId = balcony.id;
-            if (stocks[ingredientId].balconyIds.indexOf(balconyId) == -1) {
-              const stock = await this.stockRepository.findOne({
-                where: {
-                  and: [{balconyId}, {ingredientId}, {deleted: false}],
-                },
-              });
-              stocks[ingredientId].balconyIds.push(balconyId);
-              stocks[ingredientId].balconies.push({
-                /*     balcony,
-                stock, */
-                balconyId,
-                status: stock?.status,
-                items: (menu.products || []).map(p => p.product.id),
-                required: [
-                  ...new Set(
-                    (menu.products || []).map(p =>
-                      [
-                        ...new Set(
-                          (p.product.ingredients || [])
-                            .map(i => i.ingredientId)
-                            .filter(i => i.indexOf(ingredientId) > -1)
-                            .flat()
-                            .flat(),
-                        ),
-                      ].flat(),
-                    ),
-                  ),
-                ],
-                optional: [
-                  ...new Set(
-                    (menu.products || [])
-                      .map(p =>
-                        [
-                          ...new Set(
-                            (p.product.options || [])
-                              .map(i => i.ingredientId)
-                              .filter(i => i.indexOf(ingredientId) > -1)
-                              .flat()
-                              .flat(),
-                          ),
-                        ].flat(),
-                      )
-                      .flat(),
-                  ),
-                ],
-              });
-            }
-          }
-        }
-      }
-    }
-
-    return Object.values(stocks).map((b: any) => {
-      return {
-        ingredient: {
-          ...b.ingredient.ingredient,
-          thumbnail: b.ingredient?.ingredient?.thumbnail?.url,
-        },
-        ingredientId: b.ingredientId,
-        productIds: b.productIds,
-        requiredIds: b.requiredIds,
-        optionalIds: b.optionalIds,
-        menuIds: b.menuIds,
-        impact: {
-          balconies: {
-            total: b.balconies.length,
-            outOfStock: b.balconies
-              .filter((c: any) => c.status == 'OUT_OF_STOCK')
-              .map((c: any) => {
-                return {
-                  balconyId: c.balconyId,
-                  status: c.status,
-                  required: [...new Set(c.required.flat())],
-                  optional: [...new Set(c.optional.flat())],
-                  total: c.items,
-                };
-              }),
-            inStock: b.balconies
-              .filter((c: any) => c.status == 'IN_STOCK')
-              .map((c: any) => {
-                return {
-                  balconyId: c.balconyId,
-                  status: c.status,
-                  required: [...new Set(c.required.flat())],
-                  optional: [...new Set(c.optional.flat())],
-                  total: c.items,
-                };
-              }),
-          },
-        },
-      };
-    });
+  async getStockPageV2(balconyId: string) {
+    const balcony = await this.balconyRepository.findById(balconyId);
+    return this.getStocksPageV2([balcony]);
   }
-
   async getSchedulePage() {
     const today = new Date();
     today.setHours(0, 0, 0);
