@@ -144,7 +144,8 @@ export class ManagerService {
   async getStocksPageV2(managerBalconies?: any) {
     // PROOF OF CONCEPT
     const balconies =
-      managerBalconies || (await this.balconyRepository.findAll());
+      managerBalconies ||
+      (await this.balconyRepository.findAll({include: [{relation: 'place'}]}));
     const response: any = [];
     const outOfStockIngredientIds = [];
     const outOfStockIngredients = [];
@@ -154,6 +155,7 @@ export class ManagerService {
       const balconyId = b.id; //'efb6c280-f40b-403c-b32e-f9c4a58b21cc';
       const balcony = await this.balconyRepository.findById(balconyId, {
         include: [
+          {relation: 'place'},
           {
             relation: 'stocks',
             scope: {
