@@ -18,6 +18,7 @@ import {
   PriceRepository,
   ProductOptionRepository,
   ProductRepository,
+  StockRepository,
 } from '../repositories';
 import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
 import {EventService} from './event.service';
@@ -68,6 +69,8 @@ export class ManagerService {
     public ingredientRepository: IngredientRepository | any,
     @inject('services.TransactionService')
     private transactionService: TransactionService,
+    @repository('StockRepository')
+    public stockRepository: StockRepository,
   ) {}
 
   /**
@@ -136,6 +139,195 @@ export class ManagerService {
       totalRevenue,
       orders: orders.length,
     };
+  }
+
+  async getStocksPage() {
+    const menus: any = await this.menuRepository.findAll({
+      ...MenuFullQuery,
+      include: [...MenuFullQuery.include, {relation: 'balconies'}],
+    });
+
+    const stocks: any = {};
+    for (const menu of menus || []) {
+      const menuId = menu.id;
+
+      const balconies = menu.balconies;
+      const balconyIds = balconies.map(b => b.id);
+      for (const product of menu.products || []) {
+        const productId = product.product.id;
+        for (const ingredient of product?.product?.ingredients || []) {
+          const ingredientId = ingredient.ingredientId;
+          if (!stocks[ingredientId]) {
+            stocks[ingredientId] = {
+              //ingredient,
+              ingredientId,
+              productIds: [],
+              requiredIds: [],
+              balconyIds: [],
+              menuIds: [],
+              products: [],
+              required: [],
+              menus: [],
+              balconies: [],
+              optionalIds: [],
+              optional: [],
+              outOfStockBalconies: 0,
+              outOfStockProducts: 0,
+              outOfStockOptions: 0,
+            };
+          }
+
+          if (stocks[ingredientId].productIds.indexOf(productId) == -1) {
+            stocks[ingredientId].productIds.push(productId);
+            //stocks[ingredientId].products.push(product);
+          }
+          if (stocks[ingredientId].requiredIds.indexOf(productId) == -1) {
+            stocks[ingredientId].requiredIds.push(productId);
+            //stocks[ingredientId].required.push(product);
+          }
+          if (stocks[ingredientId].menuIds.indexOf(menuId) == -1) {
+            stocks[ingredientId].menuIds.push(menuId);
+            //stocks[ingredientId].menus.push(menu);
+          }
+          for (const balcony of balconies) {
+            const balconyId = balcony.id;
+            if (stocks[ingredientId].balconyIds.indexOf(balconyId) == -1) {
+              const stock = await this.stockRepository.findOne({
+                where: {
+                  and: [{balconyId}, {ingredientId}],
+                },
+              });
+              stocks[ingredientId].balconyIds.push(balconyId);
+              stocks[ingredientId].balconies.push({
+                /*     balcony,
+                stock, */
+                balconyId,
+                status: stock?.status,
+                required: [
+                  ...new Set(
+                    (menu.products || []).map(p =>
+                      [
+                        ...new Set(
+                          (p.product.ingredients || [])
+                            .map(i => i.ingredientId)
+                            .filter(i => i.indexOf(ingredientId) > -1)
+                            .flat()
+                            .flat(),
+                        ),
+                      ].flat(),
+                    ),
+                  ),
+                ],
+
+                optional: [
+                  ...new Set(
+                    (menu.products || [])
+                      .map(p =>
+                        [
+                          ...new Set(
+                            (p.product.options || [])
+                              .map(i => i.ingredientId)
+                              .filter(i => i.indexOf(ingredientId) > -1)
+                              .flat()
+                              .flat(),
+                          ),
+                        ].flat(),
+                      )
+                      .flat(),
+                  ),
+                ],
+                items: (menu.products || []).map(p => p.product.id),
+              });
+            }
+          }
+        }
+        for (const option of product?.product?.options || []) {
+          const ingredientId = option.ingredientId;
+
+          if (!stocks[ingredientId]) {
+            stocks[ingredientId] = {
+              // ingredient: option,
+              ingredientId,
+
+              productIds: [],
+              requiredIds: [],
+              balconyIds: [],
+              menuIds: [],
+              products: [],
+              required: [],
+              menus: [],
+              balconies: [],
+              optionalIds: [],
+              optional: [],
+              outOfStockBalconies: 0,
+              outOfStockProducts: 0,
+              outOfStockOptions: 0,
+            };
+          }
+
+          if (stocks[ingredientId].optionalIds.indexOf(productId) == -1) {
+            stocks[ingredientId].optionalIds.push(productId);
+            // stocks[ingredientId].optional.push(product);
+          }
+          if (stocks[ingredientId].menuIds.indexOf(menuId) == -1) {
+            stocks[ingredientId].menuIds.push(menuId);
+            //stocks[ingredientId].menus.push(menu);
+          }
+          for (const balcony of balconies) {
+            const balconyId = balcony.id;
+            if (stocks[ingredientId].balconyIds.indexOf(balconyId) == -1) {
+              const stock = await this.stockRepository.findOne({
+                where: {
+                  and: [{balconyId}, {ingredientId}],
+                },
+              });
+              stocks[ingredientId].balconyIds.push(balconyId);
+              stocks[ingredientId].balconies.push({
+                /*     balcony,
+                stock, */
+                balconyId,
+                status: stock?.status,
+                items: (menu.products || []).map(p => p.product.id),
+                required: [
+                  ...new Set(
+                    (menu.products || []).map(p =>
+                      [
+                        ...new Set(
+                          (p.product.ingredients || [])
+                            .map(i => i.ingredientId)
+                            .filter(i => i.indexOf(ingredientId) > -1)
+                            .flat()
+                            .flat(),
+                        ),
+                      ].flat(),
+                    ),
+                  ),
+                ],
+                optional: [
+                  ...new Set(
+                    (menu.products || [])
+                      .map(p =>
+                        [
+                          ...new Set(
+                            (p.product.options || [])
+                              .map(i => i.ingredientId)
+                              .filter(i => i.indexOf(ingredientId) > -1)
+                              .flat()
+                              .flat(),
+                          ),
+                        ].flat(),
+                      )
+                      .flat(),
+                  ),
+                ],
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return Object.values(stocks);
   }
 
   async getSchedulePage() {

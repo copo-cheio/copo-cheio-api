@@ -73,6 +73,13 @@ export class ManagerV2Controller {
   async getBalconiesWithStock() {
     return this.managerService.findBalconyStocks();
   }
+  @get('/v2/manager/stocks')
+  @response(200, {
+    description: 'Array of available models',
+  })
+  async getStocks() {
+    return this.managerService.getStocksPage();
+  }
 
   @get('/v2/manager/schedule')
   @response(200, {
