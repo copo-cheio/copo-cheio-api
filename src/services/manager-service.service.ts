@@ -159,7 +159,7 @@ export class ManagerService {
           const ingredientId = ingredient.ingredientId;
           if (!stocks[ingredientId]) {
             stocks[ingredientId] = {
-              //ingredient,
+              ingredient,
               ingredientId,
               productIds: [],
               requiredIds: [],
@@ -246,7 +246,7 @@ export class ManagerService {
 
           if (!stocks[ingredientId]) {
             stocks[ingredientId] = {
-              // ingredient: option,
+              ingredient: option,
               ingredientId,
 
               productIds: [],
@@ -327,7 +327,46 @@ export class ManagerService {
       }
     }
 
-    return Object.values(stocks);
+    return Object.values(stocks).map((b: any) => {
+      return {
+        ingredient: {
+          ...b.ingredient.ingredient,
+          thumbnail: b.ingredient?.ingredient?.thumbnail?.url,
+        },
+        ingredientId: b.ingredientId,
+        productIds: b.productIds,
+        requiredIds: b.requiredIds,
+        optionalIds: b.optionalIds,
+        menuIds: b.menuIds,
+        impact: {
+          balconies: {
+            total: b.balconies.length,
+            outOfStock: b.balconies
+              .filter((c: any) => c.status == 'OUT_OF_STOCK')
+              .map((c: any) => {
+                return {
+                  balconyId: c.balconyId,
+                  status: c.status,
+                  required: [...new Set(c.required.flat())],
+                  optional: [...new Set(c.optional.flat())],
+                  total: c.items,
+                };
+              }),
+            inStock: b.balconies
+              .filter((c: any) => c.status == 'IN_STOCK')
+              .map((c: any) => {
+                return {
+                  balconyId: c.balconyId,
+                  status: c.status,
+                  required: [...new Set(c.required.flat())],
+                  optional: [...new Set(c.optional.flat())],
+                  total: c.items,
+                };
+              }),
+          },
+        },
+      };
+    });
   }
 
   async getSchedulePage() {
