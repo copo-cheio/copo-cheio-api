@@ -1,10 +1,11 @@
 import {belongsTo, model, property, referencesMany} from '@loopback/repository';
-import {Base} from './base.model';
+import {Base, mergeBaseModelConfiguration} from './base.model';
 import {Image} from './image.model';
 import {Tag} from './tag.model';
 
-@model({
-  /* settings: {
+@model(
+  mergeBaseModelConfiguration({
+    /* settings: {
     indexes: {
       compositeUnique: {
         keys: {
@@ -17,7 +18,8 @@ import {Tag} from './tag.model';
       },
     },
   }, */
-})
+  }),
+)
 export class Ingredient extends Base {
   @property({
     type: 'string',

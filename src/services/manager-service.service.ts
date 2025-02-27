@@ -689,6 +689,13 @@ export class ManagerService {
       async () => this.teamRepository.deleteById(id),
     );
   }
+  async deleteTeamStaffBy(id: string) {
+    /*   const team = await this.staffRepository.findById(id,{include:})
+    return this.executeManagerAction(
+      [{repository: 'teamRepository', id}],
+      async () => this.teamRepository.deleteById(id),
+    ); */
+  }
 
   /* -------------------------------------------------------------------------- */
   /*                                   HELPERS                                  */

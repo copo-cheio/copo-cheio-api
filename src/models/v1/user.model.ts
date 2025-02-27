@@ -3,15 +3,23 @@ import {IUser} from 'loopback4-soft-delete';
 import {ActivityV2} from '../activity-v2.model';
 import {CheckInV2} from '../check-in-v2.model';
 import {OrderV2} from '../order-v2.model';
-import {Base} from './base.model';
+import {Base, mergeBaseModelConfiguration} from './base.model';
 import {Favorite} from './favorite.model';
 import {ShoppingCart} from './shopping-cart.model';
 
-@model({
-  settings: {
-    hiddenProperties: ['email', 'firebaseUserId', 'pushNotificationToken'],
-  },
-})
+@model(
+  mergeBaseModelConfiguration({
+    settings: {
+      hiddenProperties: [
+        'email',
+        'firebaseUserId',
+        'pushNotificationToken',
+        'latitude',
+        'longitude',
+      ],
+    },
+  }),
+)
 export class User extends Base implements IUser {
   @property({
     type: 'string',

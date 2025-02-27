@@ -1,13 +1,14 @@
 import {model, property} from '@loopback/repository';
 import {SoftDeleteEntity} from 'loopback4-soft-delete';
 
+const BASE_MODEL_CONFIG = {
+  settings: {
+    hiddenProperties: ['deleted', 'deletedBy', 'deletedOn', 'isDeleted'],
+  },
+};
 @model({
   settings: {
-    hiddenProperties: ['deleted', 'deleted_on', 'deleted_by'],
-    // protectedProperties: ['deleted',"deleted_on","deleted_by"],
-    // hidden: ['deleted',"deleted_on","deleted_by"],
-    // protected: ['deleted',"deleted_on","deleted_by"],
-    // strict: false,
+    hiddenProperties: ['deleted', 'deletedBy', 'deletedOn', 'isDeleted'],
   },
 })
 export class Base extends SoftDeleteEntity {
@@ -60,34 +61,52 @@ export class Base extends SoftDeleteEntity {
 
   // Delete all softDelete info
   toJSON() {
-    const instance: any = this.toObject();
-    delete instance.deleted; // Remove 'deleted' property
-    delete instance.deleted_by; // Remove 'deleted' property
-    delete instance.deleted_on; // Remove 'deleted' property
-    delete instance.deletedBy; // Remove 'deleted' property
-    delete instance.deletedOn; // Remove 'deleted' property
+    const instance = super.toJSON(); // Get default JSON
 
-    // Remove 'deleted' from all included relations as well
-    for (const relation in instance) {
-      if (Array.isArray(instance[relation])) {
-        instance[relation] = instance[relation].map((item: any) => {
-          delete item.deleted; // Remove 'deleted' property
-          delete item.deleted_by; // Remove 'deleted' property
-          delete item.deleted_on; // Remove 'deleted' property
-          delete item.deletedBy; // Remove 'deleted' property
-          delete item.deletedOn; // Remove 'deleted' property
-          return item;
-        });
-      } else if (instance[relation] && typeof instance[relation] === 'object') {
-        delete instance[relation].deleted; // Remove 'deleted' property
-        delete instance[relation].deleted_by; // Remove 'deleted' property
-        delete instance[relation].deleted_on; // Remove 'deleted' property
-        delete instance[relation].deletedBy; // Remove 'deleted' property
-        delete instance[relation].deletedOn; // Remove 'deleted' property
+    // Ensure `hiddenProperties` exist and is an array
+    const modelClass = this.constructor as typeof Base;
+    const hiddenProps =
+      (modelClass.definition?.settings?.hiddenProperties as string[]) ||
+      BASE_MODEL_CONFIG.settings.hiddenProperties;
+
+    // Remove hidden properties from the current model
+    hiddenProps.forEach(prop => delete instance[prop]);
+
+    // Recursively remove hidden properties from related objects
+    Object.keys(instance).forEach(key => {
+      if (Array.isArray(instance[key])) {
+        instance[key] = instance[key].map(item =>
+          item && typeof item === 'object' ? this.sanitizeObject(item) : item,
+        );
+      } else if (instance[key] && typeof instance[key] === 'object') {
+        instance[key] = this.sanitizeObject(instance[key]);
       }
-    }
+    });
 
     return instance;
+  }
+
+  private sanitizeObject(obj: any): any {
+    if (!obj || typeof obj !== 'object') return obj;
+
+    const modelClass = obj.constructor as typeof Base;
+    const hiddenProps =
+      (modelClass.definition?.settings?.hiddenProperties as string[]) ||
+      BASE_MODEL_CONFIG.settings.hiddenProperties;
+
+    hiddenProps.forEach(prop => delete obj[prop]);
+
+    Object.keys(obj).forEach(key => {
+      if (Array.isArray(obj[key])) {
+        obj[key] = obj[key].map(item =>
+          item && typeof item === 'object' ? this.sanitizeObject(item) : item,
+        );
+      } else if (obj[key] && typeof obj[key] === 'object') {
+        obj[key] = this.sanitizeObject(obj[key]);
+      }
+    });
+
+    return obj;
   }
 }
 
@@ -116,4 +135,14 @@ function removeDeletedProperty(instance: any): any {
     return result;
   }
   return instance;
+}
+
+export function mergeBaseModelConfiguration(newModelConfiguration: any = {}) {
+  if (Array.isArray(newModelConfiguration?.settings?.hiddenProperties)) {
+    newModelConfiguration.settings.hiddenProperties = [
+      ...BASE_MODEL_CONFIG.settings.hiddenProperties,
+      ...newModelConfiguration.settings.hiddenProperties,
+    ];
+  }
+  return newModelConfiguration;
 }

@@ -1,9 +1,10 @@
 import {belongsTo, model, property} from '@loopback/repository';
-import {Base} from './base.model';
+import {Base, mergeBaseModelConfiguration} from './base.model';
 import {Translation} from './translation.model';
 
-@model({
-  /*   settings: {
+@model(
+  mergeBaseModelConfiguration({
+    /*   settings: {
     indexes: {
       compositeUnique: {
         keys: {
@@ -16,7 +17,8 @@ import {Translation} from './translation.model';
       },
     },
   }, */
-})
+  }),
+)
 export class Tag extends Base {
   @property({
     type: 'string',

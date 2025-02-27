@@ -172,6 +172,19 @@ export class ManagerV2Controller {
     return this.managerService.createCompany(body);
   }
 
+  @post('/v2/manager/team-staff/{id}')
+  @authenticate('firebase')
+  @response(204, {
+    description: 'Team DELETE success',
+  })
+  async createorUpdateTeamStaff(
+    @requestBody({})
+    body: any,
+  ): Promise<void> {
+    //return this.managerService.deleteTeamStaffBy(id);
+    return body;
+  }
+
   /* -------------------------------------------------------------------------- */
   /*                                   UPDATE                                   */
   /* -------------------------------------------------------------------------- */
@@ -248,5 +261,17 @@ export class ManagerV2Controller {
   })
   async deleteTeamById(@param.path.string('id') id: string): Promise<void> {
     return this.managerService.deleteTeam(id);
+  }
+  @del('/v2/manager/team/{teamId}/staff/{staffId}')
+  @authenticate('firebase')
+  @response(204, {
+    description: 'Team DELETE success',
+  })
+  async deleteTeamStaffById(
+    @param.path.string('teamId') teamId: string,
+    @param.path.string('staffId') staffId: string,
+  ): Promise<any> {
+    return {teamId, staffId};
+    //return this.managerService.deleteTeamStaffBy(id);
   }
 }
