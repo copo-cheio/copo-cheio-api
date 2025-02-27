@@ -118,11 +118,12 @@ export class StockService {
     const ingredientIds = [];
     const ingredientImpact: any = {};
     const productImpact: any = {};
-    const generateImpact = (pointer, id, name) => {
+    const generateImpact = (pointer, id, name, record?: any) => {
       if (!Object.prototype.hasOwnProperty.call(pointer, id)) {
         pointer[id] = {
           id: id,
           name: name,
+          record,
           requiredIds: [],
           optionalIds: [],
           required: [],
@@ -147,6 +148,7 @@ export class StockService {
                     deleted: false,
                   },
                   include: [
+                    {relation: 'thumbnail'},
                     {
                       relation: 'ingredients',
                       scope: {
@@ -160,6 +162,7 @@ export class StockService {
                               where: {
                                 deleted: false,
                               },
+                              include: [{relation: 'thumbnail'}],
                             },
                           },
                         ],
@@ -179,6 +182,7 @@ export class StockService {
                               where: {
                                 deleted: false,
                               },
+                              include: [{relation: 'thumbnail'}],
                             },
                           },
                         ],
@@ -198,7 +202,12 @@ export class StockService {
       const ingredients = menuProduct?.product?.ingredients || [];
       const options = menuProduct?.product?.options || [];
       const productId = menuProduct?.productId;
-      generateImpact(productImpact, productId, menuProduct.product.name);
+      generateImpact(
+        productImpact,
+        productId,
+        menuProduct.product.name,
+        menuProduct.product,
+      );
 
       for (const ingredient of ingredients) {
         const ingredientId = ingredient.ingredientId;

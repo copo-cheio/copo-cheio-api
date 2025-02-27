@@ -145,7 +145,12 @@ export class ManagerService {
     // PROOF OF CONCEPT
     const balconies =
       managerBalconies ||
-      (await this.balconyRepository.findAll({include: [{relation: 'place'}]}));
+      (await this.balconyRepository.findAll({
+        include: [
+          {relation: 'cover'},
+          {relation: 'place', scope: {include: [{relation: 'cover'}]}},
+        ],
+      }));
     const response: any = [];
     const outOfStockIngredientIds = [];
     const outOfStockIngredients = [];
@@ -162,7 +167,12 @@ export class ManagerService {
               where: {
                 deleted: false,
               },
-              include: [{relation: 'ingredient'}],
+              include: [
+                {
+                  relation: 'ingredient',
+                  scope: {include: [{relation: 'thumbnail'}]},
+                },
+              ],
             },
           },
         ],
@@ -232,7 +242,35 @@ export class ManagerService {
 
   async getStockPageV2(balconyId: string) {
     const balcony = await this.balconyRepository.findById(balconyId);
-    return this.getStocksPageV2([balcony]);
+    const result = await this.getStocksPageV2([balcony]);
+    const topProducts = await this.orderV2Repository.findAll({
+      limit: 100,
+      order: ['created_at DESC'],
+      where: {balconyId},
+      include: [
+        {
+          relation: 'items',
+          scope: {
+            include: [
+              {
+                relation: 'menuProduct',
+                scope: {
+                  include: [
+                    {
+                      relation: 'product',
+                      scope: {
+                        include: [{relation: 'thumbnail'}],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+    return {...result, item: result.items[0], topProducts};
   }
   async getSchedulePage() {
     const today = new Date();
