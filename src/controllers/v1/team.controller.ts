@@ -1,19 +1,10 @@
+import {Filter, FilterExcludingWhere, repository} from '@loopback/repository';
 import {
-  Count,
-  CountSchema,
-  Filter,
-  FilterExcludingWhere,
-  repository,
-  Where,
-} from '@loopback/repository';
-import {
-  del,
   get,
   getModelSchemaRef,
   param,
   patch,
   post,
-  put,
   requestBody,
   response,
 } from '@loopback/rest';
@@ -47,15 +38,6 @@ export class TeamController {
     return this.teamRepository.create(team);
   }
 
-  @get('/teams/count')
-  @response(200, {
-    description: 'Team model count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async count(@param.where(Team) where?: Where<Team>): Promise<Count> {
-    return this.teamRepository.count(where);
-  }
-
   @get('/teams')
   // @authenticate("firebase")
   @response(200, {
@@ -76,25 +58,6 @@ export class TeamController {
       getCurrentUser: this.teamRepository.getCurrentUser,
     });
     return this.teamRepository.find(filter);
-  }
-
-  @patch('/teams')
-  @response(200, {
-    description: 'Team PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async updateAll(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Team, {partial: true}),
-        },
-      },
-    })
-    team: Team,
-    @param.where(Team) where?: Where<Team>,
-  ): Promise<Count> {
-    return this.teamRepository.updateAll(team, where);
   }
 
   @get('/teams/{id}')
@@ -129,24 +92,5 @@ export class TeamController {
     team: Team,
   ): Promise<void> {
     await this.teamRepository.updateById(id, team);
-  }
-
-  @put('/teams/{id}')
-  @response(204, {
-    description: 'Team PUT success',
-  })
-  async replaceById(
-    @param.path.string('id') id: string,
-    @requestBody() team: Team,
-  ): Promise<void> {
-    await this.teamRepository.replaceById(id, team);
-  }
-
-  @del('/teams/{id}')
-  @response(204, {
-    description: 'Team DELETE success',
-  })
-  async deleteById(@param.path.string('id') id: string): Promise<void> {
-    await this.teamRepository.deleteById(id);
   }
 }

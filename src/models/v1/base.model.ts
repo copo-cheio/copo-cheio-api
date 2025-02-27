@@ -3,7 +3,7 @@ import {SoftDeleteEntity} from 'loopback4-soft-delete';
 
 @model({
   settings: {
-    hidden: ['deleted', 'deleted_on', 'deleted_by'],
+    hiddenProperties: ['deleted', 'deleted_on', 'deleted_by'],
     // protectedProperties: ['deleted',"deleted_on","deleted_by"],
     // hidden: ['deleted',"deleted_on","deleted_by"],
     // protected: ['deleted',"deleted_on","deleted_by"],

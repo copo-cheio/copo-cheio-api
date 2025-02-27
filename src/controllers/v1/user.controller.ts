@@ -1,13 +1,5 @@
+import {FilterExcludingWhere, repository} from '@loopback/repository';
 import {
-  Count,
-  CountSchema,
-  Filter,
-  FilterExcludingWhere,
-  repository,
-  Where,
-} from '@loopback/repository';
-import {
-  del,
   get,
   getModelSchemaRef,
   param,
@@ -45,7 +37,7 @@ export class UserController {
     return this.userRepository.create(user);
   }
 
-  @get('/users/count')
+  /*  @get('/users/count')
   @response(200, {
     description: 'User model count',
     content: {'application/json': {schema: CountSchema}},
@@ -68,7 +60,7 @@ export class UserController {
   })
   async find(@param.filter(User) filter?: Filter<User>): Promise<User[]> {
     return this.userRepository.find(filter);
-  }
+  } */
 
   // @patch('/users')
   // @response(200, {
@@ -134,12 +126,12 @@ export class UserController {
   //     await this.userRepository.replaceById(id, user);
   //   }
 
-  @del('/users/{id}')
+  /*  @del('/users/{id}')
   @response(204, {
     description: 'User DELETE success',
   })
   async deleteById(@param.path.string('id') id: string): Promise<void> {
     await this.userRepository.deleteById(id);
-  }
+  } */
   //  }
 }

@@ -7,7 +7,11 @@ import {Base} from './base.model';
 import {Favorite} from './favorite.model';
 import {ShoppingCart} from './shopping-cart.model';
 
-@model()
+@model({
+  settings: {
+    hiddenProperties: ['email', 'firebaseUserId', 'pushNotificationToken'],
+  },
+})
 export class User extends Base implements IUser {
   @property({
     type: 'string',

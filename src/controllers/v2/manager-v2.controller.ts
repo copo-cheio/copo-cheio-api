@@ -1,8 +1,16 @@
 // Uncomment these imports to begin using these cool features!
 
-import {AuthenticationBindings} from '@loopback/authentication';
+import {authenticate, AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
-import {get, param, patch, post, requestBody, response} from '@loopback/rest';
+import {
+  del,
+  get,
+  param,
+  patch,
+  post,
+  requestBody,
+  response,
+} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 
 import {AuthService, ManagerService} from '../../services';
@@ -24,7 +32,7 @@ export class ManagerV2Controller {
   /* -------------------------------------------------------------------------- */
   @get('/v2/manager/home')
   @response(200, {
-    description: 'Balcony PATCH success',
+    description: 'Manager home page',
   })
   async getManagerHomePage(): Promise<any> {
     try {
@@ -41,7 +49,7 @@ export class ManagerV2Controller {
   /* -------------------------------------------------------------------------- */
   @get('/v2/manager/menus')
   @response(200, {
-    description: 'Manager menu list',
+    description: 'Manager menus page',
   })
   async getManagerMenus(): Promise<any> {
     try {
@@ -54,7 +62,7 @@ export class ManagerV2Controller {
   }
   @get('/v2/manager/orders')
   @response(200, {
-    description: 'Manager menu list',
+    description: 'Manager orders page',
   })
   async getManagerOrders(): Promise<any> {
     try {
@@ -68,7 +76,7 @@ export class ManagerV2Controller {
 
   @get('/v2/manager/balconies/stocks')
   @response(200, {
-    description: 'Array of available models',
+    description: 'Manager balcony stocks page',
   })
   async getBalconiesWithStock() {
     return this.managerService.findBalconyStocks();
@@ -82,14 +90,14 @@ export class ManagerV2Controller {
   } */
   @get('/v2/manager/stocks')
   @response(200, {
-    description: 'Array of available models',
+    description: 'Manager stocks page',
   })
   async getStocksV2() {
     return this.managerService.getStocksPageV2();
   }
   @get('/v2/manager/stocks/{id}')
   @response(200, {
-    description: 'Array of available models',
+    description: 'Balcony stock page',
   })
   async getStockV2(@param.path.string('id') id: string) {
     return this.managerService.getStockPageV2(id);
@@ -97,7 +105,7 @@ export class ManagerV2Controller {
 
   @get('/v2/manager/schedule')
   @response(200, {
-    description: 'Array of available models',
+    description: 'Manager schedule page',
   })
   async getSchedule() {
     return this.managerService.getSchedulePage();
@@ -108,8 +116,9 @@ export class ManagerV2Controller {
   /* -------------------------------------------------------------------------- */
 
   @post('/v2/manager/products')
+  @authenticate('firebase')
   @response(200, {
-    description: 'Array of available models',
+    description: 'Create product',
   })
   async createProduct(
     @requestBody({})
@@ -118,6 +127,7 @@ export class ManagerV2Controller {
     return this.managerService.createProduct(body);
   }
   @post('/v2/manager/balconies')
+  @authenticate('firebase')
   @response(200, {
     description: 'Array of available models',
   })
@@ -128,8 +138,9 @@ export class ManagerV2Controller {
     return this.managerService.createBalcony(body);
   }
   @post('/v2/manager/place')
+  @authenticate('firebase')
   @response(200, {
-    description: 'Array of available models',
+    description: 'Create a place',
   })
   async createPlace(
     @requestBody({})
@@ -138,8 +149,9 @@ export class ManagerV2Controller {
     return this.managerService.createPlace(body);
   }
   @post('/v2/manager/menu-products')
+  @authenticate('firebase')
   @response(200, {
-    description: 'Array of available models',
+    description: 'Create a menu product',
   })
   async createMenuProduct(
     @requestBody({})
@@ -149,8 +161,9 @@ export class ManagerV2Controller {
   }
 
   @post('/v2/manager/company')
+  @authenticate('firebase')
   @response(200, {
-    description: 'Array of available models',
+    description: 'Create a company',
   })
   async createCompany(
     @requestBody({})
@@ -164,6 +177,7 @@ export class ManagerV2Controller {
   /* -------------------------------------------------------------------------- */
 
   @patch('/v2/manager/balconies/{id}')
+  @authenticate('firebase')
   @response(204, {
     description: 'Balcony PATCH success',
   })
@@ -176,6 +190,7 @@ export class ManagerV2Controller {
   }
 
   @patch('/v2/manager/products/{id}')
+  @authenticate('firebase')
   @response(200, {
     description: 'Array of available models',
   })
@@ -188,6 +203,7 @@ export class ManagerV2Controller {
   }
 
   @patch('/v2/manager/menu-products/{id}')
+  @authenticate('firebase')
   @response(200, {
     description: 'Array of available models',
   })
@@ -199,6 +215,7 @@ export class ManagerV2Controller {
     return this.managerService.updateMenuProduct(id, body);
   }
   @patch('/v2/manager/company/{id}')
+  @authenticate('firebase')
   @response(200, {
     description: 'Array of available models',
   })
@@ -208,5 +225,28 @@ export class ManagerV2Controller {
     body: any,
   ): Promise<any> {
     return this.managerService.updateCompany(id, body);
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                    CLONE                                   */
+  /* -------------------------------------------------------------------------- */
+  @get('/v2/manager/clone/teams/{id}')
+  @authenticate('firebase')
+  @response(204, {
+    description: 'Team CLONE success',
+  })
+  async cloneTeamById(@param.path.string('id') id: string): Promise<void> {
+    return this.managerService.cloneTeamById(id);
+  }
+  /* -------------------------------------------------------------------------- */
+  /*                                   DELETE                                   */
+  /* -------------------------------------------------------------------------- */
+  @del('/v2/manager/teams/{id}')
+  @authenticate('firebase')
+  @response(204, {
+    description: 'Team DELETE success',
+  })
+  async deleteTeamById(@param.path.string('id') id: string): Promise<void> {
+    return this.managerService.deleteTeam(id);
   }
 }

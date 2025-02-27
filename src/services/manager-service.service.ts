@@ -1,5 +1,7 @@
+import {AuthenticationBindings} from '@loopback/authentication';
 import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
+import {UserProfile} from '@loopback/security';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
 import {MenuFullQuery} from '../blueprints/menu.blueprint';
 import {QueryFilterBaseBlueprint} from '../blueprints/shared/query-filter.interface';
@@ -18,7 +20,9 @@ import {
   PriceRepository,
   ProductOptionRepository,
   ProductRepository,
+  StaffRepository,
   StockRepository,
+  TeamRepository,
 } from '../repositories';
 import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
 import {EventService} from './event.service';
@@ -71,6 +75,12 @@ export class ManagerService {
     private transactionService: TransactionService,
     @repository('StockRepository')
     public stockRepository: StockRepository,
+    @repository('TeamRepository')
+    public teamRepository: TeamRepository,
+    @repository('StaffRepository')
+    public staffRepository: StaffRepository,
+    @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
+    private currentUser: UserProfile, // Inject the current user profile
   ) {}
 
   /**
@@ -634,5 +644,89 @@ export class ManagerService {
       },
     });
     return record;
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                    CLONE                                   */
+  /* -------------------------------------------------------------------------- */
+
+  async cloneTeamById(id: string) {
+    return this.executeManagerAction(
+      [{repository: 'teamRepository', id}],
+      async () => {
+        const team = await this.teamRepository.findById(id, {
+          include: [{relation: 'staff'}],
+        });
+
+        const newTeamPayload = this.parseCloneObject(
+          {...team, name: '[Cloned] ' + team.name},
+          ['staff'],
+        );
+        const newTeam = await this.teamRepository.create(newTeamPayload);
+
+        const newTeamStaffPayload = (team.staff || []).map(
+          this.parseCloneObject,
+        );
+
+        for (const staff of newTeamStaffPayload) {
+          await this.teamRepository.staff(newTeam.id).create(staff);
+        }
+
+        return this.teamRepository.findById(newTeam.id, {
+          include: [{relation: 'staff'}],
+        });
+      },
+    );
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   DELETE                                   */
+  /* -------------------------------------------------------------------------- */
+
+  async deleteTeam(id: string) {
+    return this.executeManagerAction(
+      [{repository: 'teamRepository', id}],
+      async () => this.teamRepository.deleteById(id),
+    );
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   HELPERS                                  */
+  /* -------------------------------------------------------------------------- */
+
+  private async executeManagerAction(validations: any = [], callback: any) {
+    return this.transactionService.execute(async tx => {
+      const user = await this.staffRepository.findAll({
+        where: {
+          and: [
+            {userId: this.currentUser.id},
+            {role: {inq: ['manager', 'owner']}},
+          ],
+        },
+      });
+      const companyIds = user.map((u: any) => u.companyId);
+      for (const validation of validations) {
+        const record = await this[validation.repository].findById(
+          validation.id,
+        );
+        if (companyIds.indexOf(record.companyId) == -1) {
+          throw new Error(`User doesn't own or manage the current company`);
+        }
+      }
+
+      return callback();
+    });
+  }
+
+  private parseCloneObject(obj: any, additionalParameters: any = []) {
+    delete obj.id;
+    delete obj.created_at;
+    delete obj.updated_at;
+    if (Array.isArray(additionalParameters)) {
+      for (const parameter of additionalParameters) {
+        delete obj[parameter];
+      }
+    }
+    return obj;
   }
 }
