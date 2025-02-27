@@ -23,6 +23,7 @@ import {
   StaffRepository,
   StockRepository,
   TeamRepository,
+  TeamStaffRepository,
 } from '../repositories';
 import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
 import {EventService} from './event.service';
@@ -77,6 +78,8 @@ export class ManagerService {
     public stockRepository: StockRepository,
     @repository('TeamRepository')
     public teamRepository: TeamRepository,
+    @repository('TeamStaffRepository')
+    public teamStaffRepository: TeamStaffRepository,
     @repository('StaffRepository')
     public staffRepository: StaffRepository,
     @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
@@ -646,6 +649,49 @@ export class ManagerService {
     return record;
   }
 
+  async updateTeamStaff(teamId, staffId, currentRoles, newRoles) {
+    return this.executeManagerAction(
+      [{repository: 'teamRepository', teamId}],
+      async () => {
+        const team = await this.teamRepository.findById(teamId);
+        const staffUser = await this.staffRepository.findById(staffId);
+        const userId = staffUser?.userId;
+        const companyId = team?.companyId;
+
+        for (const role of newRoles) {
+          if (currentRoles.indexOf(role) == -1) {
+            let staff = await this.staffRepository.findOne({
+              where: {and: [{userId}, {role}]},
+            });
+
+            if (!staff) {
+              staff = await this.staffRepository.create({
+                userId,
+                role,
+                companyId,
+              });
+            }
+
+            await this.teamStaffRepository.create({teamId, staffId: staff.id});
+          }
+        }
+        for (const role of currentRoles) {
+          if (newRoles.indexOf(role) == -1) {
+            console.log({role});
+            const staff = await this.staffRepository.findOne({
+              where: {and: [{userId}, {role}]},
+            });
+
+            if (staff) {
+              await this.teamStaffRepository.deleteAll({
+                and: [{teamId}, {staffId: staff.id}],
+              });
+            }
+          }
+        }
+      },
+    );
+  }
   /* -------------------------------------------------------------------------- */
   /*                                    CLONE                                   */
   /* -------------------------------------------------------------------------- */

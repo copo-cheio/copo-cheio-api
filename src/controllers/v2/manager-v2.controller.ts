@@ -172,17 +172,21 @@ export class ManagerV2Controller {
     return this.managerService.createCompany(body);
   }
 
-  @post('/v2/manager/team-staff/{id}')
+  @post('/v2/manager/team-staff')
   @authenticate('firebase')
-  @response(204, {
+  @response(200, {
     description: 'Team DELETE success',
   })
   async createorUpdateTeamStaff(
     @requestBody({})
     body: any,
   ): Promise<void> {
-    //return this.managerService.deleteTeamStaffBy(id);
-    return body;
+    return this.managerService.updateTeamStaff(
+      body.teamId,
+      body.staff.id,
+      body.currentRoles,
+      body.newRoles,
+    );
   }
 
   /* -------------------------------------------------------------------------- */
