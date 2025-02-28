@@ -5,11 +5,11 @@ import {
   property,
   referencesMany,
 } from '@loopback/repository';
+import {Tag} from '../tag.model';
 import {Base} from './base.model';
 import {Image} from './image.model';
 import {ProductIngredient} from './product-ingredient.model';
 import {ProductOption} from './product-option.model';
-import {Tag} from './tag.model';
 
 @model()
 export class Product extends Base {

@@ -7,8 +7,8 @@ import {
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
 import {Image, Ingredient, IngredientRelations, Tag} from '../../models';
+import {TagRepository} from '../tag.repository';
 import {ImageRepository} from './image.repository';
-import {TagRepository} from './tag.repository';
 
 export class IngredientRepository extends SoftCrudRepository<
   Ingredient,

@@ -31,3 +31,4 @@ export * from './place-place-instance.controller';
 export * from './user-check-in-v2.controller';
 export * from './user-order-v2.controller';
 export * from './user-activity-v2.controller';
+export * from './video.controller';

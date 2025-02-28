@@ -39,12 +39,12 @@ import {ScheduleRepository} from './schedule.repository';
 // import {TagReferencesRepository} from "./tag-references.repository";
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {CheckInV2Repository} from '../check-in-v2.repository';
+import {TagRepository} from '../tag.repository';
 import {ContactsRepository} from './contacts.repository';
 import {EventInstanceRepository} from './event-instance.repository';
 import {OpeningHoursRepository} from './opening-hours.repository';
 import {PlaceRepository} from './place.repository';
 import {RecurringScheduleRepository} from './recurring-schedule.repository';
-import {TagRepository} from './tag.repository';
 import {TeamRepository} from './team.repository';
 import {TicketRepository} from './ticket.repository';
 

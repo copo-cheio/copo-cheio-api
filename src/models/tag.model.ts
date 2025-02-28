@@ -1,6 +1,6 @@
 import {belongsTo, model, property} from '@loopback/repository';
-import {Base, mergeBaseModelConfiguration} from './base.model';
-import {Translation} from './translation.model';
+import {Base, mergeBaseModelConfiguration} from './v1/base.model';
+import {Translation} from './v1/translation.model';
 
 @model(
   mergeBaseModelConfiguration({

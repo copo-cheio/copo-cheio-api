@@ -37,12 +37,12 @@ import {EventRepository} from './event.repository';
 import {ImageRepository} from './image.repository';
 import {OpeningHoursRepository} from './opening-hours.repository';
 
+import {TagRepository} from '../tag.repository';
 import {PlaceInstanceRepository} from './place-instance.repository';
 import {PlaceRuleRepository} from './place-rule.repository';
 import {PlaylistRepository} from './playlist.repository';
 import {RuleRepository} from './rule.repository';
 import {ScheduleRepository} from './schedule.repository';
-import {TagRepository} from './tag.repository';
 import {TeamRepository} from './team.repository';
 
 /**

@@ -13,9 +13,9 @@ import {
   Song,
   Tag,
 } from '../../models';
+import {TagRepository} from '../tag.repository';
 import {PlaylistSongRepository} from './playlist-song.repository';
 import {SongRepository} from './song.repository';
-import {TagRepository} from './tag.repository';
 
 export class PlaylistRepository extends SoftCrudRepository<
   //export class PlaylistRepository extends DeepCrudRepository<
