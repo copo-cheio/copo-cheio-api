@@ -9,3 +9,5 @@ export * from './v1';
 export * from './v1/user.model'; */
 /* export * from './order-item-options-v2.model'; */
 export * from './activity-v2.model';
+export * from './v1/tutorial-step.model';
+export * from './v1/tutorial.model';

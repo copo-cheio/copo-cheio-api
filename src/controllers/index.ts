@@ -33,3 +33,6 @@ export * from './user-check-in-v2.controller';
 export * from './user-order-v2.controller';
 export * from './v1/video.controller';
 export * from './video-image.controller';
+export * from './tutorial-video.controller';
+export * from './tutorial-tutorial-step.controller';
+export * from './tutorial.controller';
