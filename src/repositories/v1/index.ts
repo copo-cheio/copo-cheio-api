@@ -3,7 +3,6 @@ export * from './address.repository';
 export * from './artist.repository';
 export * from './balcony.repository';
 // export * from './blueprint.repository';
-export * from '../tag.repository';
 export * from './config.repository';
 export * from './country.repository';
 export * from './currency.repository';
@@ -20,6 +19,7 @@ export * from './schedule-range.repository';
 export * from './schedule.repository';
 export * from './song.repository';
 export * from './tag-references.repository';
+export * from './tag.repository';
 export * from './ticket.repository';
 export * from './translation.repository';
 

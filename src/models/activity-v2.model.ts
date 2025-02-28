@@ -1,6 +1,6 @@
 import {belongsTo, model, property, referencesMany} from '@loopback/repository';
-import {Tag} from './tag.model';
 import {Base} from './v1/base.model';
+import {Tag} from './v1/tag.model';
 import {User} from './v1/user.model';
 
 @model()

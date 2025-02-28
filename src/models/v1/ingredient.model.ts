@@ -1,7 +1,7 @@
 import {belongsTo, model, property, referencesMany} from '@loopback/repository';
-import {Tag} from '../tag.model';
 import {Base, mergeBaseModelConfiguration} from './base.model';
 import {Image} from './image.model';
+import {Tag} from './tag.model';
 
 @model(
   mergeBaseModelConfiguration({

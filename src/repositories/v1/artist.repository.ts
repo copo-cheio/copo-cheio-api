@@ -7,9 +7,9 @@ import {
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
 import {Artist, ArtistRelations, Image, Playlist, Tag} from '../../models';
-import {TagRepository} from '../tag.repository';
 import {ImageRepository} from './image.repository';
 import {PlaylistRepository} from './playlist.repository';
+import {TagRepository} from './tag.repository';
 
 export class ArtistRepository extends SoftCrudRepository<
   Artist,

@@ -1,8 +1,9 @@
-import {model, property, referencesMany} from '@loopback/repository';
-import {Base} from './v1/base.model';
+import {belongsTo, model, property, referencesMany} from '@loopback/repository';
+import {Image} from '.';
+import {Base, mergeBaseModelConfiguration} from './base.model';
 import {Tag} from './tag.model';
 
-@model()
+@model(mergeBaseModelConfiguration({}))
 export class Video extends Base {
   @property({
     type: 'string',
@@ -24,6 +25,9 @@ export class Video extends Base {
 
   @referencesMany(() => Tag)
   tagIds: string[];
+
+  @belongsTo(() => Image)
+  coverId: string;
 
   constructor(data?: Partial<Video>) {
     super(data);

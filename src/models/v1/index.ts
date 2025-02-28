@@ -3,7 +3,6 @@ export * from './base.model';
 export * from './image.model';
 export * from './place.model';
 
-export * from '../tag.model';
 export * from './address.model';
 export * from './artist.model';
 export * from './config.model';
@@ -21,6 +20,7 @@ export * from './schedule-range.model';
 export * from './schedule.model';
 export * from './song.model';
 export * from './tag-references.model';
+export * from './tag.model';
 export * from './ticket.model';
 export * from './translation.model';
 
@@ -60,3 +60,4 @@ export * from './team.model';
 export * from './time-table.model';
 export * from './timeline.model';
 export * from './user.model';
+export * from './video.model';

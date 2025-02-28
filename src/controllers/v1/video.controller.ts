@@ -1,29 +1,21 @@
+import {Filter, FilterExcludingWhere, repository} from '@loopback/repository';
 import {
-  Count,
-  CountSchema,
-  Filter,
-  FilterExcludingWhere,
-  repository,
-  Where,
-} from '@loopback/repository';
-import {
-  post,
-  param,
   get,
   getModelSchemaRef,
+  param,
   patch,
-  put,
-  del,
+  post,
   requestBody,
   response,
 } from '@loopback/rest';
-import {Video} from '../models';
-import {VideoRepository} from '../repositories';
+
+import {Video} from '../../models/v1/video.model';
+import {VideoRepository} from '../../repositories';
 
 export class VideoController {
   constructor(
     @repository(VideoRepository)
-    public videoRepository : VideoRepository,
+    public videoRepository: VideoRepository,
   ) {}
 
   @post('/videos')
@@ -47,15 +39,26 @@ export class VideoController {
     return this.videoRepository.create(video);
   }
 
-  @get('/videos/count')
+  @get('/videos/manager-tutorials')
   @response(200, {
-    description: 'Video model count',
-    content: {'application/json': {schema: CountSchema}},
+    description: 'Array of Manager tutorials Video model instances',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'array',
+          items: getModelSchemaRef(Video, {includeRelations: true}),
+        },
+      },
+    },
   })
-  async count(
-    @param.where(Video) where?: Where<Video>,
-  ): Promise<Count> {
-    return this.videoRepository.count(where);
+  async findManagerTutorials(): Promise<any> {
+    const tagId = 'ced0d004-9649-4711-b563-55702ab8fb0d';
+    const query = `
+      SELECT * FROM video WHERE tagIds LIKE '%ced0d004-9649-4711-b563-55702ab8fb0d%'
+    `;
+    const result: any = await this.videoRepository.execute(query);
+    return result;
+    /*    return this.videoRepository.find(filter); */
   }
 
   @get('/videos')
@@ -70,29 +73,8 @@ export class VideoController {
       },
     },
   })
-  async find(
-    @param.filter(Video) filter?: Filter<Video>,
-  ): Promise<Video[]> {
+  async find(@param.filter(Video) filter?: Filter<Video>): Promise<Video[]> {
     return this.videoRepository.find(filter);
-  }
-
-  @patch('/videos')
-  @response(200, {
-    description: 'Video PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async updateAll(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Video, {partial: true}),
-        },
-      },
-    })
-    video: Video,
-    @param.where(Video) where?: Where<Video>,
-  ): Promise<Count> {
-    return this.videoRepository.updateAll(video, where);
   }
 
   @get('/videos/{id}')
@@ -106,7 +88,8 @@ export class VideoController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Video, {exclude: 'where'}) filter?: FilterExcludingWhere<Video>
+    @param.filter(Video, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Video>,
   ): Promise<Video> {
     return this.videoRepository.findById(id, filter);
   }
@@ -128,7 +111,33 @@ export class VideoController {
   ): Promise<void> {
     await this.videoRepository.updateById(id, video);
   }
-
+  /*
+  @get('/videos/count')
+  @response(200, {
+    description: 'Video model count',
+    content: {'application/json': {schema: CountSchema}},
+  })
+  async count(@param.where(Video) where?: Where<Video>): Promise<Count> {
+    return this.videoRepository.count(where);
+  }
+  @patch('/videos')
+  @response(200, {
+    description: 'Video PATCH success count',
+    content: {'application/json': {schema: CountSchema}},
+  })
+  async updateAll(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Video, {partial: true}),
+        },
+      },
+    })
+    video: Video,
+    @param.where(Video) where?: Where<Video>,
+  ): Promise<Count> {
+    return this.videoRepository.updateAll(video, where);
+  }
   @put('/videos/{id}')
   @response(204, {
     description: 'Video PUT success',
@@ -146,5 +155,5 @@ export class VideoController {
   })
   async deleteById(@param.path.string('id') id: string): Promise<void> {
     await this.videoRepository.deleteById(id);
-  }
+  } */
 }

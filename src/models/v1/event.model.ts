@@ -18,11 +18,11 @@ import {Schedule} from './schedule.model';
 
 import {ScheduleTypes} from '../../blueprints/shared/schedule.include';
 import {CheckInV2} from '../check-in-v2.model';
-import {Tag} from '../tag.model';
 import {Contacts} from './contacts.model';
 import {EventInstance} from './event-instance.model';
 import {OpeningHours} from './opening-hours.model';
 import {RecurringSchedule} from './recurring-schedule.model';
+import {Tag} from './tag.model';
 import {Team} from './team.model';
 import {Ticket} from './ticket.model';
 

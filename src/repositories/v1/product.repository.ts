@@ -15,11 +15,11 @@ import {
   ProductRelations,
   Tag,
 } from '../../models';
-import {TagRepository} from '../tag.repository';
 import {ImageRepository} from './image.repository';
 import {IngredientRepository} from './ingredient.repository';
 import {ProductIngredientRepository} from './product-ingredient.repository';
 import {ProductOptionRepository} from './product-option.repository';
+import {TagRepository} from './tag.repository';
 
 export class ProductRepository extends SoftCrudRepository<
   Product,

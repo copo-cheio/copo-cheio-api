@@ -1,8 +1,8 @@
 import {hasMany, model, property, referencesMany} from '@loopback/repository';
-import {Tag} from '../tag.model';
 import {Base} from './base.model';
 import {PlaylistSong} from './playlist-song.model';
 import {Song} from './song.model';
+import {Tag} from './tag.model';
 
 @model()
 export class Playlist extends Base {
