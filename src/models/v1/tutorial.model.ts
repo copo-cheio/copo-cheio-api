@@ -2,8 +2,8 @@ import {belongsTo, hasMany, model, property} from '@loopback/repository';
 import {TutorialStep} from './tutorial-step.model';
 import {Video} from './video.model';
 
-import {Base} from './base.model';
-@model()
+import {Base, mergeBaseModelConfiguration} from './base.model';
+@model(mergeBaseModelConfiguration({}))
 export class Tutorial extends Base {
   @property({
     type: 'string',

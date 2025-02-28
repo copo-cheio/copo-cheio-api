@@ -1,7 +1,7 @@
 import {model, property} from '@loopback/repository';
-import {Base} from './base.model';
+import {Base, mergeBaseModelConfiguration} from './base.model';
 
-@model()
+@model(mergeBaseModelConfiguration({}))
 export class TutorialStep extends Base {
   @property({
     type: 'number',
