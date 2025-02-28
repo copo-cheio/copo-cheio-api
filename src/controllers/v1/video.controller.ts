@@ -56,8 +56,20 @@ export class VideoController {
     const query = `
       SELECT * FROM video WHERE tagIds LIKE '%ced0d004-9649-4711-b563-55702ab8fb0d%'
     `;
-    const result: any = await this.videoRepository.execute(query);
-    return result;
+    const videos: any = await this.videoRepository.execute(query);
+    return this.videoRepository.findAll({
+      where: {
+        and: [
+          {id: {inq: videos.map((video: Video) => video.id)}},
+          {deleted: false},
+        ],
+      },
+      include: [
+        {
+          relation: 'cover',
+        },
+      ],
+    });
     /*    return this.videoRepository.find(filter); */
   }
 
