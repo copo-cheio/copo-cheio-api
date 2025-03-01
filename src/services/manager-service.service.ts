@@ -19,6 +19,7 @@ import {
   MenuRepository,
   OrderV2Repository,
   PlaceRepository,
+  PlaylistRepository,
   PriceRepository,
   ProductOptionRepository,
   ProductRepository,
@@ -61,6 +62,8 @@ export class ManagerService {
     public regionRepository: RegionRepository,
     @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
+    @repository('PlaylistRepository')
+    public playlistRepository: PlaylistRepository,
     @repository('PlaceInstanceRepository')
     public placeInstanceRepository: PlaceInstanceRepository,
     @repository('EventInstanceRepository')
@@ -728,18 +731,42 @@ export class ManagerService {
           break;
         }
       }
-      console.log({addressUpdateRequired, addressPayload});
+
       if (addressUpdateRequired) {
-        console.log('Will update address');
         addressPayload.long_label = [
           address.address,
           regionRecord?.name,
           address.postal,
         ].join(',');
-        console.log({addressPayload, addressRecord});
+
         await this.addressRepository.updateById(
           addressRecord.id,
           addressPayload,
+        );
+      }
+
+      let playlistUpdateRequired = false;
+      const playlistRecord = await this.playlistRepository.findById(
+        placeRecord.playlistId,
+      );
+      const playlistPayload = {
+        url: place?.playlist?.url,
+        name: place?.playlist?.name,
+        description: place?.playlist?.description,
+      };
+      for (const key of Object.keys(playlistPayload)) {
+        const original = (playlistRecord[key] || '')?.trim();
+        const current = (playlistPayload[key] || '')?.trim();
+        if (current && current?.length > 0) {
+          if (original !== current) {
+            playlistUpdateRequired = true;
+          }
+        }
+      }
+      if (playlistUpdateRequired) {
+        await this.playlistRepository.updateById(
+          placeRecord.playlistId,
+          playlistPayload,
         );
       }
 
@@ -921,6 +948,24 @@ export class ManagerService {
     );
   }
   async deleteTeamStaffBy(id: string) {
+    /*   const team = await this.staffRepository.findById(id,{include:})
+    return this.executeManagerAction(
+      [{repository: 'teamRepository', id}],
+      async () => this.teamRepository.deleteById(id),
+    ); */
+  }
+
+  async removeStaffFromTeam(teamId: string, staffId: string) {
+    const result = await this.teamStaffRepository.findOne({
+      where: {
+        and: [{teamId: teamId}, {staffId: staffId}],
+      },
+    });
+    if (result) {
+      await this.teamStaffRepository.deleteById(result.id);
+    }
+    return {result};
+
     /*   const team = await this.staffRepository.findById(id,{include:})
     return this.executeManagerAction(
       [{repository: 'teamRepository', id}],

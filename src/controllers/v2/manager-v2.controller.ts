@@ -189,6 +189,17 @@ export class ManagerV2Controller {
       body.newRoles,
     );
   }
+  @post('/v2/manager/remove/team-staff/')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Team DELETE success',
+  })
+  async removeStaffFromTeam(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.removeStaffFromTeam(body.teamId, body.staffIid);
+  }
 
   /* -------------------------------------------------------------------------- */
   /*                                   UPDATE                                   */
