@@ -67,6 +67,16 @@ export class StaffV2Controller {
     return this.staffService.getBalconyOrders();
   }
 
+  @get('/v2/staff/balconies')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Activity model instance',
+  })
+  async getBalconies(): // @param.filter(Activity, {exclude: 'where'}) filter?: FilterExcludingWhere<Activity>
+  Promise<any> {
+    return this.staffService.getBalconies();
+  }
+
   @get('/v2/staff/info')
   @authenticate('firebase')
   @response(200, {

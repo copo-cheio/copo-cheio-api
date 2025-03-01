@@ -4,6 +4,7 @@ import {AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {UserProfile} from '@loopback/security';
+import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
 import {EventsQuery} from '../blueprints/event.blueprint';
 import {PlacesQuery} from '../blueprints/place.blueprint';
 import {
@@ -13,13 +14,17 @@ import {
   BalconyTransformers,
   CheckInV2Repository,
   DevRepository,
+  EventInstanceRepository,
   EventRepository,
   OrderV2Queries,
   OrderV2Repository,
   OrderV2Transformers,
   PlaceRepository,
+  StaffRepository,
   StockRepository,
 } from '../repositories';
+import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
+import {TeamStaffRepository} from '../repositories/v1/team-staff.repository';
 import {AuthService, OrderService, PushNotificationService} from '../services';
 import {PlaceService} from './place.service';
 @injectable({scope: BindingScope.TRANSIENT})
@@ -47,6 +52,13 @@ export class StaffService {
     public activityV2Repository: ActivityV2Repository,
     @repository('PlaceRepository') public placeRepository: PlaceRepository,
     @repository('EventRepository') public eventRepository: EventRepository,
+    @repository('PlaceInstanceRepository')
+    public placeInstanceRepository: PlaceInstanceRepository,
+    @repository('EventInstanceRepository')
+    public eventInstanceRepository: EventInstanceRepository,
+    @repository('StaffRepository') public staffRepository: StaffRepository,
+    @repository('TeamStaffRepository')
+    public teamStaffRepository: TeamStaffRepository,
   ) {
     //  @repository(DevRepository) public devRepository: DevRepository
   }
@@ -72,7 +84,68 @@ export class StaffService {
   /* -------------------------------------------------------------------------- */
   /*                                     V2                                     */
   /* -------------------------------------------------------------------------- */
+  async getBalconies() {
+    // Finds places and events where staff is/will be working today and retrieve their balconies
+    const now = new Date();
+    const staffs = await this.staffRepository.findAll({
+      where: {userId: this.currentUser.id},
+    });
+    const staffIds = (staffs || []).map(s => s.id);
+    const teams = await this.teamStaffRepository.findAll({
+      where: {
+        and: [
+          {
+            staffId: {
+              inq: staffIds,
+            },
+          },
+          {deleted: false},
+        ],
+      },
+    });
+    const teamIds = [...new Set((teams || []).map(t => t.teamId))];
+    const places = await this.placeRepository.findAll({
+      where: {
+        and: [{teamId: {inq: teamIds}}, {deleted: false}],
+      },
+    });
+    const placeIds = (places || []).map(t => t.id);
+    const events = await this.eventRepository.findAll({
+      where: {and: [{teamId: {inq: teamIds}}, {deleted: false}]},
+    });
+    const eventIds = (events || []).map(t => t.id);
 
+    const placeInstances = await this.placeInstanceRepository.findAll({
+      where: {
+        and: [
+          {placeId: {inq: placeIds}},
+          {date: {lte: now}},
+          {endDate: {gte: now}},
+          {deleted: false},
+          /* {active:true}, */
+        ],
+      },
+    });
+    const eventInstances = await this.eventInstanceRepository.findAll({
+      where: {
+        and: [
+          {eventId: {inq: eventIds}},
+          {startDate: {lte: now}},
+          {endDate: {gte: now}},
+          {deleted: false},
+          /* {active:true}, */
+        ],
+      },
+    });
+
+    const activePlaceIds = [...new Set(placeInstances.map(pI => pI.placeId))];
+    return this.balconyRepository.findAll({
+      ...BalconyFullQuery,
+      where: {...BalconyFullQuery.where, placeId: {inq: activePlaceIds}},
+    });
+
+    //return {placeIds, placeInstances, teamIds, staffIds, eventInstances};
+  }
   async getPageActivityPlaces() {
     const activity = await this.activityV2Repository.findAll({
       where: {
@@ -113,34 +186,7 @@ export class StaffService {
       activity,
     };
   }
-  /*
-  const response: any = {
-    success: false,
-    };
-    const systemOrder = await this.findByIdInList(
-    () => this.findByAction('system', 'orders', 'system'),
-    refId,
-    'orderId',
-  );
 
-  if (systemOrder.item.status == 'READY') {
-    const code = systemOrder.item.code;
-    const decription = await this.encriptionService.comparePassword(
-      data.code,
-      code,
-    );
-    if (decription) {
-      await this.updateOrder('staff', refId, {
-        status: 'COMPLETE',
-        staffId: data.staffId,
-      });
-      await this.updateSystemOrderStatusByOrderId(refId, 'COMPLETE');
-      response.success = true;
-    }
-    response.order = await this.getOrder(refId);
-
-    return response;
-    */
   async validateOrderV2(payload: any = {}) {
     return this.orderService.validateOrderV2(payload);
   }
