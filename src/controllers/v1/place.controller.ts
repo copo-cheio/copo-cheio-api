@@ -284,7 +284,7 @@ export class PlaceController {
       },
     })
     place: any,
-  ): Promise<void> {
+  ): Promise<any> {
     return this.managerService.updatePlace(id, place);
   }
 

@@ -43,6 +43,13 @@ export class ManagerV2Controller {
       return [];
     }
   }
+  @get('/v2/manager/place/{id}')
+  @response(200, {
+    description: 'Manager home page',
+  })
+  async getManagerPlacePage(@param.path.string('id') id: string): Promise<any> {
+    return this.managerService.getPlacePage(id);
+  }
 
   /* -------------------------------------------------------------------------- */
   /*                                     GET                                    */
@@ -81,13 +88,7 @@ export class ManagerV2Controller {
   async getBalconiesWithStock() {
     return this.managerService.findBalconyStocks();
   }
-  /*   @get('/v2/manager/stocks')
-  @response(200, {
-    description: 'Array of available models',
-  })
-  async getStocks() {
-    return this.managerService.getStocksPage();
-  } */
+
   @get('/v2/manager/stocks')
   @response(200, {
     description: 'Manager stocks page',
@@ -204,6 +205,18 @@ export class ManagerV2Controller {
     body: any,
   ): Promise<void> {
     await this.managerService.updateBalcony(id, body);
+  }
+  @patch('/v2/manager/places/{id}')
+  @authenticate('firebase')
+  @response(204, {
+    description: 'Balcony PATCH success',
+  })
+  async updatePlaceById(
+    @param.path.string('id') id: string,
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    await this.managerService.updatePlaceV2(id, body);
   }
 
   @patch('/v2/manager/products/{id}')

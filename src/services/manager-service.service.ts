@@ -4,6 +4,7 @@ import {repository} from '@loopback/repository';
 import {UserProfile} from '@loopback/security';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
 import {MenuFullQuery} from '../blueprints/menu.blueprint';
+import {PlaceManagerQueryFull} from '../blueprints/place.blueprint';
 import {QueryFilterBaseBlueprint} from '../blueprints/shared/query-filter.interface';
 import {DEFAULT_MODEL_ID} from '../constants';
 import {
@@ -24,6 +25,7 @@ import {
   StockRepository,
   TeamRepository,
   TeamStaffRepository,
+  UserRepository,
 } from '../repositories';
 import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
 import {EventService} from './event.service';
@@ -82,6 +84,8 @@ export class ManagerService {
     public teamStaffRepository: TeamStaffRepository,
     @repository('StaffRepository')
     public staffRepository: StaffRepository,
+    @repository('UserRepository')
+    public userRepository: UserRepository,
     @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
     private currentUser: UserProfile, // Inject the current user profile
   ) {}
@@ -153,7 +157,9 @@ export class ManagerService {
       orders: orders.length,
     };
   }
-
+  async getPlacePage(id: string) {
+    return this.placeRepository.findById(id, PlaceManagerQueryFull);
+  }
   async getStocksPageV2(managerBalconies?: any) {
     // PROOF OF CONCEPT
     const balconies =
@@ -402,6 +408,17 @@ export class ManagerService {
         social_instagram,
         social_threads,
       });
+      const team = await this.teamRepository.create({
+        name: name + 'team',
+        companyId: company.id,
+        coverId: coverId,
+      });
+      const teamStaff = await this.updateTeamStaff(
+        team.id,
+        this.currentUser.id,
+        [],
+        ['admin'],
+      );
 
       return {...company, contacts};
     });
@@ -565,7 +582,15 @@ export class ManagerService {
   }
 
   async createPlace(payload: any = {}) {
-    //...
+    // Precisa de teamId
+    // Precisa de address
+    // Precisa de opening hours
+    // Precisa de vompanyId
+    // Precisa de contactsId
+    // Precisa de tagIds
+    // Precisa de playlistId
+    // Falta address e playlist que n tou com coragem agr
+    return payload;
   }
   async updatePlace(id: string, place: any = {}) {
     const openingHours: any = place.openingHours;
@@ -577,6 +602,93 @@ export class ManagerService {
     // const record:any = await this.placeRepository.create(place);
     await this.placeService.findOrCreateCheckInQrCode(id);
     return record;
+  }
+
+  async updatePlaceV2(id: string, place: any = {}) {
+    let {
+      coverId,
+      name,
+      description,
+      contacts,
+      tagIds,
+      venueIds,
+      activityIds,
+      musicIds,
+      foodIds,
+      openingHours,
+      teamId,
+      address,
+    } = place;
+    tagIds = [
+      ...new Set([
+        ...(venueIds || []),
+        ...(activityIds || []),
+        ...(musicIds || []),
+        ...(foodIds || []),
+      ]),
+    ];
+
+    let placeUpdateRequired = false;
+    const placePayload = {
+      name,
+      description,
+      coverId,
+      teamId,
+      tagIds,
+    };
+    const placeRecord = await this.placeRepository.findById(
+      id,
+      PlaceManagerQueryFull,
+    );
+    for (const key of Object.keys(placePayload)) {
+      if (placePayload[key] !== placeRecord[key]) {
+        placeUpdateRequired = true;
+        break;
+      }
+    }
+    if (placeUpdateRequired) {
+      await this.placeRepository.updateById(id, placePayload);
+    }
+    const contactsPayload = contacts;
+    const contactsRecord = await this.contactRepository.findOne({
+      where: {refId: id},
+      /*    include: [{relation: 'region'}], */
+    });
+    let contactsUpdateRequired = false;
+    for (const key of Object.keys(contactsPayload || {})) {
+      if (
+        contactsRecord[key] !== contactsPayload[key] &&
+        contactsPayload[key] !== null
+      ) {
+        contactsUpdateRequired = true;
+      }
+    }
+
+    if (contactsUpdateRequired) {
+      await this.contactRepository.updateById(
+        contactsRecord.id,
+        contactsPayload,
+      );
+    }
+
+    delete place.openingHours;
+    if (Array.isArray(openingHours)) {
+      await this.placeService.updatePlaceOpeningHours(id, openingHours);
+    }
+
+    // const record:any = await this.placeRepository.create(place);
+    await this.placeService.findOrCreateCheckInQrCode(id);
+    return placeRecord;
+
+    /*  const openingHours: any = place.openingHours;
+    delete place.openingHours;
+    if (Array.isArray(openingHours)) {
+      await this.placeService.updatePlaceOpeningHours(id, openingHours);
+    }
+    const record: any = await this.placeRepository.updateById(id, place);
+    // const record:any = await this.placeRepository.create(place);
+    await this.placeService.findOrCreateCheckInQrCode(id);
+    return record; */
   }
 
   async updateBalcony(id, payload: any = {}) {
@@ -654,7 +766,17 @@ export class ManagerService {
       [{repository: 'teamRepository', teamId}],
       async () => {
         const team = await this.teamRepository.findById(teamId);
-        const staffUser = await this.staffRepository.findById(staffId);
+        let staffUser = await this.staffRepository.findById(staffId);
+        if (!staffUser) {
+          const user = await this.userRepository.findById(staffId);
+          if (!user) throw new Error('Invalid user');
+          staffUser = await this.staffRepository.create({
+            userId: staffId,
+            role: newRoles[0],
+            companyId: 'f0eeff9a-4a59-48b7-a1e4-17ddd608b145',
+          });
+          staffId = staffUser.id;
+        }
         const userId = staffUser?.userId;
         const companyId = team?.companyId;
 

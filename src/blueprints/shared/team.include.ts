@@ -1,11 +1,26 @@
 export const IncludeTeamsRelation: any = {
-  relation: "teams",
+  relation: 'teams',
   scope: {
-     include: [{
-      relation: "staff",
-      scope:{
-        include:[{relation:"user"}]
-      }
-     }],
-   },
+    include: [
+      {
+        relation: 'staff',
+        scope: {
+          include: [{relation: 'user'}],
+        },
+      },
+    ],
+  },
+};
+export const IncludeTeamRelation: any = {
+  relation: 'team',
+  scope: {
+    include: [
+      {
+        relation: 'staff',
+        scope: {
+          include: [{relation: 'user'}],
+        },
+      },
+    ],
+  },
 };
