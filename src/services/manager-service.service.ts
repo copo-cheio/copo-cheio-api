@@ -8,6 +8,7 @@ import {PlaceManagerQueryFull} from '../blueprints/place.blueprint';
 import {QueryFilterBaseBlueprint} from '../blueprints/shared/query-filter.interface';
 import {DEFAULT_MODEL_ID} from '../constants';
 import {
+  AddressRepository,
   BalconyRepository,
   CompanyRepository,
   ContactsRepository,
@@ -21,6 +22,7 @@ import {
   PriceRepository,
   ProductOptionRepository,
   ProductRepository,
+  RegionRepository,
   StaffRepository,
   StockRepository,
   TeamRepository,
@@ -53,6 +55,10 @@ export class ManagerService {
     public devRepository: DevRepository,
     @repository('MenuRepository')
     public menuRepository: MenuRepository,
+    @repository('AddressRepository')
+    public addressRepository: AddressRepository,
+    @repository('RegionRepository')
+    public regionRepository: RegionRepository,
     @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
     @repository('PlaceInstanceRepository')
@@ -585,11 +591,11 @@ export class ManagerService {
     // Precisa de teamId
     // Precisa de address
     // Precisa de opening hours
-    // Precisa de vompanyId
+    // Precisa de companyId
     // Precisa de contactsId
     // Precisa de tagIds
     // Precisa de playlistId
-    // Falta address e playlist que n tou com coragem agr
+    // @TODO Falta address e playlist que n tou com coragem agr
     return payload;
   }
   async updatePlace(id: string, place: any = {}) {
@@ -605,90 +611,147 @@ export class ManagerService {
   }
 
   async updatePlaceV2(id: string, place: any = {}) {
-    let {
-      coverId,
-      name,
-      description,
-      contacts,
-      tagIds,
-      venueIds,
-      activityIds,
-      musicIds,
-      foodIds,
-      openingHours,
-      teamId,
-      address,
-    } = place;
-    tagIds = [
-      ...new Set([
-        ...(venueIds || []),
-        ...(activityIds || []),
-        ...(musicIds || []),
-        ...(foodIds || []),
-      ]),
-    ];
+    return this.transactionService.execute(async tx => {
+      let {
+        coverId,
+        name,
+        description,
+        contacts,
+        tagIds,
+        venueIds,
+        activityIds,
+        musicIds,
+        foodIds,
+        openingHours,
+        teamId,
+        address,
+      } = place;
+      tagIds = [
+        ...new Set([
+          ...(venueIds || []),
+          ...(activityIds || []),
+          ...(musicIds || []),
+          ...(foodIds || []),
+        ]),
+      ];
 
-    let placeUpdateRequired = false;
-    const placePayload = {
-      name,
-      description,
-      coverId,
-      teamId,
-      tagIds,
-    };
-    const placeRecord = await this.placeRepository.findById(
-      id,
-      PlaceManagerQueryFull,
-    );
-    for (const key of Object.keys(placePayload)) {
-      if (placePayload[key] !== placeRecord[key]) {
-        placeUpdateRequired = true;
-        break;
-      }
-    }
-    if (placeUpdateRequired) {
-      await this.placeRepository.updateById(id, placePayload);
-    }
-    const contactsPayload = contacts;
-    const contactsRecord = await this.contactRepository.findOne({
-      where: {refId: id},
-      /*    include: [{relation: 'region'}], */
-    });
-    let contactsUpdateRequired = false;
-    for (const key of Object.keys(contactsPayload || {})) {
-      if (
-        contactsRecord[key] !== contactsPayload[key] &&
-        contactsPayload[key] !== null
-      ) {
-        contactsUpdateRequired = true;
-      }
-    }
+      tagIds = tagIds.sort();
 
-    if (contactsUpdateRequired) {
-      await this.contactRepository.updateById(
-        contactsRecord.id,
-        contactsPayload,
+      // Place itself
+      let placeUpdateRequired = false;
+      const placePayload = {
+        name,
+        description,
+        coverId,
+        teamId,
+        tagIds,
+      };
+      const placeRecord = await this.placeRepository.findById(
+        id,
+        PlaceManagerQueryFull,
       );
-    }
+      for (const key of Object.keys(placePayload)) {
+        if (placePayload[key] !== placeRecord[key]) {
+          placeUpdateRequired = true;
+          break;
+        }
+      }
+      if (placeUpdateRequired) {
+        await this.placeRepository.updateById(id, placePayload);
+      }
+      // Contacts
+      const contactsPayload = contacts;
+      const contactsRecord = await this.contactRepository.findOne({
+        where: {refId: id},
+        /*    include: [{relation: 'region'}], */
+      });
+      let contactsUpdateRequired = false;
+      for (const key of Object.keys(contactsPayload || {})) {
+        if (
+          contactsRecord[key] !== contactsPayload[key] &&
+          contactsPayload[key] !== null
+        ) {
+          contactsUpdateRequired = true;
+          break;
+        }
+      }
 
-    delete place.openingHours;
-    if (Array.isArray(openingHours)) {
-      await this.placeService.updatePlaceOpeningHours(id, openingHours);
-    }
+      if (contactsUpdateRequired) {
+        console.log('Will update contacts', {contactsRecord, contactsPayload});
+        await this.contactRepository.updateById(
+          contactsRecord.id,
+          contactsPayload,
+        );
+      }
 
-    // const record:any = await this.placeRepository.create(place);
-    await this.placeService.findOrCreateCheckInQrCode(id);
-    return placeRecord;
+      const addressRecord = await this.addressRepository.findById(
+        placeRecord.addressId,
+      );
+      // Region
+      const region = address?.region || {};
+      const regionName = (region?.name || '').toLowerCase().trim();
+      let regionRecord: any;
 
-    /*  const openingHours: any = place.openingHours;
-    delete place.openingHours;
-    if (Array.isArray(openingHours)) {
-      await this.placeService.updatePlaceOpeningHours(id, openingHours);
-    }
-    const record: any = await this.placeRepository.updateById(id, place);
-    // const record:any = await this.placeRepository.create(place);
-    await this.placeService.findOrCreateCheckInQrCode(id);
-    return record; */
+      if (regionName) {
+        regionRecord = await this.regionRepository.findOne({
+          where: {name: regionName},
+        });
+        if (!regionRecord) {
+          regionRecord = await this.regionRepository.create({
+            name: regionName,
+            countryId: DEFAULT_MODEL_ID.country,
+          });
+        }
+      } else if (addressRecord?.regionId) {
+        regionRecord = await this.regionRepository.findById(
+          addressRecord.regionId,
+        );
+      }
+
+      // Address
+      const addressPayload: any = {
+        name: name,
+        address: address.address,
+        postal: address.postal,
+        regionId: regionRecord?.id,
+        latitude: address.latitude,
+        longitude: address.longitude,
+      };
+
+      let addressUpdateRequired = false;
+      for (const key of Object.keys(addressPayload || {})) {
+        if (
+          addressRecord[key] !== addressPayload[key] &&
+          addressPayload[key] !== null
+        ) {
+          addressUpdateRequired = true;
+          break;
+        }
+      }
+      console.log({addressUpdateRequired, addressPayload});
+      if (addressUpdateRequired) {
+        console.log('Will update address');
+        addressPayload.long_label = [
+          address.address,
+          regionRecord?.name,
+          address.postal,
+        ].join(',');
+        console.log({addressPayload, addressRecord});
+        await this.addressRepository.updateById(
+          addressRecord.id,
+          addressPayload,
+        );
+      }
+
+      if (Array.isArray(openingHours)) {
+        await this.placeService.updatePlaceOpeningHours(id, openingHours);
+      }
+
+      // const record:any = await this.placeRepository.create(place);
+      await this.placeService.findOrCreateCheckInQrCode(id);
+
+      return placeRecord;
+    });
   }
 
   async updateBalcony(id, payload: any = {}) {

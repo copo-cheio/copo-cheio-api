@@ -15,6 +15,7 @@ export const IncludeTeamRelation: any = {
   relation: 'team',
   scope: {
     include: [
+      {relation: 'cover'},
       {
         relation: 'staff',
         scope: {

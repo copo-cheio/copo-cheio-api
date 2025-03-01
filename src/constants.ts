@@ -3,6 +3,7 @@ export const DEFAULT_MODEL_ID: any = {
   thumbnailId: '00000000-0000-0000-0000-000000000002',
   currencyId: 'bc6635ea-7273-4518-b18a-c066fb300b1f',
   menuId: '00000000-0000-0000-0000-000000001111',
+  country: '11e0d86d-fd1c-4984-b329-0206ebd36d59',
 };
 
 export const DEFAULT_IMAGE_SIZES: any = {
