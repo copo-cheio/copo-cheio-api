@@ -851,6 +851,99 @@ export class ManagerService {
     return record;
   }
 
+  /* -------------------------------------------------------------------------- */
+  /*                                    TEAM                                    */
+  /* -------------------------------------------------------------------------- */
+  async createTeam(body: any) {
+    return this.executeManagerAction([], async () => {
+      const keys = ['name', 'description', 'coverId'];
+      const payload: any = {};
+      for (const key of keys) {
+        if (body?.[key] && body?.[key].trim().length > 0) {
+          payload[key] = body[key].trim();
+        }
+      }
+      payload.companyId = DEFAULT_MODEL_ID.companyId;
+      if (!payload.coverId || payload.coverId == DEFAULT_MODEL_ID.coverId) {
+        const company = await this.companyRepository.findById(
+          payload.companyId,
+        );
+        payload.coverId = company.coverId;
+      }
+      const team = await this.teamRepository.create(payload);
+
+      return this.teamRepository.findById(team.id, {
+        include: [
+          {relation: 'cover'},
+          {relation: 'staff', scope: {include: [{relation: 'user'}]}},
+        ],
+      });
+    });
+  }
+  async updateTeam(id: any, body: any) {
+    return this.executeManagerAction(
+      [{repository: 'teamRepository', id}],
+      async () => {
+        //const team = await this.teamRepository.findById(id)
+        const keys = ['name', 'description', 'coverId'];
+        const payload: any = {};
+        for (const key of keys) {
+          if (body?.[key] && body?.[key].trim().length > 0) {
+            payload[key] = body[key].trim();
+          }
+        }
+        await this.teamRepository.updateById(id, payload);
+
+        return this.teamRepository.findById(id, {
+          include: [
+            {relation: 'staff', scope: {include: [{relation: 'user'}]}},
+          ],
+        });
+      },
+    );
+  }
+
+  async cloneTeamById(id: string) {
+    return this.executeManagerAction(
+      [{repository: 'teamRepository', id}],
+      async () => {
+        const team = await this.teamRepository.findById(id, {
+          include: [{relation: 'staff'}],
+        });
+
+        const newTeamPayload = this.parseCloneObject(
+          {...team, name: '[Cloned] ' + team.name},
+          ['staff'],
+        );
+        const newTeam = await this.teamRepository.create(newTeamPayload);
+
+        const newTeamStaffPayload = (team.staff || []).map(
+          this.parseCloneObject,
+        );
+
+        for (const staff of newTeamStaffPayload) {
+          await this.teamRepository.staff(newTeam.id).create(staff);
+        }
+
+        return this.teamRepository.findById(newTeam.id, {
+          include: [{relation: 'staff'}],
+        });
+      },
+    );
+  }
+
+  async deleteTeam(id: string) {
+    return this.executeManagerAction(
+      [{repository: 'teamRepository', id}],
+      async () => this.teamRepository.deleteById(id),
+    );
+  }
+  /**
+   * @deprecated
+   * @param id
+   */
+  async deleteTeamStaffBy(id: string) {}
+
   async updateTeamStaff(teamId, staffId, currentRoles, newRoles) {
     return this.executeManagerAction(
       [{repository: 'teamRepository', teamId}],
@@ -904,56 +997,6 @@ export class ManagerService {
       },
     );
   }
-  /* -------------------------------------------------------------------------- */
-  /*                                    CLONE                                   */
-  /* -------------------------------------------------------------------------- */
-
-  async cloneTeamById(id: string) {
-    return this.executeManagerAction(
-      [{repository: 'teamRepository', id}],
-      async () => {
-        const team = await this.teamRepository.findById(id, {
-          include: [{relation: 'staff'}],
-        });
-
-        const newTeamPayload = this.parseCloneObject(
-          {...team, name: '[Cloned] ' + team.name},
-          ['staff'],
-        );
-        const newTeam = await this.teamRepository.create(newTeamPayload);
-
-        const newTeamStaffPayload = (team.staff || []).map(
-          this.parseCloneObject,
-        );
-
-        for (const staff of newTeamStaffPayload) {
-          await this.teamRepository.staff(newTeam.id).create(staff);
-        }
-
-        return this.teamRepository.findById(newTeam.id, {
-          include: [{relation: 'staff'}],
-        });
-      },
-    );
-  }
-
-  /* -------------------------------------------------------------------------- */
-  /*                                   DELETE                                   */
-  /* -------------------------------------------------------------------------- */
-
-  async deleteTeam(id: string) {
-    return this.executeManagerAction(
-      [{repository: 'teamRepository', id}],
-      async () => this.teamRepository.deleteById(id),
-    );
-  }
-  async deleteTeamStaffBy(id: string) {
-    /*   const team = await this.staffRepository.findById(id,{include:})
-    return this.executeManagerAction(
-      [{repository: 'teamRepository', id}],
-      async () => this.teamRepository.deleteById(id),
-    ); */
-  }
 
   async removeStaffFromTeam(teamId: string, staffId: string) {
     const result = await this.teamStaffRepository.findOne({
@@ -965,13 +1008,15 @@ export class ManagerService {
       await this.teamStaffRepository.deleteById(result.id);
     }
     return {result};
-
-    /*   const team = await this.staffRepository.findById(id,{include:})
-    return this.executeManagerAction(
-      [{repository: 'teamRepository', id}],
-      async () => this.teamRepository.deleteById(id),
-    ); */
   }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                    CLONE                                   */
+  /* -------------------------------------------------------------------------- */
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   DELETE                                   */
+  /* -------------------------------------------------------------------------- */
 
   /* -------------------------------------------------------------------------- */
   /*                                   HELPERS                                  */

@@ -173,34 +173,6 @@ export class ManagerV2Controller {
     return this.managerService.createCompany(body);
   }
 
-  @post('/v2/manager/team-staff')
-  @authenticate('firebase')
-  @response(200, {
-    description: 'Team DELETE success',
-  })
-  async createorUpdateTeamStaff(
-    @requestBody({})
-    body: any,
-  ): Promise<void> {
-    return this.managerService.updateTeamStaff(
-      body.teamId,
-      body.staff.id,
-      body.currentRoles,
-      body.newRoles,
-    );
-  }
-  @post('/v2/manager/remove/team-staff/')
-  @authenticate('firebase')
-  @response(200, {
-    description: 'Team DELETE success',
-  })
-  async removeStaffFromTeam(
-    @requestBody({})
-    body: any,
-  ): Promise<any> {
-    return this.managerService.removeStaffFromTeam(body.teamId, body.staffIid);
-  }
-
   /* -------------------------------------------------------------------------- */
   /*                                   UPDATE                                   */
   /* -------------------------------------------------------------------------- */
@@ -271,6 +243,69 @@ export class ManagerV2Controller {
   /* -------------------------------------------------------------------------- */
   /*                                    CLONE                                   */
   /* -------------------------------------------------------------------------- */
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   DELETE                                   */
+  /* -------------------------------------------------------------------------- */
+
+  /* -------------------------------------------------------------------------- */
+  /*                                    TEAM                                    */
+  /* -------------------------------------------------------------------------- */
+
+  @post('/v2/manager/team-staff')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Team DELETE success',
+  })
+  async createorUpdateTeamStaff(
+    @requestBody({})
+    body: any,
+  ): Promise<void> {
+    return this.managerService.updateTeamStaff(
+      body.teamId,
+      body.staff.id,
+      body.currentRoles,
+      body.newRoles,
+    );
+  }
+
+  @post('/v2/manager/remove/team-staff/')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Team DELETE success',
+  })
+  async removeStaffFromTeam(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.removeStaffFromTeam(body.teamId, body.staffIid);
+  }
+
+  @post('/v2/manager/teams')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Team CREATE success',
+  })
+  async createTeam(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.createTeam(body);
+  }
+
+  @patch('/v2/manager/teams/{id}')
+  @authenticate('firebase')
+  @response(204, {
+    description: 'Balcony PATCH success',
+  })
+  async updateTeamById(
+    @param.path.string('id') id: string,
+    @requestBody({})
+    body: any,
+  ): Promise<void> {
+    await this.managerService.updateTeam(id, body);
+  }
+
   @get('/v2/manager/clone/teams/{id}')
   @authenticate('firebase')
   @response(204, {
@@ -279,9 +314,7 @@ export class ManagerV2Controller {
   async cloneTeamById(@param.path.string('id') id: string): Promise<void> {
     return this.managerService.cloneTeamById(id);
   }
-  /* -------------------------------------------------------------------------- */
-  /*                                   DELETE                                   */
-  /* -------------------------------------------------------------------------- */
+
   @del('/v2/manager/teams/{id}')
   @authenticate('firebase')
   @response(204, {
@@ -290,6 +323,7 @@ export class ManagerV2Controller {
   async deleteTeamById(@param.path.string('id') id: string): Promise<void> {
     return this.managerService.deleteTeam(id);
   }
+
   @del('/v2/manager/team/{teamId}/staff/{staffId}')
   @authenticate('firebase')
   @response(204, {
