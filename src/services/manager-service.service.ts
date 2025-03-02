@@ -3,6 +3,7 @@ import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {UserProfile} from '@loopback/security';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
+import {EventManagerQueryFull} from '../blueprints/event.blueprint';
 import {MenuFullQuery} from '../blueprints/menu.blueprint';
 import {PlaceManagerQueryFull} from '../blueprints/place.blueprint';
 import {QueryFilterBaseBlueprint} from '../blueprints/shared/query-filter.interface';
@@ -14,6 +15,7 @@ import {
   ContactsRepository,
   DevRepository,
   EventInstanceRepository,
+  EventRepository,
   IngredientRepository,
   MenuProductRepository,
   MenuRepository,
@@ -62,6 +64,8 @@ export class ManagerService {
     public regionRepository: RegionRepository,
     @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
+    @repository('EventRepository')
+    public eventRepository: EventRepository,
     @repository('PlaylistRepository')
     public playlistRepository: PlaylistRepository,
     @repository('PlaceInstanceRepository')
@@ -388,6 +392,14 @@ export class ManagerService {
     };
     return this.orderV2Repository.findAll(query);
   }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                    EVENT                                   */
+  /* -------------------------------------------------------------------------- */
+
+  async getEventPage(id: string) {
+    return this.eventRepository.findById(id, EventManagerQueryFull);
+  }
   /* -------------------------------------------------------------------------- */
   /*                               MANAGER ROUTES                               */
   /* -------------------------------------------------------------------------- */
@@ -408,6 +420,20 @@ export class ManagerService {
         description,
         coverId,
       });
+
+      let staff = await this.staffRepository.findOne({
+        where: {
+          and: [{userId: this.currentUser.id}, {role: 'admin'}],
+        },
+      });
+      if (!staff) {
+        staff = await this.staffRepository.create({
+          userId: this.currentUser.id,
+          role: 'admin',
+          companyId: company.id,
+        });
+      }
+
       const contacts = await this.contactRepository.create({
         refId: company.id,
         email,
@@ -424,7 +450,7 @@ export class ManagerService {
       });
       const teamStaff = await this.updateTeamStaff(
         team.id,
-        this.currentUser.id,
+        staff.id,
         [],
         ['admin'],
       );
@@ -590,6 +616,9 @@ export class ManagerService {
     return menuProduct;
   }
 
+  /* -------------------------------------------------------------------------- */
+  /*                                    PLACE                                   */
+  /* -------------------------------------------------------------------------- */
   async createPlace(payload: any = {}) {
     // Precisa de teamId
     // Precisa de address
@@ -781,6 +810,197 @@ export class ManagerService {
     });
   }
 
+  /* -------------------------------------------------------------------------- */
+  /*                                    EVENT                                   */
+  /* -------------------------------------------------------------------------- */
+  async createEvent(payload: any = {}) {
+    // Precisa de teamId
+    // Precisa de place
+    // Precisa de opening hours
+    // Precisa de companyId
+    // Precisa de contactsId
+    // Precisa de tagIds
+    // Precisa de playlistId
+    // @TODO Falta address e playlist que n tou com coragem agr
+    return payload;
+  }
+  async updateEvent(id: string, place: any = {}) {
+    /*     const openingHours: any = place.openingHours;
+    delete place.openingHours;
+    if (Array.isArray(openingHours)) {
+      await this.placeService.updatePlaceOpeningHours(id, openingHours);
+    }
+    const record: any = await this.placeRepository.updateById(id, place);
+    // const record:any = await this.placeRepository.create(place);
+    await this.placeService.findOrCreateCheckInQrCode(id);
+    return record;
+    */
+
+    return;
+  }
+
+  async updateEventV2(id: string, payload: any = {}) {
+    return this.transactionService.execute(async tx => {
+      let {
+        coverId,
+        name,
+        description,
+        contacts,
+        tagIds,
+        eventIds,
+        musicIds,
+        activityIds,
+        teamId,
+        playlist,
+      } = payload;
+      tagIds = [
+        ...new Set([
+          ...(eventIds || []),
+          ...(activityIds || []),
+          ...(musicIds || []),
+        ]),
+      ];
+
+      tagIds = tagIds.sort();
+
+      // Place itself
+      let eventUpdateRequired = false;
+      const eventPayload = {
+        name,
+        description,
+        coverId,
+        teamId,
+        tagIds,
+      };
+      const eventRecord = await this.eventRepository.findById(
+        id,
+        EventManagerQueryFull,
+      );
+      for (const key of Object.keys(eventPayload)) {
+        if (eventPayload[key] !== eventRecord[key]) {
+          eventUpdateRequired = true;
+          break;
+        }
+      }
+      if (eventUpdateRequired) {
+        await this.eventRepository.updateById(id, eventPayload);
+      }
+      // Contacts
+      const contactsPayload = contacts;
+      const contactsRecord = await this.contactRepository.findOne({
+        where: {refId: id},
+        /*    include: [{relation: 'region'}], */
+      });
+      let contactsUpdateRequired = false;
+      for (const key of Object.keys(contactsPayload || {})) {
+        if (
+          contactsRecord[key] !== contactsPayload[key] &&
+          contactsPayload[key] !== null
+        ) {
+          contactsUpdateRequired = true;
+          break;
+        }
+      }
+
+      if (contactsUpdateRequired) {
+        console.log('Will update contacts', {contactsRecord, contactsPayload});
+        await this.contactRepository.updateById(
+          contactsRecord.id,
+          contactsPayload,
+        );
+      }
+
+      /*       const addressRecord = await this.addressRepository.findById(
+        placeRecord.addressId,
+      );
+      // Region
+      const region = address?.region || {};
+      const regionName = (region?.name || '').toLowerCase().trim();
+      let regionRecord: any;
+
+      if (regionName) {
+        regionRecord = await this.regionRepository.findOne({
+          where: {name: regionName},
+        });
+        if (!regionRecord) {
+          regionRecord = await this.regionRepository.create({
+            name: regionName,
+            countryId: DEFAULT_MODEL_ID.country,
+          });
+        }
+      } else if (addressRecord?.regionId) {
+        regionRecord = await this.regionRepository.findById(
+          addressRecord.regionId,
+        );
+      } */
+      /*
+      // Address
+      const addressPayload: any = {
+        name: name,
+        address: address.address,
+        postal: address.postal,
+        regionId: regionRecord?.id,
+        latitude: address.latitude,
+        longitude: address.longitude,
+      };
+
+      let addressUpdateRequired = false;
+      for (const key of Object.keys(addressPayload || {})) {
+        if (
+          addressRecord[key] !== addressPayload[key] &&
+          addressPayload[key] !== null
+        ) {
+          addressUpdateRequired = true;
+          break;
+        }
+      }
+
+      if (addressUpdateRequired) {
+        addressPayload.long_label = [
+          address.address,
+          regionRecord?.name,
+          address.postal,
+        ].join(',');
+
+        await this.addressRepository.updateById(
+          addressRecord.id,
+          addressPayload,
+        );
+      }
+ */
+      let playlistUpdateRequired = false;
+      const playlistRecord = await this.playlistRepository.findById(
+        eventRecord.playlistId,
+      );
+      const playlistPayload = {
+        url: playlist?.url,
+        name: playlist?.name,
+        description: playlist?.description,
+      };
+      for (const key of Object.keys(playlistPayload)) {
+        const original = (playlistRecord[key] || '')?.trim();
+        const current = (playlistPayload[key] || '')?.trim();
+        if (current && current?.length > 0) {
+          if (original !== current) {
+            playlistUpdateRequired = true;
+          }
+        }
+      }
+      if (playlistUpdateRequired) {
+        await this.playlistRepository.updateById(
+          eventRecord.playlistId,
+          playlistPayload,
+        );
+      }
+
+      return eventRecord;
+    });
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   BALCONY                                  */
+  /* -------------------------------------------------------------------------- */
+
   async updateBalcony(id, payload: any = {}) {
     await this.balconyRepository.updateById(id, payload);
     await this.devRepository.migrate(id);
@@ -854,6 +1074,14 @@ export class ManagerService {
   /* -------------------------------------------------------------------------- */
   /*                                    TEAM                                    */
   /* -------------------------------------------------------------------------- */
+  async findTeam(id: any) {
+    return this.teamRepository.findById(id, {
+      include: [
+        {relation: 'cover'},
+        {relation: 'staff', scope: {include: [{relation: 'user'}]}},
+      ],
+    });
+  }
   async createTeam(body: any) {
     return this.executeManagerAction([], async () => {
       const keys = ['name', 'description', 'coverId'];
@@ -871,13 +1099,17 @@ export class ManagerService {
         payload.coverId = company.coverId;
       }
       const team = await this.teamRepository.create(payload);
-
-      return this.teamRepository.findById(team.id, {
-        include: [
-          {relation: 'cover'},
-          {relation: 'staff', scope: {include: [{relation: 'user'}]}},
-        ],
+      const staff = await this.staffRepository.findOne({
+        where: {
+          and: [
+            {userId: this.currentUser.id},
+            {role: 'admin'},
+            {companyId: payload.companyId},
+          ],
+        },
       });
+      await this.updateTeamStaff(team.id, staff.id, [], ['admin']);
+      return this.findTeam(team.id);
     });
   }
   async updateTeam(id: any, body: any) {
@@ -894,11 +1126,7 @@ export class ManagerService {
         }
         await this.teamRepository.updateById(id, payload);
 
-        return this.teamRepository.findById(id, {
-          include: [
-            {relation: 'staff', scope: {include: [{relation: 'user'}]}},
-          ],
-        });
+        return this.findTeam(id);
       },
     );
   }
@@ -949,7 +1177,9 @@ export class ManagerService {
       [{repository: 'teamRepository', teamId}],
       async () => {
         const team = await this.teamRepository.findById(teamId);
+
         let staffUser = await this.staffRepository.findById(staffId);
+
         if (!staffUser) {
           const user = await this.userRepository.findById(staffId);
           if (!user) throw new Error('Invalid user');
@@ -976,7 +1206,7 @@ export class ManagerService {
                 companyId,
               });
             }
-
+            console.log(5);
             await this.teamStaffRepository.create({teamId, staffId: staff.id});
           }
         }
@@ -986,7 +1216,7 @@ export class ManagerService {
             const staff = await this.staffRepository.findOne({
               where: {and: [{userId}, {role}]},
             });
-
+            console.log(6);
             if (staff) {
               await this.teamStaffRepository.deleteAll({
                 and: [{teamId}, {staffId: staff.id}],
@@ -994,17 +1224,21 @@ export class ManagerService {
             }
           }
         }
+
+        return this.findTeam(team.id);
       },
     );
   }
 
   async removeStaffFromTeam(teamId: string, staffId: string) {
+    if (!teamId || !staffId) throw new Error('Missing required parameters');
     const result = await this.teamStaffRepository.findOne({
       where: {
-        and: [{teamId: teamId}, {staffId: staffId}],
+        and: [{teamId: teamId}, {staffId: staffId}, {deleted: false}],
       },
     });
-    if (result) {
+
+    if (result && result.teamId == teamId && result.staffId == staffId) {
       await this.teamStaffRepository.deleteById(result.id);
     }
     return {result};

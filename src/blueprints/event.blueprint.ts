@@ -20,6 +20,7 @@ import {QueryFilterBaseBlueprint} from './shared/query-filter.interface';
 import {IncludeRulesRelation} from './shared/rule.include';
 import {IncludeScheduleRelation} from './shared/schedule.include';
 import {IncludeTagsRelation} from './shared/tag.include';
+import {IncludeTeamRelation} from './shared/team.include';
 import {IncludeTicketsRelation} from './shared/ticket.include';
 
 export const BaseEventsQuery: any = {
@@ -65,6 +66,46 @@ export const EventsQuery: any = {
   include: [...BaseEventsQuery.include, IncludeEventInstanceRelation],
 };
 
+export const EventManagerQueryFull: any = {
+  fields: {
+    id: true,
+    name: true,
+    description: true,
+    email: true,
+    webpage: true,
+    status: true,
+    endDate: true,
+    startDate: true,
+    type: true,
+    coverId: true,
+    addressId: true,
+    scheduleId: true,
+    playlistId: true,
+    placeId: true,
+    tagIds: true,
+    recurrenceType: true,
+    recurrenceEndDate: true,
+    isRecurring: true, // True if recurring, false if one-time event
+    eventType: true,
+    teamId: true,
+  },
+  include: [
+    IncludeCover,
+    IncludeAddressRelation,
+    IncludeScheduleRelation,
+    IncludePlaceRelation,
+    IncludePlaylistRelation,
+    IncludeRulesRelation,
+    IncludeTicketsRelation,
+    IncludeTagsRelation,
+    IncludeOpeningHoursRelation,
+    IncludeLineupsRelation,
+    IncludeEventInstancesRelation, // Include event instances (occurrences)
+    {relation: 'recurringSchedule'}, // Include recurring schedules
+    IncludeContactsRelation,
+    IncludeTeamRelation,
+  ],
+};
 export const EventFullQuery: any = {
   fields: {
     id: true,

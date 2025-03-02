@@ -43,12 +43,41 @@ export class ManagerV2Controller {
       return [];
     }
   }
-  @get('/v2/manager/place/{id}')
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   EVENTS                                   */
+  /* -------------------------------------------------------------------------- */
+  @get('/v2/manager/event/{id}')
   @response(200, {
-    description: 'Manager home page',
+    description: 'Manager event page',
   })
-  async getManagerPlacePage(@param.path.string('id') id: string): Promise<any> {
-    return this.managerService.getPlacePage(id);
+  async getManagerEventPage(@param.path.string('id') id: string): Promise<any> {
+    return this.managerService.getEventPage(id);
+  }
+
+  @post('/v2/manager/events')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Create a place',
+  })
+  async createEvent(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.createEvent(body);
+  }
+
+  @patch('/v2/manager/events/{id}')
+  @authenticate('firebase')
+  @response(204, {
+    description: 'Balcony PATCH success',
+  })
+  async updateEventById(
+    @param.path.string('id') id: string,
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    await this.managerService.updateEventV2(id, body);
   }
 
   /* -------------------------------------------------------------------------- */
@@ -138,6 +167,19 @@ export class ManagerV2Controller {
   ): Promise<any> {
     return this.managerService.createBalcony(body);
   }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                    PLACE                                   */
+  /* -------------------------------------------------------------------------- */
+
+  @get('/v2/manager/place/{id}')
+  @response(200, {
+    description: 'Manager home page',
+  })
+  async getManagerPlacePage(@param.path.string('id') id: string): Promise<any> {
+    return this.managerService.getPlacePage(id);
+  }
+
   @post('/v2/manager/place')
   @authenticate('firebase')
   @response(200, {
@@ -149,6 +191,24 @@ export class ManagerV2Controller {
   ): Promise<any> {
     return this.managerService.createPlace(body);
   }
+
+  @patch('/v2/manager/places/{id}')
+  @authenticate('firebase')
+  @response(204, {
+    description: 'Balcony PATCH success',
+  })
+  async updatePlaceById(
+    @param.path.string('id') id: string,
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    await this.managerService.updatePlaceV2(id, body);
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                    MENU                                    */
+  /* -------------------------------------------------------------------------- */
+
   @post('/v2/manager/menu-products')
   @authenticate('firebase')
   @response(200, {
@@ -159,18 +219,6 @@ export class ManagerV2Controller {
     body: any,
   ): Promise<any> {
     return this.managerService.createMenuProduct(body);
-  }
-
-  @post('/v2/manager/company')
-  @authenticate('firebase')
-  @response(200, {
-    description: 'Create a company',
-  })
-  async createCompany(
-    @requestBody({})
-    body: any,
-  ): Promise<any> {
-    return this.managerService.createCompany(body);
   }
 
   /* -------------------------------------------------------------------------- */
@@ -188,18 +236,6 @@ export class ManagerV2Controller {
     body: any,
   ): Promise<void> {
     await this.managerService.updateBalcony(id, body);
-  }
-  @patch('/v2/manager/places/{id}')
-  @authenticate('firebase')
-  @response(204, {
-    description: 'Balcony PATCH success',
-  })
-  async updatePlaceById(
-    @param.path.string('id') id: string,
-    @requestBody({})
-    body: any,
-  ): Promise<any> {
-    await this.managerService.updatePlaceV2(id, body);
   }
 
   @patch('/v2/manager/products/{id}')
@@ -227,6 +263,22 @@ export class ManagerV2Controller {
   ): Promise<any> {
     return this.managerService.updateMenuProduct(id, body);
   }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   COMPANY                                  */
+  /* -------------------------------------------------------------------------- */
+  @post('/v2/manager/company')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Create a company',
+  })
+  async createCompany(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.createCompany(body);
+  }
+
   @patch('/v2/manager/company/{id}')
   @authenticate('firebase')
   @response(200, {
@@ -278,7 +330,7 @@ export class ManagerV2Controller {
     @requestBody({})
     body: any,
   ): Promise<any> {
-    return this.managerService.removeStaffFromTeam(body.teamId, body.staffIid);
+    return this.managerService.removeStaffFromTeam(body.teamId, body.staffId);
   }
 
   @post('/v2/manager/teams')
