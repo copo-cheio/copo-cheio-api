@@ -102,7 +102,7 @@ export class ProductService {
               {},
               transaction,
             );
-            console.log({price});
+
             const ingredient: any = await this.ingredientRepository.findById(
               op.id,
               {include: [{relation: 'tags'}]},

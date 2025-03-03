@@ -78,7 +78,6 @@ export class DevRepository extends BaseRepository<
     } catch (ex) {
       console.log(ex);
     }
-    //console.log('fbi', this.findByAction);
   }
 
   async migrate(balconyId?: any) {
@@ -153,14 +152,7 @@ export class DevRepository extends BaseRepository<
           });
         }
       }
-      console.log(
-        JSON.stringify({
-          and: [
-            {balconyId: b.id},
-            {ingredientId: {nin: response.menus[b.menuId]}},
-          ],
-        }),
-      );
+
       await stockRepository.deleteAll({
         and: [
           {balconyId: b.id},

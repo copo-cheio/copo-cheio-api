@@ -1,7 +1,8 @@
-import {hasMany, model, property} from '@loopback/repository';
+import {belongsTo, hasMany, model, property} from '@loopback/repository';
 
 import {Balcony} from './balcony.model';
 import {Base} from './base.model';
+import {Company} from './company.model';
 import {MenuProduct} from './menu-product.model';
 
 @model()
@@ -20,6 +21,9 @@ export class Menu extends Base {
 
   @hasMany(() => Balcony, {keyTo: 'menuId'})
   balconies: Balcony[];
+
+  @belongsTo(() => Company)
+  companyId: string;
 
   constructor(data?: Partial<Menu>) {
     super(data);

@@ -16,6 +16,7 @@ export const PlaceQueryFull: any = {
 
   fields: {
     id: true,
+    live: true,
     created_at: true,
     updated_at: true,
     name: true,
@@ -105,6 +106,7 @@ export const PlaceManagerQueryFull: any = {
     phone: true,
     webpage: true,
     teamId: true,
+    live: true,
   },
 
   include: [

@@ -2,6 +2,7 @@ import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {EventFullQuery} from '../blueprints/event.blueprint';
 import {BasePlacesQuery, PlacesQuery} from '../blueprints/place.blueprint';
+import {ExtendQueryFilterWhere} from '../blueprints/shared/query-filter.interface';
 import {
   ContactsRepository,
   EventInstanceRepository,
@@ -233,12 +234,12 @@ export class PlaceService {
     ) {
       let count = 0;
       while (finnishDate > startDay) {
-        console.log(
+        /*   console.log(
           `Iteration ${count}`,
           finnishDate > startDay,
           finnishDate,
           startDay,
-        );
+        ); */
         count++;
         if (count > 200) throw new Error('Reached max iterations ');
         startDay = await createOrUpdatePlaceInstance(
@@ -286,10 +287,6 @@ export class PlaceService {
           placeInstancePayload,
         );
       }
-      /*    return new Promise(resolve => setTimeout(() => {
-          console.log('Async task done');
-          resolve();
-      }, 1000)); */
 
       startDay.setDate(startDay.getDate() + 7);
       return startDay;
@@ -455,12 +452,14 @@ export class PlaceService {
     return nextDate;
   }
 
-  async getManagerPlacesWhichAreOrWillOpenToday() {
+  async getManagerPlacesWhichAreOrWillOpenToday(filter: any = []) {
     const now = new Date(); // Get current date in ISO format
 
     let ongoing = [];
     let ongoingInstancesIds = [];
-    const places = await this.placeRepository.findAll();
+    const places = await this.placeRepository.findAll(
+      ExtendQueryFilterWhere({}, [...filter, {deleted: false}, {live: true}]),
+    );
     const ongoingInstances = await this.placeInstanceRepository.findAll({
       where: {
         and: [

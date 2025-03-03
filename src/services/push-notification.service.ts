@@ -116,7 +116,7 @@ export class PushNotificationService {
     try {
       // @ts-ignore
       data = this.parseData(data);
-      console.log({token, notification, data});
+
       await admin.messaging().send({
         token: token,
         notification,

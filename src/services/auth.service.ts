@@ -6,6 +6,7 @@ import {
   ActivityV2Repository,
   CheckInV2Repository,
   PlaceRepository,
+  StaffRepository,
 } from '../repositories';
 import {TransactionService} from './transaction.service';
 
@@ -16,6 +17,8 @@ export class AuthService {
     public checkInV2Repository: CheckInV2Repository,
     @repository('ActivityV2Repository')
     public activityV2Repository: ActivityV2Repository,
+    @repository('StaffRepository')
+    public staffRepository: StaffRepository,
     @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
     @inject('services.TransactionService')
@@ -25,6 +28,62 @@ export class AuthService {
   /* -------------------------------------------------------------------------- */
   /*                                     V2                                     */
   /* -------------------------------------------------------------------------- */
+  async signInActivityV2(userId, app) {
+    let activity: any = {};
+    if (app == 'admin') {
+      const action = 'sign-in--company';
+      activity = await this.activityV2Repository.findOne({
+        where: {
+          and: [{userId}, {action}, {deleted: false}, {app}],
+        },
+      });
+      if (!activity) {
+        const permissions = await this.staffRepository.findOne({
+          where: {
+            and: [
+              {userId},
+              {role: {inq: ['admin', 'owner']}},
+              {
+                deleted: false,
+              },
+            ],
+          },
+        });
+        if (permissions) {
+          activity = await this.activityV2Repository.create({
+            userId,
+            app,
+            referenceId: permissions.companyId,
+            action,
+          });
+        }
+      }
+    }
+
+    return activity;
+  }
+  async signOutActivityV2(userId, app) {
+    let activity: any = {};
+    if (app == 'admin') {
+      const action = 'sign-in--company';
+      activity = await this.activityV2Repository.findOne({
+        where: {
+          and: [{userId}, {action}, {deleted: false}],
+        },
+      });
+      if (activity) {
+        await this.activityV2Repository.deleteById(activity.id);
+        await this.activityV2Repository.create({
+          userId,
+          app,
+          referenceId: activity.referenceId,
+          action: 'sign-out--company',
+        });
+      }
+    }
+
+    return activity;
+  }
   async checkInOutV2(
     active: boolean,
     userId: string,
@@ -181,6 +240,18 @@ export class AuthService {
     return result;
   }
 
+  async getSignedInManagerCompany(userId: string) {
+    const app = 'admin';
+    const action = 'sign-in--company';
+
+    const activity = await this.activityV2Repository.findOne({
+      where: {
+        and: [{userId}, {action}, {deleted: false}, {app}],
+      },
+    });
+
+    return activity?.referenceId;
+  }
   /* -------------------------------------------------------------------------- */
   /*                                     V1                                     */
   /* -------------------------------------------------------------------------- */

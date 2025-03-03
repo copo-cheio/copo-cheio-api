@@ -36,3 +36,5 @@ export * from './video-image.controller';
 export * from './tutorial-video.controller';
 export * from './tutorial-tutorial-step.controller';
 export * from './tutorial.controller';
+export * from './menu-company.controller';
+export * from './product-company.controller';

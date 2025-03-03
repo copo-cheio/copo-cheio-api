@@ -6,6 +6,7 @@ import {
   referencesMany,
 } from '@loopback/repository';
 import {Base} from './base.model';
+import {Company} from './company.model';
 import {Image} from './image.model';
 import {ProductIngredient} from './product-ingredient.model';
 import {ProductOption} from './product-option.model';
@@ -42,6 +43,9 @@ export class Product extends Base {
 
   @hasMany(() => ProductOption)
   options: ProductOption[];
+
+  @belongsTo(() => Company)
+  companyId: string;
   // @hasMany(() => Ingredient, {through: {model: () => ProductIngredient}})
   // ingredients: Ingredient[];
 

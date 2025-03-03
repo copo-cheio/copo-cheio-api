@@ -6,6 +6,7 @@ export const DEFAULT_MODEL_ID: any = {
   countryId: '11e0d86d-fd1c-4984-b329-0206ebd36d59',
   companyId: 'f0eeff9a-4a59-48b7-a1e4-17ddd608b145',
   country: '11e0d86d-fd1c-4984-b329-0206ebd36d59',
+  regionId: 'c5fe7d21-f49b-49ee-8382-1664bb8afe3d',
 };
 
 export const DEFAULT_IMAGE_SIZES: any = {

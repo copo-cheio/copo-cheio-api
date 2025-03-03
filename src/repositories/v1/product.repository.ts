@@ -8,6 +8,7 @@ import {
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
 import {
+  Company,
   Image,
   Product,
   ProductIngredient,
@@ -15,6 +16,7 @@ import {
   ProductRelations,
   Tag,
 } from '../../models';
+import {CompanyRepository} from './company.repository';
 import {ImageRepository} from './image.repository';
 import {IngredientRepository} from './ingredient.repository';
 import {ProductIngredientRepository} from './product-ingredient.repository';
@@ -45,6 +47,11 @@ export class ProductRepository extends SoftCrudRepository<
     ProductOption,
     typeof Product.prototype.name
   >;
+
+  public readonly company: BelongsToAccessor<
+    Company,
+    typeof Product.prototype.id
+  >;
   // public readonly ingredients: HasManyThroughRepositoryFactory<
   //   Ingredient,
   //   typeof Ingredient.prototype.id,
@@ -64,8 +71,15 @@ export class ProductRepository extends SoftCrudRepository<
     protected ingredientRepositoryGetter: Getter<IngredientRepository>,
     @repository.getter('ProductOptionRepository')
     protected productOptionRepositoryGetter: Getter<ProductOptionRepository>,
+    @repository.getter('CompanyRepository')
+    protected companyRepositoryGetter: Getter<CompanyRepository>,
   ) {
     super(Product, dataSource);
+    this.company = this.createBelongsToAccessorFor(
+      'company',
+      companyRepositoryGetter,
+    );
+    this.registerInclusionResolver('company', this.company.inclusionResolver);
     this.options = this.createHasManyRepositoryFactoryFor(
       'options',
       productOptionRepositoryGetter,

@@ -19,7 +19,7 @@ import {
 import {MenuFullQuery} from '../../blueprints/menu.blueprint';
 import {DEFAULT_MODEL_ID} from '../../constants';
 import {Menu} from '../../models';
-import {MenuRepository} from '../../repositories';
+import {MenuRepository} from '../../repositories/v1/menu.repository';
 
 export class MenuController {
   constructor(

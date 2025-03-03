@@ -53,10 +53,7 @@ export class TeamController {
   })
   async find(@param.filter(Team) filter?: Filter<Team>): Promise<Team[]> {
     const identifier = await this.teamRepository.getIdentifier();
-    console.log({
-      identifier,
-      getCurrentUser: this.teamRepository.getCurrentUser,
-    });
+
     return this.teamRepository.find(filter);
   }
 

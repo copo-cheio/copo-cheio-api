@@ -74,9 +74,7 @@ export class EventController {
     @inject(RestBindings.Http.REQUEST) private request: Request,
     @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
     public currentUser: UserProfile, // Inject the current user profile
-  ) {
-    console.log(AuthenticationBindings.CURRENT_USER);
-  }
+  ) {}
 
   @post('/create/event')
   @response(200, {

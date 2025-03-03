@@ -47,7 +47,7 @@ export class TagController {
   parseSinglePayload(payload: any) {
     const translation = payload.translation || {};
     const tag = payload.tag || {};
-    console.log({payload, tag, translation});
+
     const status: any = {
       tag: {
         keys: ['name', 'type'],
@@ -366,20 +366,21 @@ export class TagController {
   /* ********************************** */
   /*              HELPER                */
   /* ********************************** */
-  async addTagToRecord(repository: any, id: string, tagId: string) {
-    const record = await repository.findById(id);
+
+  async addTagToRecord(_repository: any, id: string, tagId: string) {
+    const record = await _repository.findById(id);
     record.tagIds = record.tagIds || [];
     if (!record.tagIds.includes(tagId)) {
       record.tagIds.push(tagId);
-      await repository.updateById(id, record);
+      await _repository.updateById(id, record);
     }
   }
-  async removeTagFromRecord(repository: any, id: string, tagId: string) {
-    const record = await repository.findById(id);
+  async removeTagFromRecord(_repository: any, id: string, tagId: string) {
+    const record = await _repository.findById(id);
     record.tagIds = record.tagIds || [];
     if (record.tagIds.includes(tagId)) {
       record.tagIds = record.tagIds.filter((_tagId: any) => _tagId !== tagId);
-      await repository.updateById(id, record);
+      await _repository.updateById(id, record);
     }
   }
 

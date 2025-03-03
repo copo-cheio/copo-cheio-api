@@ -1,6 +1,7 @@
 import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {BaseEventsQuery, EventsQuery} from '../blueprints/event.blueprint';
+import {ExtendQueryFilterWhere} from '../blueprints/shared/query-filter.interface';
 import {Event, EventInstance} from '../models';
 import {
   ContactsRepository,
@@ -357,9 +358,8 @@ ORDER BY eventid,startdate ASC;
     for (const updateInstance of updateEventInstances) {
       const id = updateInstance.id;
       delete updateInstance.id;
-      console.log('update', {id, updateInstance});
+
       await this.eventInstanceRepository.forceUpdateById(id, updateInstance);
-      // await this.eventInstanceRepository.updateAll( updateInstance,{and: [{id}, {or:[{deleted:true},{deleted:false}]}]});
     }
     // Delete all the prev instances
     for (const deleteInstanceId of deleteEventInstances) {
@@ -484,12 +484,14 @@ ORDER BY eventid,startdate ASC;
     );
   }
 
-  async getManagerEventsWhichAreOrWillOpenToday() {
+  async getManagerEventsWhichAreOrWillOpenToday(filter: any = []) {
     const now = new Date(); //.toISOString(); // Get current date in ISO format
 
     let ongoing = [];
     let ongoingInstancesIds = [];
-    const events = await this.eventRepository.findAll();
+    const events = await this.eventRepository.findAll(
+      ExtendQueryFilterWhere({}, [...filter, {deleted: false}, {live: true}]),
+    );
     const ongoingInstances = await this.eventInstanceRepository.findAll({
       where: {
         and: [

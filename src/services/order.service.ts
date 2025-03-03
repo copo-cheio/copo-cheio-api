@@ -362,7 +362,7 @@ totalPrice : 12.9
         body: 'new orders updated',
       },
     };
-    console.log({action});
+
     const {title, body} = ACTIONS[action];
     const balconyStaff = await this.checkInV2Repository.findAll({
       where: {

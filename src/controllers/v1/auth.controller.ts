@@ -9,6 +9,8 @@ import {
   RestBindings,
 } from '@loopback/rest';
 
+import {authenticate, AuthenticationBindings} from '@loopback/authentication';
+import {UserProfile} from '@loopback/security';
 import {
   EventRepository,
   StaffRepository,
@@ -35,6 +37,8 @@ export class AuthController {
     private userService: UserService,
     @inject('services.SpotifyService')
     private spotifyService: SpotifyService,
+    @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
+    private currentUser: UserProfile, // Inject the current user profile
   ) {}
 
   @get('/__/auth/handler', {
@@ -60,26 +64,60 @@ export class AuthController {
     logRequest('[post]__auth.handler', request, body);
   }
 
-  /*
-  @post('/auth/login')
-  async logPostRequest(
-    @inject(RestBindings.Http.REQUEST) request: Request,
-    @requestBody() body: object
+  @post('/auth/sign-out')
+  @authenticate('firebase')
+  async signOutV2(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              app: {type: 'string'},
+            },
+            required: ['app'],
+          },
+        },
+      },
+    })
+    body: {
+      app?: string;
+    },
   ) {
-    // Log POST request body and cookies
-    const logEntry = {
-      method: request.method,
-      url: request.url,
-      body: body,
-      cookies: request.headers.cookie || 'No cookies',
-      timestamp: new Date().toISOString(),
-    };
+    const responsePayload: any = {};
+    try {
+      // Verify the Firebase ID token
 
-    fs.appendFileSync('requests.log', JSON.stringify(logEntry, null, 2) + '\n');
-    return {message: 'Logged POST request', data: logEntry};
+      if (body.app == 'admin') {
+        try {
+          const userWorksAt = await this.staffRepository.findAll({
+            where: {
+              and: [
+                {userId: this.currentUser.id},
+                {role: {inq: ['admin', 'owner']}},
+                {deleted: false},
+              ],
+            },
+          });
+
+          const activity = await this.authService.signOutActivityV2(
+            this.currentUser.id,
+            body.app,
+          );
+        } catch (ex) {
+          return {success: false};
+        }
+      }
+
+      // Example: return user information
+      const response = {
+        success: true,
+      };
+    } catch (error) {
+      console.error('Authentication error:', error);
+      throw error;
+    }
   }
-*/
-
   @post('/auth/google')
   async googleAuth(
     @requestBody({
@@ -134,13 +172,26 @@ export class AuthController {
       }
       if (body.app == 'admin') {
         const userWorksAt = await this.staffRepository.findAll({
-          where: {and: [{userId: user.id}, {role: 'admin'}]},
+          where: {
+            and: [
+              {userId: user.id},
+
+              {role: {inq: ['admin', 'owner']}},
+              {deleted: false},
+            ],
+          },
         });
         if (userWorksAt?.[0]) {
           responsePayload.companyId = userWorksAt[0].companyId;
           responsePayload.staffId = userWorksAt[0].id;
           responsePayload.id = userWorksAt[0].userId;
         }
+
+        const activity = await this.authService.signInActivityV2(
+          user.id,
+          body.app,
+        );
+        responsePayload.companyId = activity?.referenceId;
       } else if (body.app == 'staff') {
         // Get all places where staff works
         const userWorksAt = await this.staffRepository.findAll({

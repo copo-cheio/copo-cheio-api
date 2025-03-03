@@ -8,11 +8,11 @@ import {repository} from '@loopback/repository';
 import {
   BalconyRepository,
   DevRepository,
-  MenuRepository,
   OrderRepository,
   PlaceRepository,
   UserRepository,
 } from '../repositories';
+import {MenuRepository} from '../repositories/v1/menu.repository';
 import {DevServiceApi} from './dev/dev.api';
 import {PushNotificationService} from './push-notification.service';
 

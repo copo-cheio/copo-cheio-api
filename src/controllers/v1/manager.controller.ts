@@ -67,7 +67,6 @@ export class ManagerController {
   // @authenticate('firebase')
   @intercept('services.ACL')
   async getAdminData(payload: any = {}) {
-    console.log(payload);
     return {data: 'Admin data goes here', payload};
   }
   @get('/search')

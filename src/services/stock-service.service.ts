@@ -3,10 +3,10 @@ import {repository} from '@loopback/repository';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
 import {
   BalconyRepository,
-  MenuRepository,
   PlaceRepository,
   StockRepository,
 } from '../repositories';
+import {MenuRepository} from '../repositories/v1/menu.repository';
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class StockService {
@@ -388,8 +388,18 @@ export class StockService {
     return balcony;
   }
 
-  async getManagerStockStatusOverview() {
-    const balconies = await this.balconyRepository.findAll();
+  async getManagerStockStatusOverview(filters: any = []) {
+    const places = await this.placeRepository.findAll({
+      where: {
+        and: [{deleted: false}, {live: true}, ...filters],
+      },
+    });
+
+    const balconies = await this.balconyRepository.findAll({
+      where: {
+        and: [{deleted: false}, {placeId: {inq: places.map((p: any) => p.id)}}],
+      },
+    });
     const stocks = await this.stockRepository.findAll({
       where: {balconyId: {inq: balconies.map((b: any) => b.id)}},
     });

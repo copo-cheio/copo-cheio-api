@@ -25,7 +25,6 @@ export class EncryptionProvider {
     providedPass: string,
     storedPass: string,
   ): Promise<boolean> {
-    console.log({providedPass, storedPass});
     return bcrypt.compare(providedPass, storedPass);
   }
 }

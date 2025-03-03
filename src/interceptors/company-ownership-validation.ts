@@ -12,6 +12,7 @@ import {HttpErrors, RestBindings} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 import {Request} from 'express-serve-static-core';
 import {CompanyRepository} from '../repositories';
+import {AuthService} from '../services';
 
 export class CompanyOwnershipValidation implements Provider<Interceptor> {
   constructor(
@@ -20,6 +21,8 @@ export class CompanyOwnershipValidation implements Provider<Interceptor> {
     public currentUser: UserProfile, // Inject the current user profile
     @repository(CompanyRepository)
     public companyRepository: CompanyRepository,
+    @inject('services.AuthService')
+    protected authService: AuthService,
   ) {}
 
   value(): Interceptor {
@@ -31,36 +34,29 @@ export class CompanyOwnershipValidation implements Provider<Interceptor> {
     next: Next,
   ): Promise<InvocationResult> {
     // Pre-processing logic
-    console.log('Intercepting method:', invocationCtx.methodName);
 
     const request: any = invocationCtx.getSync('rest.http.request');
     const user: any = invocationCtx.getSync('security.user');
 
-    const method = request?.method;
+    try {
+      const companyId = await this.authService.getSignedInManagerCompany(
+        user.id,
+      );
 
-    if (method !== 'GET') {
-      // let isAdmin = await this.companyRepository.teams.findAll({where:{userId:user.user.id}})
-      const isAdmin = true;
-      if (!isAdmin) {
-        const error = new HttpErrors['422']('Unauthorized');
-        error.name = 'Unauthorized';
-        return error;
+      user.companyId = companyId;
+
+      if (typeof invocationCtx.args[0] == 'object') {
+        invocationCtx.args[0].companyId = companyId;
+      } else {
+        invocationCtx.args.push({companyId: companyId});
       }
-      if (method == 'POST') {
-        // Vai buscar a company id do user connectado
-        request.body.companyId = 'f0eeff9a-4a59-48b7-a1e4-17ddd608b145';
-      } else if (method == 'PATCH') {
-      } else if (method == 'DELETE') {
-      }
+    } catch (ex) {
+      const error = new HttpErrors['422']('Unauthorized');
+      error.name = 'Unauthorized';
+      return error;
     }
-    // Example: Using the repository to fetch data
-    // const data = await this.companyRepository.find();
-    // console.log('Data from repository:', data);
 
     const result = await next(); // Proceed with the next step in the request lifecycle
-
-    // Post-processing logic
-    console.log('Method execution complete.');
 
     return result;
   }

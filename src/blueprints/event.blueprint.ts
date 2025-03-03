@@ -40,6 +40,7 @@ export const BaseEventsQuery: any = {
     endDate: true,
     startDate: true,
     type: true,
+    live: true,
     tagIds: true,
     recurrenceType: true,
     recurrenceEndDate: true,
@@ -69,6 +70,7 @@ export const EventsQuery: any = {
 export const EventManagerQueryFull: any = {
   fields: {
     id: true,
+    live: true,
     name: true,
     description: true,
     email: true,

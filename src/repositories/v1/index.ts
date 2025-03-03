@@ -35,7 +35,7 @@ export * from './credential.repository';
 export * from './event-instance.repository';
 export * from './ingredient.repository';
 export * from './menu-product.repository';
-export * from './menu.repository';
+
 export * from './opening-hours.repository';
 export * from './order-item.repository';
 export * from './order-timeline.repository';

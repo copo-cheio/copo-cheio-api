@@ -191,7 +191,6 @@ export class FileUploadController {
     type?: string,
     config: any = {},
   ): Promise<object> {
-    console.log('up');
     const upload: any = multer().single('file');
     const handler = this.promisify(upload);
     await handler(request);
@@ -254,7 +253,9 @@ export class FileUploadController {
 
             await repo.updateById(record.id, record);
           }
-        } catch (ex) {}
+        } catch (ex) {
+          console.warn({ex});
+        }
       }
     }
 

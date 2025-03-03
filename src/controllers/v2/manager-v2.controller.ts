@@ -1,7 +1,7 @@
 // Uncomment these imports to begin using these cool features!
 
 import {authenticate, AuthenticationBindings} from '@loopback/authentication';
-import {inject} from '@loopback/core';
+import {inject, intercept} from '@loopback/core';
 import {
   del,
   get,
@@ -31,6 +31,8 @@ export class ManagerV2Controller {
   /*                                    PAGES                                   */
   /* -------------------------------------------------------------------------- */
   @get('/v2/manager/home')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Manager home page',
   })
@@ -46,26 +48,38 @@ export class ManagerV2Controller {
 
   @get('/v2/manager/onboard')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
-    description: 'Create a place',
+    description: 'Check if user is already logged',
   })
   async onBoardPage(): Promise<any> {
     return this.managerService.getOnboardingPage();
   }
-
   /* -------------------------------------------------------------------------- */
   /*                                   EVENTS                                   */
   /* -------------------------------------------------------------------------- */
   @get('/v2/manager/event/{id}')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Manager event page',
   })
   async getManagerEventPage(@param.path.string('id') id: string): Promise<any> {
     return this.managerService.getEventPage(id);
   }
+  @get('/v2/manager/events')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(200, {
+    description: 'Manager event page',
+  })
+  async getManagerEventsPage(): Promise<any> {
+    return this.managerService.getEventsPage();
+  }
 
   @post('/v2/manager/events')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Create a place',
   })
@@ -78,6 +92,7 @@ export class ManagerV2Controller {
 
   @patch('/v2/manager/events/{id}')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(204, {
     description: 'Balcony PATCH success',
   })
@@ -93,6 +108,8 @@ export class ManagerV2Controller {
   /*                                     GET                                    */
   /* -------------------------------------------------------------------------- */
   @get('/v2/manager/menus')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Manager menus page',
   })
@@ -106,6 +123,8 @@ export class ManagerV2Controller {
     }
   }
   @get('/v2/manager/orders')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Manager orders page',
   })
@@ -120,6 +139,8 @@ export class ManagerV2Controller {
   }
 
   @get('/v2/manager/balconies/stocks')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Manager balcony stocks page',
   })
@@ -128,6 +149,8 @@ export class ManagerV2Controller {
   }
 
   @get('/v2/manager/stocks')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Manager stocks page',
   })
@@ -135,6 +158,8 @@ export class ManagerV2Controller {
     return this.managerService.getStocksPageV2();
   }
   @get('/v2/manager/stocks/{id}')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Balcony stock page',
   })
@@ -143,6 +168,8 @@ export class ManagerV2Controller {
   }
 
   @get('/v2/manager/schedule')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Manager schedule page',
   })
@@ -156,6 +183,7 @@ export class ManagerV2Controller {
 
   @post('/v2/manager/products')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Create product',
   })
@@ -167,6 +195,7 @@ export class ManagerV2Controller {
   }
   @post('/v2/manager/balconies')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Array of available models',
   })
@@ -182,6 +211,8 @@ export class ManagerV2Controller {
   /* -------------------------------------------------------------------------- */
 
   @get('/v2/manager/place/{id}')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Manager home page',
   })
@@ -189,8 +220,19 @@ export class ManagerV2Controller {
     return this.managerService.getPlacePage(id);
   }
 
-  @post('/v2/manager/place')
+  @get('/v2/manager/places')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(200, {
+    description: 'Manager home page',
+  })
+  async getManagerPlacesPage(): Promise<any> {
+    return this.managerService.getPlacesPage();
+  }
+
+  @post('/v2/manager/places')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Create a place',
   })
@@ -203,6 +245,7 @@ export class ManagerV2Controller {
 
   @patch('/v2/manager/places/{id}')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(204, {
     description: 'Balcony PATCH success',
   })
@@ -220,6 +263,7 @@ export class ManagerV2Controller {
 
   @post('/v2/manager/menu-products')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Create a menu product',
   })
@@ -231,24 +275,21 @@ export class ManagerV2Controller {
   }
 
   /* -------------------------------------------------------------------------- */
-  /*                                   UPDATE                                   */
+  /*                                  PRODUCTS                                  */
   /* -------------------------------------------------------------------------- */
-
-  @patch('/v2/manager/balconies/{id}')
+  @get('/v2/manager/products')
   @authenticate('firebase')
-  @response(204, {
-    description: 'Balcony PATCH success',
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(200, {
+    description: 'Array of available models',
   })
-  async updateBalconyById(
-    @param.path.string('id') id: string,
-    @requestBody({})
-    body: any,
-  ): Promise<void> {
-    await this.managerService.updateBalcony(id, body);
+  async getProductsPage(): Promise<any> {
+    return this.managerService.getProductsPage();
   }
 
   @patch('/v2/manager/products/{id}')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Array of available models',
   })
@@ -260,8 +301,27 @@ export class ManagerV2Controller {
     return this.managerService.updateProductById(id, body);
   }
 
+  /* -------------------------------------------------------------------------- */
+  /*                                   UPDATE                                   */
+  /* -------------------------------------------------------------------------- */
+
+  @patch('/v2/manager/balconies/{id}')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(204, {
+    description: 'Balcony PATCH success',
+  })
+  async updateBalconyById(
+    @param.path.string('id') id: string,
+    @requestBody({})
+    body: any,
+  ): Promise<void> {
+    await this.managerService.updateBalcony(id, body);
+  }
+
   @patch('/v2/manager/menu-products/{id}')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Array of available models',
   })
@@ -290,6 +350,7 @@ export class ManagerV2Controller {
 
   @patch('/v2/manager/company/{id}')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Array of available models',
   })
@@ -312,9 +373,27 @@ export class ManagerV2Controller {
   /* -------------------------------------------------------------------------- */
   /*                                    TEAM                                    */
   /* -------------------------------------------------------------------------- */
-
+  @get('/v2/manager/teams')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(200, {
+    description: 'Manager home page',
+  })
+  async getManagerTeams(): Promise<any> {
+    return this.managerService.getTeamsPage();
+  }
+  @get('/v2/manager/teams/{id}')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(200, {
+    description: 'Manager home page',
+  })
+  async getManagerTeam(@param.path.string('id') id: string): Promise<any> {
+    return this.managerService.getTeamPage(id);
+  }
   @post('/v2/manager/team-staff')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Team DELETE success',
   })
@@ -332,6 +411,7 @@ export class ManagerV2Controller {
 
   @post('/v2/manager/remove/team-staff/')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Team DELETE success',
   })
@@ -344,6 +424,7 @@ export class ManagerV2Controller {
 
   @post('/v2/manager/teams')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Team CREATE success',
   })
@@ -356,6 +437,7 @@ export class ManagerV2Controller {
 
   @patch('/v2/manager/teams/{id}')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(204, {
     description: 'Balcony PATCH success',
   })
@@ -369,6 +451,7 @@ export class ManagerV2Controller {
 
   @get('/v2/manager/clone/teams/{id}')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(204, {
     description: 'Team CLONE success',
   })
@@ -378,6 +461,7 @@ export class ManagerV2Controller {
 
   @del('/v2/manager/teams/{id}')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(204, {
     description: 'Team DELETE success',
   })
@@ -387,6 +471,7 @@ export class ManagerV2Controller {
 
   @del('/v2/manager/team/{teamId}/staff/{staffId}')
   @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(204, {
     description: 'Team DELETE success',
   })

@@ -3,10 +3,20 @@ import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {UserProfile} from '@loopback/security';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
-import {EventManagerQueryFull} from '../blueprints/event.blueprint';
+import {
+  EventManagerQueryFull,
+  EventsQuery,
+} from '../blueprints/event.blueprint';
 import {MenuFullQuery} from '../blueprints/menu.blueprint';
-import {PlaceManagerQueryFull} from '../blueprints/place.blueprint';
-import {QueryFilterBaseBlueprint} from '../blueprints/shared/query-filter.interface';
+import {
+  PlaceManagerQueryFull,
+  PlacesQuery,
+} from '../blueprints/place.blueprint';
+import {ProductQueryFull} from '../blueprints/product.blueprint';
+import {
+  ExtendQueryFilterWhere,
+  QueryFilterBaseBlueprint,
+} from '../blueprints/shared/query-filter.interface';
 import {DEFAULT_MODEL_ID} from '../constants';
 import {
   AddressRepository,
@@ -18,7 +28,7 @@ import {
   EventRepository,
   IngredientRepository,
   MenuProductRepository,
-  MenuRepository,
+  OpeningHoursRepository,
   OrderV2Repository,
   PlaceRepository,
   PlaylistRepository,
@@ -32,6 +42,7 @@ import {
   TeamStaffRepository,
   UserRepository,
 } from '../repositories';
+import {MenuRepository} from '../repositories/v1/menu.repository';
 import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
 import {EventService} from './event.service';
 import {PlaceService} from './place.service';
@@ -97,6 +108,8 @@ export class ManagerService {
     public teamStaffRepository: TeamStaffRepository,
     @repository('StaffRepository')
     public staffRepository: StaffRepository,
+    @repository('OpeningHoursRepository')
+    public openingHoursRepository: OpeningHoursRepository,
     @repository('UserRepository')
     public userRepository: UserRepository,
     @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
@@ -122,11 +135,17 @@ export class ManagerService {
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
     const places =
-      await this.placeService.getManagerPlacesWhichAreOrWillOpenToday();
+      await this.placeService.getManagerPlacesWhichAreOrWillOpenToday([
+        {companyId: this.currentUser.companyId},
+      ]);
     const events =
-      await this.eventService.getManagerEventsWhichAreOrWillOpenToday();
+      await this.eventService.getManagerEventsWhichAreOrWillOpenToday([
+        {
+          companyId: this.currentUser.companyId,
+        },
+      ]);
     const orders = await this.findOrders({
-      limit: 100000,
+      limit: 5000,
       where: {created_at: {gte: oneDayAgo.toISOString()}},
     });
     const totalRevenue = orders.reduce(
@@ -139,7 +158,11 @@ export class ManagerService {
         ? (parseFloat(totalRevenue) / parseFloat('' + orders.length)).toFixed(2)
         : '0.00';
 
-    const stockStatus = await this.stockService.getManagerStockStatusOverview();
+    const stockStatus = await this.stockService.getManagerStockStatusOverview([
+      {
+        companyId: this.currentUser.companyId,
+      },
+    ]);
     return {
       count: {
         orders: {
@@ -170,6 +193,7 @@ export class ManagerService {
       orders: orders.length,
     };
   }
+
   async getOnboardingPage() {
     const staff = await this.staffRepository.findOne({
       where: {
@@ -183,7 +207,71 @@ export class ManagerService {
     return staff?.companyId;
   }
   async getPlacePage(id: string) {
-    return this.placeRepository.findById(id, PlaceManagerQueryFull);
+    return this.executeManagerAction(
+      [{repository: 'placeRepository', id}],
+      async () => {
+        return this.placeRepository.findById(id, PlaceManagerQueryFull);
+      },
+    );
+  }
+
+  async getPlacesPage() {
+    return this.executeManagerAction([], async () => {
+      return this.placeRepository.findAll(
+        ExtendQueryFilterWhere(PlacesQuery, [
+          {companyId: this.currentUser.companyId},
+        ]),
+      );
+    });
+  }
+
+  async getTeamsPage() {
+    return this.executeManagerAction([], async () => {
+      return this.teamRepository.findAll(
+        ExtendQueryFilterWhere(
+          {
+            include: [
+              {relation: 'cover'},
+              {relation: 'events'},
+              {relation: 'places'},
+              {relation: 'staff', scope: {include: [{relation: 'user'}]}},
+            ],
+          },
+          [{companyId: this.currentUser.companyId}, {deleted: false}],
+        ),
+      );
+    });
+  }
+
+  async getTeamPage(id) {
+    return this.executeManagerAction(
+      [{repository: 'teamRepository', id}],
+      async () => {
+        return this.teamRepository.findById(
+          id,
+
+          {
+            include: [
+              {relation: 'cover'},
+              {relation: 'events', scope: {include: [{relation: 'cover'}]}},
+              {relation: 'places', scope: {include: [{relation: 'cover'}]}},
+              {relation: 'staff', scope: {include: [{relation: 'user'}]}},
+            ],
+          },
+        );
+      },
+    );
+  }
+
+  async getProductsPage() {
+    return this.executeManagerAction([], async () => {
+      return this.productRepository.findAll(
+        ExtendQueryFilterWhere(ProductQueryFull, [
+          {deleted: false},
+          {companyId: this.currentUser.companyId},
+        ]),
+      );
+    });
   }
   async getStocksPageV2(managerBalconies?: any) {
     // PROOF OF CONCEPT
@@ -411,6 +499,15 @@ export class ManagerService {
 
   async getEventPage(id: string) {
     return this.eventRepository.findById(id, EventManagerQueryFull);
+  }
+  async getEventsPage() {
+    return this.executeManagerAction([], async () => {
+      return this.eventRepository.findAll(
+        ExtendQueryFilterWhere(EventsQuery, [
+          {companyId: this.currentUser.companyId},
+        ]),
+      );
+    });
   }
   /* -------------------------------------------------------------------------- */
   /*                               MANAGER ROUTES                               */
@@ -640,7 +737,110 @@ export class ManagerService {
     // Precisa de tagIds
     // Precisa de playlistId
     // @TODO Falta address e playlist que n tou com coragem agr
-    return payload;
+    return this.transactionService.execute(async tx => {
+      let {
+        coverId,
+        name,
+        description,
+        contacts,
+        tagIds,
+        venueIds,
+        activityIds,
+        musicIds,
+
+        teamId,
+        address,
+      } = payload;
+      tagIds = [
+        ...new Set([
+          ...(venueIds || []),
+          ...(activityIds || []),
+          ...(musicIds || []),
+        ]),
+      ];
+
+      tagIds = tagIds.sort();
+
+      const region = await this.regionRepository.findOne({
+        where: {
+          name: (address?.region?.name || '').toLowerCase().trim(),
+        },
+      });
+      const regionId = region?.id || DEFAULT_MODEL_ID.regionId;
+      console.log({
+        latitude: address.latitude,
+        longitude: address.longitude,
+        type: 'POI',
+        name: payload.name,
+        long_label: [name, address?.address, address?.postal].join(','),
+        short_label: [
+          address?.address,
+          address?.region?.name,
+          address?.postal,
+        ].join(','),
+        regionId: regionId,
+        countryId: region?.countryId || DEFAULT_MODEL_ID.countryId,
+      });
+      const addressRecord = await this.addressRepository.create({
+        address: address.address,
+        postal: address.postal,
+        latitude: address.latitude,
+        longitude: address.longitude,
+        type: 'POI',
+        name: payload.name,
+        long_label: [name, address?.address, address?.postal].join(','),
+        short_label: [
+          address?.address,
+          address?.region?.name,
+          address?.postal,
+        ].join(','),
+        regionId: regionId,
+        countryId: region?.countryId || DEFAULT_MODEL_ID.countryId,
+      });
+      let team: any;
+      if (teamId) {
+        team = await this.teamRepository.findById(teamId);
+      }
+      if (!team) {
+        team = await this.teamRepository.findOne({
+          where: {companyId: this.currentUser.companyId},
+        });
+      }
+
+      const playlist = await this.playlistRepository.create({
+        name: name + ' playlist',
+      });
+      console.log(addressRecord, addressRecord.id);
+      const placeRecord = await this.placeRepository.create({
+        name,
+        description,
+        coverId,
+        tagIds,
+        live: false,
+        addressId: addressRecord.id,
+        playlistId: playlist.id,
+        teamId: team.id,
+        companyId: this.currentUser.companyId,
+      });
+
+      const contactRecord = await this.contactRepository.create({
+        refId: placeRecord.id,
+        ...contacts,
+      });
+
+      for (let i = 0; i < 7; i++) {
+        await this.openingHoursRepository.create({
+          dayofweek: i,
+
+          openhour: '10:00',
+          closehour: '20:00',
+          placeId: placeRecord.id,
+
+          active: false,
+        });
+      }
+      return placeRecord;
+    });
   }
   async updatePlace(id: string, place: any = {}) {
     const openingHours: any = place.openingHours;
@@ -669,6 +869,7 @@ export class ManagerService {
         openingHours,
         teamId,
         address,
+        live,
       } = place;
       tagIds = [
         ...new Set([
@@ -689,6 +890,7 @@ export class ManagerService {
         coverId,
         teamId,
         tagIds,
+        live: live || false,
       };
       const placeRecord = await this.placeRepository.findById(
         id,
@@ -1009,66 +1211,8 @@ export class ManagerService {
         );
       }
 
-      console.log({date}, JSON.stringify(date));
+      // @TODO
 
-      /*       const addressRecord = await this.addressRepository.findById(
-        placeRecord.addressId,
-      );
-      // Region
-      const region = address?.region || {};
-      const regionName = (region?.name || '').toLowerCase().trim();
-      let regionRecord: any;
-
-      if (regionName) {
-        regionRecord = await this.regionRepository.findOne({
-          where: {name: regionName},
-        });
-        if (!regionRecord) {
-          regionRecord = await this.regionRepository.create({
-            name: regionName,
-            countryId: DEFAULT_MODEL_ID.country,
-          });
-        }
-      } else if (addressRecord?.regionId) {
-        regionRecord = await this.regionRepository.findById(
-          addressRecord.regionId,
-        );
-      } */
-      /*
-      // Address
-      const addressPayload: any = {
-        name: name,
-        address: address.address,
-        postal: address.postal,
-        regionId: regionRecord?.id,
-        latitude: address.latitude,
-        longitude: address.longitude,
-      };
-
-      let addressUpdateRequired = false;
-      for (const key of Object.keys(addressPayload || {})) {
-        if (
-          addressRecord[key] !== addressPayload[key] &&
-          addressPayload[key] !== null
-        ) {
-          addressUpdateRequired = true;
-          break;
-        }
-      }
-
-      if (addressUpdateRequired) {
-        addressPayload.long_label = [
-          address.address,
-          regionRecord?.name,
-          address.postal,
-        ].join(',');
-
-        await this.addressRepository.updateById(
-          addressRecord.id,
-          addressPayload,
-        );
-      }
- */
       let playlistUpdateRequired = false;
       const playlistRecord = await this.playlistRepository.findById(
         eventRecord.playlistId,
@@ -1307,17 +1451,16 @@ export class ManagerService {
                 companyId,
               });
             }
-            console.log(5);
+
             await this.teamStaffRepository.create({teamId, staffId: staff.id});
           }
         }
         for (const role of currentRoles) {
           if (newRoles.indexOf(role) == -1) {
-            console.log({role});
             const staff = await this.staffRepository.findOne({
               where: {and: [{userId}, {role}]},
             });
-            console.log(6);
+
             if (staff) {
               await this.teamStaffRepository.deleteAll({
                 and: [{teamId}, {staffId: staff.id}],
@@ -1359,20 +1502,14 @@ export class ManagerService {
 
   private async executeManagerAction(validations: any = [], callback: any) {
     return this.transactionService.execute(async tx => {
-      const user = await this.staffRepository.findAll({
-        where: {
-          and: [
-            {userId: this.currentUser.id},
-            {role: {inq: ['manager', 'owner']}},
-          ],
-        },
-      });
-      const companyIds = user.map((u: any) => u.companyId);
+      const companyId = this.currentUser.companyId;
+
       for (const validation of validations) {
         const record = await this[validation.repository].findById(
           validation.id,
         );
-        if (companyIds.indexOf(record.companyId) == -1) {
+
+        if (companyId !== record.companyId) {
           throw new Error(`User doesn't own or manage the current company`);
         }
       }
