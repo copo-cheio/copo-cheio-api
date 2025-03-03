@@ -1426,7 +1426,7 @@ export class ManagerService {
           staffUser = await this.staffRepository.create({
             userId: staffId,
             role: newRoles[0],
-            companyId: 'f0eeff9a-4a59-48b7-a1e4-17ddd608b145',
+            companyId: this.currentUser.companyId,
           });
           staffId = staffUser.id;
         }

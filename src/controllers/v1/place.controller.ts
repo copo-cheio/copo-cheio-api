@@ -18,6 +18,7 @@ import {
   response,
 } from '@loopback/rest';
 import {PlaceQueryFull, PlacesQuery} from '../../blueprints/place.blueprint';
+import {ExtendQueryFilterWhere} from '../../blueprints/shared/query-filter.interface';
 import {FilterByTags} from '../../blueprints/shared/tag.include';
 import {Place} from '../../models';
 import {
@@ -193,7 +194,15 @@ export class PlaceController {
     },
   })
   async find(@param.filter(Place) filter?: Filter<Place>) {
-    return this.placeRepository.find(FilterByTags({...filter, ...PlacesQuery}));
+    return this.placeRepository.find(
+      FilterByTags({
+        ...filter,
+        ...ExtendQueryFilterWhere(PlacesQuery, [
+          {live: true},
+          {deleted: false},
+        ]),
+      }),
+    );
   }
 
   // @patch("/places")

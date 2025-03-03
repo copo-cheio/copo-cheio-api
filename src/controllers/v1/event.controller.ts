@@ -20,11 +20,11 @@ import {
   EventsQuery,
   EventValidation,
 } from '../../blueprints/event.blueprint';
+import {ExtendQueryFilterWhere} from '../../blueprints/shared/query-filter.interface';
 import {
   IncludeScheduleRangeRelation,
   ScheduleTypes,
 } from '../../blueprints/shared/schedule.include';
-import {addCompanyOwnership} from '../../interceptors/add-company-ownership.interceptor';
 import {Event, EventInstance, Price} from '../../models';
 import {
   ContactsRepository,
@@ -325,11 +325,12 @@ export class EventController {
   }
 
   @post('/events')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Event model instance',
     content: {'application/json': {schema: getModelSchemaRef(Event)}},
   })
-  @intercept(addCompanyOwnership)
   async create(
     @requestBody({
       content: {
@@ -351,11 +352,12 @@ export class EventController {
   }
 
   @post('/event')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
   @response(200, {
     description: 'Event model instance',
     content: {'application/json': {schema: getModelSchemaRef(Event)}},
   })
-  @intercept(addCompanyOwnership)
   async createFull(
     @requestBody({
       description: 'Required input for login',
@@ -531,7 +533,7 @@ export class EventController {
         delete payload.tagIds;
         delete payload.address;
         delete payload.lineup;
-        const response = await this.eventRepository.updateById(
+        const output = await this.eventRepository.updateById(
           id,
           {
             ...entity,
@@ -540,7 +542,7 @@ export class EventController {
           transaction,
         );
 
-        return response;
+        return output;
       },
     );
 
@@ -560,7 +562,9 @@ export class EventController {
     },
   })
   async find(@param.filter(Event) filter?: Filter<Event>): Promise<Event[]> {
-    return this.eventRepository.find(EventsQuery);
+    return this.eventRepository.find(
+      ExtendQueryFilterWhere(EventsQuery, [{live: true}]),
+    );
   }
 
   @get('/events/{id}')
