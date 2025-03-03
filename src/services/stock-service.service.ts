@@ -431,14 +431,15 @@ export class StockService {
       }
     }
     return {
+      stocks,
       total: totalStocks,
       missingTotal: missingStocks,
       affectedBalconies: affectedBalconies.length,
       affectedPlaces: affectedPlaces.length,
-      totalBalconies: balconies.length,
-      totalPlaces: [
+      totalBalconies: [
         ...new Set(balconies.map((b: any) => b.placeId).filter(id => id)),
       ].length,
+      totalPlaces: places.length,
       totalIngredients: totalIngredients.length,
       missingIngredients: missingIngredients.length,
     };
