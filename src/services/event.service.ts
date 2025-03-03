@@ -191,7 +191,7 @@ ORDER BY eventid,startdate ASC;
   async parseEventInstanceData(
     event: Event,
     recurrenceType: string,
-    recurrenceEndDate: string | undefined,
+    recurrenceEndDate: string | Date | undefined,
   ) {
     // const eventInstances = [];
     const startDate = new Date(event.startDate);
@@ -258,7 +258,7 @@ ORDER BY eventid,startdate ASC;
   async createRecurringInstances(
     event: Event,
     recurrenceType: string,
-    recurrenceEndDate: string | undefined,
+    recurrenceEndDate: string | Date | undefined,
   ) {
     const eventInstances = [];
     const newEventInstances = [];
@@ -370,7 +370,7 @@ ORDER BY eventid,startdate ASC;
   async createOrUpdateRecurringInstances(
     event: Event,
     recurrenceType: string,
-    recurrenceEndDate: string | undefined,
+    recurrenceEndDate: string | Date | undefined,
   ) {
     return this.createRecurringInstances(
       event,

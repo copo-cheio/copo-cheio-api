@@ -839,11 +839,30 @@ export class ManagerService {
     return;
   }
 
+  getNextDateWithWeekday({start, weekday}) {
+    const today = new Date();
+    const currentDay = today.getDay(); // 0 (Sunday) - 6 (Saturday)
+
+    // Calculate days until next desired weekday
+    let daysUntilNext = (weekday - currentDay + 7) % 7;
+    if (daysUntilNext === 0) daysUntilNext = 7; // If today is the same weekday, get next week
+
+    // Get the next occurrence of the given weekday
+    const nextDate = new Date();
+    nextDate.setDate(today.getDate() + daysUntilNext);
+
+    // Set the start time
+    const [hours, minutes] = start.split(':').map(Number);
+    nextDate.setHours(hours, minutes, 0, 0);
+
+    return nextDate;
+  }
   async updateEventV2(id: string, payload: any = {}) {
     return this.transactionService.execute(async tx => {
       let {
         coverId,
         name,
+        placeId,
         description,
         contacts,
         tagIds,
@@ -852,6 +871,7 @@ export class ManagerService {
         activityIds,
         teamId,
         playlist,
+        date,
       } = payload;
       tagIds = [
         ...new Set([
@@ -865,26 +885,94 @@ export class ManagerService {
 
       // Place itself
       let eventUpdateRequired = false;
-      const eventPayload = {
+
+      const recurrenceType = date?.frequency;
+      const isRecurring =
+        recurrenceType && recurrenceType == 'none'
+          ? false
+          : recurrenceType
+            ? true
+            : null;
+      const eventPayload: any = {
         name,
         description,
         coverId,
         teamId,
         tagIds,
+        placeId,
+        recurrenceTyoe: date?.frequency,
       };
+      if (typeof isRecurring == 'string') {
+        eventPayload.isRecurring = isRecurring;
+      }
+      if (recurrenceType) {
+        eventPayload.recurrenceType = recurrenceType;
+        if (recurrenceType == 'none') {
+          eventPayload.startDate = date.start;
+          if (new Date(date.start) < new Date(date.end)) {
+            eventPayload.endDate = date.end;
+          } else {
+            throw new Error('Invalid date range');
+          }
+        } else if (recurrenceType == 'weekly') {
+          let startDate =
+            date.start.indexOf('T') > -1
+              ? date.start.split('T')[1]?.slice(0, 5)
+              : date.start;
+          let endDate =
+            date.end.indexOf('T') > -1
+              ? date.end.split('T')[1]?.slice(0, 5)
+              : date.end;
+          const weekday = date.weekday;
+          startDate = this.getNextDateWithWeekday({start: startDate, weekday});
+
+          const _e = endDate;
+          endDate = new Date(startDate);
+          endDate.setHours(_e.split(':')[0], _e.split(':')[1], 0);
+          if (
+            Number(date.end.replaceAll(':', '')) <
+            Number(date.start.replaceAll(':', ''))
+          ) {
+            endDate.setDate(endDate.getDate() + 1);
+          }
+          eventPayload.startDate = new Date(startDate);
+          eventPayload.endDate = new Date(endDate);
+        }
+      }
+
       const eventRecord = await this.eventRepository.findById(
         id,
         EventManagerQueryFull,
       );
+
+      if (eventPayload.recurrenceType) {
+        const nextYearDate = new Date();
+        nextYearDate.setFullYear(nextYearDate.getFullYear() + 1);
+        this.eventService.createOrUpdateRecurringInstances(
+          eventRecord,
+          eventPayload.recurrenceType,
+          nextYearDate,
+        );
+      }
       for (const key of Object.keys(eventPayload)) {
         if (eventPayload[key] !== eventRecord[key]) {
           eventUpdateRequired = true;
           break;
         }
       }
+      if (
+        eventPayload.placeId &&
+        eventPayload.placeId !== eventRecord.placeId
+      ) {
+        const place = await this.placeRepository.findById(eventPayload.placeId);
+        if (place) {
+          eventPayload.addressId = place.addressId;
+        }
+      }
       if (eventUpdateRequired) {
         await this.eventRepository.updateById(id, eventPayload);
       }
+
       // Contacts
       const contactsPayload = contacts;
       const contactsRecord = await this.contactRepository.findOne({
@@ -903,12 +991,13 @@ export class ManagerService {
       }
 
       if (contactsUpdateRequired) {
-        console.log('Will update contacts', {contactsRecord, contactsPayload});
         await this.contactRepository.updateById(
           contactsRecord.id,
           contactsPayload,
         );
       }
+
+      console.log({date}, JSON.stringify(date));
 
       /*       const addressRecord = await this.addressRepository.findById(
         placeRecord.addressId,
