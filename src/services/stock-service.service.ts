@@ -431,7 +431,6 @@ export class StockService {
       }
     }
     return {
-      stocks,
       total: totalStocks,
       missingTotal: missingStocks,
       affectedBalconies: affectedBalconies.length,
