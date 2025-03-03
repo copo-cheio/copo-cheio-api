@@ -7,6 +7,7 @@ import {
 } from '@loopback/repository';
 import {PostgresSqlDataSource} from '../../datasources';
 import {
+  Company,
   Event,
   Image,
   Place,
@@ -17,6 +18,7 @@ import {
 } from '../../models';
 import {BaseRepository} from '../base.repository.base';
 // import {CompanyRepository} from './company.repository';
+import {CompanyRepository} from './company.repository';
 import {EventRepository} from './event.repository';
 import {ImageRepository} from './image.repository';
 import {PlaceRepository} from './place.repository';
@@ -54,6 +56,8 @@ export class TeamRepository extends BaseRepository<
     Image,
     typeof Team.prototype.coverId
   >;
+
+  public readonly company: BelongsToAccessor<Company, typeof Team.prototype.id>;
   // public readonly company: BelongsToAccessor<Company, typeof Team.prototype.id>;
 
   constructor(
@@ -70,10 +74,17 @@ export class TeamRepository extends BaseRepository<
     protected placeRepositoryGetter: Getter<PlaceRepository>,
     @repository.getter('ImageRepository')
     protected imageRepositoryGetter: Getter<ImageRepository>,
+    @repository.getter('CompanyRepository')
+    protected companyRepositoryGetter: Getter<CompanyRepository>,
   ) {
-    //  @repository.getter('CompanyRepository') protected companyRepositoryGetter: Getter<CompanyRepository>,
-
     super(Team, dataSource);
+    //  @repository.getter('CompanyRepository') protected companyRepositoryGetter: Getter<CompanyRepository>,
+    this.company = this.createBelongsToAccessorFor(
+      'company',
+      companyRepositoryGetter,
+    );
+    this.registerInclusionResolver('company', this.company.inclusionResolver);
+
     this.cover = this.createBelongsToAccessorFor(
       'cover',
       imageRepositoryGetter,

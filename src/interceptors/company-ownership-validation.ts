@@ -37,7 +37,7 @@ export class CompanyOwnershipValidation implements Provider<Interceptor> {
 
     const request: any = invocationCtx.getSync('rest.http.request');
     const user: any = invocationCtx.getSync('security.user');
-
+    console.log({user});
     try {
       const companyId = await this.authService.getSignedInManagerCompany(
         user.id,

@@ -1,6 +1,7 @@
 import {AuthenticationBindings} from '@loopback/authentication';
 import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
+import {HttpErrors} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
 import {
@@ -44,6 +45,7 @@ import {
 } from '../repositories';
 import {MenuRepository} from '../repositories/v1/menu.repository';
 import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
+import {AuthService} from './auth.service';
 import {EventService} from './event.service';
 import {PlaceService} from './place.service';
 import {ProductService} from './product.service';
@@ -55,6 +57,8 @@ export class ManagerService {
   constructor(
     @inject('services.StockService')
     protected stockService: StockService,
+    @inject('services.AuthService')
+    protected authService: AuthService,
     @inject('services.ProductService')
     protected productService: ProductService,
     @inject('services.PlaceService')
@@ -128,6 +132,17 @@ export class ManagerService {
    * 3. Ruptura / actualização de stock
    */
 
+  /* -------------------------------------------------------------------------- */
+  /*                                    STAFF                                   */
+  /* -------------------------------------------------------------------------- */
+  async getCompanyStaff() {
+    return this.staffRepository.findAll({
+      where: {
+        and: [{companyId: this.currentUser.companyId}, {deleted: false}],
+      },
+      include: [{relation: 'user'}],
+    });
+  }
   /* -------------------------------------------------------------------------- */
   /*                              MANAGER APP PAGES                             */
   /* -------------------------------------------------------------------------- */
@@ -534,6 +549,7 @@ export class ManagerService {
         userId: this.currentUser.id,
         role: 'admin',
         companyId: company.id,
+        roles: ['admin'],
       });
 
       const contacts = await this.contactRepository.create({
@@ -550,11 +566,13 @@ export class ManagerService {
         companyId: company.id,
         coverId: coverId,
       });
-      await this.teamStaffRepository.create({
+
+      const teamStaff = await this.teamStaffRepository.create({
         teamId: team.id,
         staffId: staff.id,
       });
 
+      await this.authService.signInActivityV2(this.currentUser.id, 'admin');
       return {...company, contacts};
     });
   }
@@ -758,20 +776,7 @@ export class ManagerService {
         },
       });
       const regionId = region?.id || DEFAULT_MODEL_ID.regionId;
-      console.log({
-        latitude: address.latitude,
-        longitude: address.longitude,
-        type: 'POI',
-        name: payload.name,
-        long_label: [name, address?.address, address?.postal].join(','),
-        short_label: [
-          address?.address,
-          address?.region?.name,
-          address?.postal,
-        ].join(','),
-        regionId: regionId,
-        countryId: region?.countryId || DEFAULT_MODEL_ID.countryId,
-      });
+
       const addressRecord = await this.addressRepository.create({
         address: address.address,
         postal: address.postal,
@@ -801,7 +806,7 @@ export class ManagerService {
       const playlist = await this.playlistRepository.create({
         name: name + ' playlist',
       });
-      console.log(addressRecord, addressRecord.id);
+
       const placeRecord = await this.placeRepository.create({
         name,
         description,
@@ -914,7 +919,6 @@ export class ManagerService {
       }
 
       if (contactsUpdateRequired) {
-        console.log('Will update contacts', {contactsRecord, contactsPayload});
         await this.contactRepository.updateById(
           contactsRecord.id,
           contactsPayload,
@@ -1410,7 +1414,7 @@ export class ManagerService {
 
   async updateTeamStaff(teamId, staffId, currentRoles, newRoles) {
     return this.executeManagerAction(
-      [{repository: 'teamRepository', teamId}],
+      [{repository: 'teamRepository', id: teamId}],
       async () => {
         const team = await this.teamRepository.findById(teamId);
 
@@ -1493,19 +1497,28 @@ export class ManagerService {
 
   private async executeManagerAction(validations: any = [], callback: any) {
     return this.transactionService.execute(async tx => {
-      const companyId = this.currentUser.companyId;
+      try {
+        const companyId = this.currentUser.companyId;
 
-      for (const validation of validations) {
-        const record = await this[validation.repository].findById(
-          validation.id,
-        );
-
-        if (companyId !== record.companyId) {
-          throw new Error(`User doesn't own or manage the current company`);
+        if (!companyId) {
+          throw new HttpErrors.Unauthorized('Error verifying token.');
         }
-      }
+        for (const validation of validations) {
+          const record = await this[validation.repository].findById(
+            validation.id,
+          );
 
-      return callback();
+          if (companyId !== record.companyId) {
+            throw new Error(`User doesn't own or manage the current company`);
+          }
+        }
+
+        const response = await callback();
+
+        return response;
+      } catch (ex) {
+        throw new HttpErrors.Unauthorized('Didnt meet company requirements');
+      }
     });
   }
 

@@ -1,5 +1,6 @@
 import {belongsTo, hasMany, model, property} from '@loopback/repository';
 import {Base} from './base.model';
+import {Company} from './company.model';
 import {Event} from './event.model';
 import {Image} from './image.model';
 import {Place} from './place.model';
@@ -8,12 +9,6 @@ import {TeamStaff} from './team-staff.model';
 
 @model()
 export class Team extends Base {
-  @property({
-    type: 'string',
-    required: true,
-  })
-  companyId?: string;
-
   @property({
     type: 'string',
     required: true,
@@ -38,6 +33,9 @@ export class Team extends Base {
 
   @belongsTo(() => Image)
   coverId: string;
+
+  @belongsTo(() => Company)
+  companyId: string;
 
   constructor(data?: Partial<Team>) {
     super(data);

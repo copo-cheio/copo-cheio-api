@@ -105,6 +105,25 @@ export class ManagerV2Controller {
   }
 
   /* -------------------------------------------------------------------------- */
+  /*                                    STAFF                                   */
+  /* -------------------------------------------------------------------------- */
+  @get('/v2/manager/staff')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(200, {
+    description: 'Manager staff page',
+  })
+  async getCompanyStaff(): Promise<any> {
+    try {
+      const menus = await this.managerService.getCompanyStaff();
+      return menus || [];
+    } catch (ex) {
+      console.warn(ex);
+      return [];
+    }
+  }
+
+  /* -------------------------------------------------------------------------- */
   /*                                     GET                                    */
   /* -------------------------------------------------------------------------- */
   @get('/v2/manager/menus')
