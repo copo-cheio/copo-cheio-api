@@ -530,18 +530,11 @@ export class ManagerService {
         coverId,
       });
 
-      let staff = await this.staffRepository.findOne({
-        where: {
-          and: [{userId: this.currentUser.id}, {role: 'admin'}],
-        },
+      const staff = await this.staffRepository.create({
+        userId: this.currentUser.id,
+        role: 'admin',
+        companyId: company.id,
       });
-      if (!staff) {
-        staff = await this.staffRepository.create({
-          userId: this.currentUser.id,
-          role: 'admin',
-          companyId: company.id,
-        });
-      }
 
       const contacts = await this.contactRepository.create({
         refId: company.id,
@@ -557,12 +550,10 @@ export class ManagerService {
         companyId: company.id,
         coverId: coverId,
       });
-      const teamStaff = await this.updateTeamStaff(
-        team.id,
-        staff.id,
-        [],
-        ['admin'],
-      );
+      await this.teamStaffRepository.create({
+        teamId: team.id,
+        staffId: staff.id,
+      });
 
       return {...company, contacts};
     });
