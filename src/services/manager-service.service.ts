@@ -170,6 +170,18 @@ export class ManagerService {
       orders: orders.length,
     };
   }
+  async getOnboardingPage() {
+    const staff = await this.staffRepository.findOne({
+      where: {
+        and: [
+          {userId: this.currentUser.id},
+          {role: {inq: ['owner', 'admin', 'manager']}},
+        ],
+      },
+    });
+
+    return staff?.companyId;
+  }
   async getPlacePage(id: string) {
     return this.placeRepository.findById(id, PlaceManagerQueryFull);
   }
@@ -950,7 +962,7 @@ export class ManagerService {
         nextYearDate.setFullYear(nextYearDate.getFullYear() + 1);
         this.eventService.createOrUpdateRecurringInstances(
           eventRecord,
-          eventPayload.recurrenceType,
+          eventRecord.recurrenceType,
           nextYearDate,
         );
       }

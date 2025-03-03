@@ -44,6 +44,15 @@ export class ManagerV2Controller {
     }
   }
 
+  @get('/v2/manager/onboard')
+  @authenticate('firebase')
+  @response(200, {
+    description: 'Create a place',
+  })
+  async onBoardPage(): Promise<any> {
+    return this.managerService.getOnboardingPage();
+  }
+
   /* -------------------------------------------------------------------------- */
   /*                                   EVENTS                                   */
   /* -------------------------------------------------------------------------- */
