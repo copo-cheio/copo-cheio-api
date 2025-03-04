@@ -1023,15 +1023,150 @@ export class ManagerService {
   /*                                    EVENT                                   */
   /* -------------------------------------------------------------------------- */
   async createEvent(payload: any = {}) {
+    return this.transactionService.execute(async tx => {
+      let {
+        coverId,
+        name,
+        placeId,
+        description,
+        contacts,
+        tagIds,
+        eventIds,
+        musicIds,
+        activityIds,
+        teamId,
+        playlist,
+        date,
+      } = payload;
+      tagIds = [
+        ...new Set([
+          ...(eventIds || []),
+          ...(activityIds || []),
+          ...(musicIds || []),
+        ]),
+      ];
+
+      tagIds = tagIds.sort();
+
+      // Place itself
+
+      const recurrenceType = date?.frequency;
+      const isRecurring =
+        recurrenceType && recurrenceType == 'none'
+          ? false
+          : recurrenceType
+            ? true
+            : null;
+      const eventPayload: any = {
+        name,
+        description,
+        coverId,
+        teamId,
+        tagIds,
+        placeId,
+        recurrenceTyoe: date?.frequency,
+        isRecurring: false,
+      };
+      if (typeof isRecurring == 'string') {
+        eventPayload.isRecurring = isRecurring;
+      }
+      if (recurrenceType) {
+        eventPayload.recurrenceType = recurrenceType;
+        if (recurrenceType == 'none') {
+          eventPayload.startDate = date.start;
+          if (new Date(date.start) < new Date(date.end)) {
+            eventPayload.endDate = date.end;
+          } else {
+            throw new Error('Invalid date range');
+          }
+        } else if (recurrenceType == 'weekly') {
+          let startDate =
+            date.start.indexOf('T') > -1
+              ? date.start.split('T')[1]?.slice(0, 5)
+              : date.start;
+          let endDate =
+            date.end.indexOf('T') > -1
+              ? date.end.split('T')[1]?.slice(0, 5)
+              : date.end;
+          const weekday = date.weekday;
+          startDate = this.getNextDateWithWeekday({start: startDate, weekday});
+
+          const _e = endDate;
+          endDate = new Date(startDate);
+          endDate.setHours(_e.split(':')[0], _e.split(':')[1], 0);
+          if (
+            Number(date.end.replaceAll(':', '')) <
+            Number(date.start.replaceAll(':', ''))
+          ) {
+            endDate.setDate(endDate.getDate() + 1);
+          }
+          eventPayload.startDate = new Date(startDate);
+          eventPayload.endDate = new Date(endDate);
+        }
+      }
+      const playlistRecord = await this.playlistRepository.create({
+        ...playlist,
+        name: playlist?.name || name + ' playlist',
+      });
+      const placeRecord = await this.placeRepository.findById(
+        eventPayload.placeId,
+      );
+
+      let team: any;
+      if (teamId) {
+        team = await this.teamRepository.findById(teamId);
+      }
+      if (!team) {
+        team = await this.teamRepository.findOne({
+          where: {companyId: this.currentUser.companyId},
+        });
+      }
+      const eventRecord = await this.eventRepository.create({
+        recurrenceEndDate: new Date(2030, 1, 1).toISOString(),
+        endDate: eventPayload.endDate,
+        startDate: eventPayload.startDate,
+        isRecurring: eventPayload.isRecurring,
+        //eventType:eventIds.type,
+        name,
+        description,
+        type: recurrenceType == 'none' ? 'once' : 'repeat',
+        status: 0,
+        live: false,
+        coverId: eventPayload.coverId,
+        addressId: placeRecord.addressId,
+        placeId: eventPayload.placeId,
+        //scheduleId
+        teamId: team.id,
+        playlistId: playlistRecord.id,
+        tagIds: eventPayload.tagIds || [],
+        companyId: this.currentUser.companyId,
+      });
+
+      const contactsRecord = await this.contactRepository.create({
+        ...contacts,
+        refId: eventRecord.id,
+      });
+
+      if (eventPayload.recurrenceType) {
+        const nextYearDate = new Date();
+        nextYearDate.setFullYear(nextYearDate.getFullYear() + 1);
+        this.eventService.createOrUpdateRecurringInstances(
+          eventRecord,
+          eventRecord.recurrenceType,
+          nextYearDate,
+        );
+      }
+
+      return eventRecord;
+    });
     // Precisa de teamId
     // Precisa de place
-    // Precisa de opening hours
+    // Precisa de dates
+    // Precisa de tagIds
     // Precisa de companyId
     // Precisa de contactsId
-    // Precisa de tagIds
     // Precisa de playlistId
     // @TODO Falta address e playlist que n tou com coragem agr
-    return payload;
   }
   async updateEvent(id: string, place: any = {}) {
     /*     const openingHours: any = place.openingHours;
