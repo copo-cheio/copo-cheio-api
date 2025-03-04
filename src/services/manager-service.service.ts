@@ -229,6 +229,16 @@ export class ManagerService {
       },
     );
   }
+  async getPlaceInstancePage(id: string) {
+    /* return this.executeManagerAction([], async () => { */
+    const instance = await this.placeInstanceRepository.findById(id);
+    const place = await this.placeRepository.findById(
+      instance.placeId,
+      PlaceManagerQueryFull,
+    );
+    return {...place, instance};
+    /*   }); */
+  }
 
   async getPlacesPage() {
     return this.executeManagerAction([], async () => {
@@ -430,12 +440,44 @@ export class ManagerService {
     const eventNames: any = [];
     const placeNames: any = [];
 
+    const _places = await this.placeRepository.findAll({
+      where: {
+        and: [
+          {companyId: this.currentUser.companyId},
+          {live: true},
+          {deleted: false},
+        ],
+      },
+    });
+    const _events = await this.eventRepository.findAll({
+      where: {
+        and: [
+          {companyId: this.currentUser.companyId},
+          {live: true},
+          {deleted: false},
+        ],
+      },
+    });
     let placeInstances: any = await this.placeInstanceRepository.findAll({
-      where: {and: [{startDate: {gte: today}}, {endDate: {lte: future}}]},
+      where: {
+        and: [
+          {placeId: {inq: _places.map(p => p.id)}},
+          {startDate: {gte: today}},
+          {endDate: {lte: future}},
+          {deleted: false},
+        ],
+      },
       include: [{relation: 'place', scope: {fields: {name: true}}}],
     });
     let eventInstances: any = await this.eventInstanceRepository.findAll({
-      where: {and: [{startDate: {gte: today}}, {endDate: {lte: future}}]},
+      where: {
+        and: [
+          {eventId: {inq: _events.map(p => p.id)}},
+          {startDate: {gte: today}},
+          {endDate: {lte: future}},
+          {deleted: false},
+        ],
+      },
       include: [{relation: 'event', scope: {fields: {name: true}}}],
     });
     placeInstances = placeInstances.map((e: any) => {
@@ -514,6 +556,16 @@ export class ManagerService {
 
   async getEventPage(id: string) {
     return this.eventRepository.findById(id, EventManagerQueryFull);
+  }
+  async getEventInstancePage(id: string) {
+    /*  return this.executeManagerAction([], async () => { */
+    const instance = await this.eventInstanceRepository.findById(id);
+    const event = await this.eventRepository.findById(
+      instance.eventId,
+      EventManagerQueryFull,
+    );
+    return {...event, instance};
+    /* }); */
   }
   async getEventsPage() {
     return this.executeManagerAction([], async () => {
@@ -1652,6 +1704,7 @@ export class ManagerService {
 
         return response;
       } catch (ex) {
+        console.log(ex);
         throw new HttpErrors.Unauthorized('Didnt meet company requirements');
       }
     });

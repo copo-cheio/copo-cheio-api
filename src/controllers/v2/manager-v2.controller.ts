@@ -67,6 +67,17 @@ export class ManagerV2Controller {
   async getManagerEventPage(@param.path.string('id') id: string): Promise<any> {
     return this.managerService.getEventPage(id);
   }
+  @get('v2/manager/event-instances/{id}')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(200, {
+    description: 'Manager event page',
+  })
+  async getManagerEventInstancePage(
+    @param.path.string('id') id: string,
+  ): Promise<any> {
+    return this.managerService.getEventInstancePage(id);
+  }
   @get('/v2/manager/events')
   @authenticate('firebase')
   @intercept('interceptors.CompanyOwnershipValidation')
@@ -237,6 +248,17 @@ export class ManagerV2Controller {
   })
   async getManagerPlacePage(@param.path.string('id') id: string): Promise<any> {
     return this.managerService.getPlacePage(id);
+  }
+  @get('v2/manager/place-instances/{id}')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(200, {
+    description: 'Manager event page',
+  })
+  async getManagerPlaceInstancePage(
+    @param.path.string('id') id: string,
+  ): Promise<any> {
+    return this.managerService.getPlaceInstancePage(id);
   }
 
   @get('/v2/manager/places')
