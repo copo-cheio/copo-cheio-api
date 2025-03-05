@@ -63,7 +63,7 @@ export class EventService {
     const startDate = new Date().toISOString();
     const params = [startDate];
     const query = `SELECT DISTINCT ON (eventid) id,eventid, endDate,startDate, latitude,longitude
-FROM eventinstance WHERE endDate >= $i
+FROM eventinstance WHERE endDate >= $i AND startDate >= $i
 ORDER BY eventid,startdate ASC;
 `;
 
@@ -93,13 +93,28 @@ ORDER BY eventid,startdate ASC;
     const query = `SELECT DISTINCT ON (eventid) id,eventid, endDate,startDate, latitude,longitude
     FROM eventinstance WHERE startDate >= $1 and deleted = false
     ORDER BY eventid,startDate ASC;`;
+    const queryOngoing = `SELECT DISTINCT ON (eventid) id,eventid, endDate,startDate, latitude,longitude
+    FROM eventinstance WHERE startDate <= $1  and endDate >= $1 and deleted = false
+    ORDER BY eventid,startDate ASC;`;
 
     const distinctEventsIds =
       await this.eventInstanceRepository.dataSource.execute(query, params);
+    const distinctOngoingEventsIds =
+      await this.eventInstanceRepository.dataSource.execute(
+        queryOngoing,
+        params,
+      );
 
-    const distinctEventsInstanceIds = distinctEventsIds.map(
-      (deid: any) => deid.id,
+    const distinctOngoingEventInstanceIds = distinctOngoingEventsIds.map(
+      (e: any) => e.eventid,
     );
+
+    const distinctEventsInstanceIds = distinctEventsIds
+      .filter(
+        (e: any) => distinctOngoingEventInstanceIds.indexOf(e.eventid) == -1,
+      )
+      .map((deid: any) => deid.id);
+
     return this.eventInstanceRepository.findAll({
       where: {
         id: {inq: distinctEventsInstanceIds},
