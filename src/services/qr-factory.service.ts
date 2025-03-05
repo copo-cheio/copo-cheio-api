@@ -6,12 +6,37 @@ import {v4} from 'uuid';
 import {ImageRepository} from '../repositories';
 import {generateQrWithLogo} from '../utils/qr';
 import {storageService} from './minio/service';
+
+export interface iQrCodeData {
+  action: string;
+  type: string;
+  id?: string; // refId
+  refId?: string; // refId
+  code?: string;
+}
 @injectable({scope: BindingScope.TRANSIENT})
 export class QrFactoryService {
   constructor(
     @repository('ImageRepository')
     public imageRepository: ImageRepository,
   ) {}
+
+  async generateInviteCode(refId: string) {
+    return this.findOrCreateQrCode(refId, {
+      action: 'invite',
+      type: 'staff',
+      refId: refId,
+    });
+  }
+
+  /**
+   *
+   * @param data
+   * @param refId
+   * @param description
+   * @param v2
+   * @returns
+   */
 
   async generateAndUploadQrCode(
     data: any,
@@ -67,5 +92,30 @@ export class QrFactoryService {
         fs.unlinkSync(outputPath);
       }
     }
+  }
+
+  async findQrCodeByRefId(refId: string) {
+    const image = await this.imageRepository.findOne({
+      where: {
+        and: [{refId}, {type: 'qr'}],
+      },
+    });
+    return image;
+  }
+  async findOrCreateQrCode(refId, payload: any) {
+    let qr = await this.findQrCodeByRefId(refId);
+    if (!qr) {
+      await this.generateAndUploadQrCode(
+        {
+          action: payload.action,
+          type: payload.type,
+          id: refId,
+        },
+        refId,
+        payload.action,
+      );
+      qr = await this.findQrCodeByRefId(refId);
+    }
+    return qr;
   }
 }

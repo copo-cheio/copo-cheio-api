@@ -1456,6 +1456,7 @@ export class ManagerService {
                 ],
               },
             });
+
             if (!instance) {
               instance = await this.eventInstanceRepository.create({
                 eventId: id,
@@ -1464,7 +1465,42 @@ export class ManagerService {
                 longitude: eventRecord?.place?.address?.longitude,
                 startDate: nextYearStartDates[i],
                 endDate: nextYearStartDates[i],
-                date: new Date(nextYearEndDates[i]).setHours(0, 0, 0, 0),
+                date: new Date(
+                  new Date(nextYearStartDates[i]).setHours(0, 0, 0, 0),
+                ),
+              });
+            }
+            const placeInstance = await this.placeInstanceRepository.findOne({
+              where: {
+                and: [
+                  {
+                    date: new Date(
+                      new Date(nextYearStartDates[i]).setHours(0, 0, 0, 0),
+                    ),
+                  },
+                  {
+                    deleted: false,
+                  },
+                  {
+                    placeId: eventRecord.placeId,
+                  },
+                ],
+              },
+            });
+            if (placeInstance) {
+              await this.placeInstanceRepository.updateById(placeInstance.id, {
+                eventInstanceId: instance.id,
+                teamId: eventRecord.teamId,
+              });
+            } else {
+              await this.placeInstanceRepository.create({
+                placeId: eventRecord.placeId,
+                eventInstanceId: instance.id,
+
+                teamId: eventRecord.teamId,
+                startDate: nextYearStartDates[i],
+                endDate: nextYearStartDates[i],
+                date: date,
               });
             }
             return instance;
@@ -1506,8 +1542,74 @@ export class ManagerService {
               longitude: eventRecord?.place?.address?.longitude,
               startDate: new Date(eventPayload.startDate),
               endDate: new Date(eventPayload.endDate),
-              date: new Date(eventPayload.startDate).setHours(0, 0, 0, 0),
+              date: new Date(
+                new Date(eventPayload.startDate).setHours(0, 0, 0, 0),
+              ),
             });
+          }
+          const placeInstances = await this.placeInstanceRepository.findAll({
+            where: {
+              and: [
+                {
+                  eventInstanceId: instance.id,
+                },
+                {
+                  startDate: {gt: new Date()}, // startDate is greater than now
+                },
+              ],
+            },
+          });
+          date = new Date(
+            new Date(eventPayload.startDate).setHours(0, 0, 0, 0),
+          );
+          console.log({date});
+          const placeInstance = await this.placeInstanceRepository.findOne({
+            where: {
+              and: [
+                {
+                  eventInstanceId: instance.id,
+                },
+                {
+                  date, // startDate is greater than now
+                },
+                {placeId: eventRecord.placeId},
+              ],
+            },
+          });
+          console.log({placeInstance});
+          const placeInstanceId = placeInstance?.id;
+          let placeInstanceIds = (placeInstances || []).map(pI => pI.id);
+          if (placeInstanceId) {
+            placeInstanceIds = placeInstanceIds.filter(
+              pi => pi !== placeInstanceId,
+            );
+          } else {
+            const pI = await this.placeInstanceRepository.findOne({
+              where: {
+                and: [
+                  {
+                    date, // startDate is greater than now
+                  },
+                  {placeId: eventRecord.placeId},
+                ],
+              },
+            });
+            console.log({date, placeId: eventRecord.placeId, pI});
+            if (pI) {
+              await this.placeInstanceRepository.updateById(pI.id, {
+                eventInstanceId: instance.id,
+                teamId: instance.teamId,
+              });
+            } else {
+              await this.placeInstanceRepository.create({
+                placeId: eventRecord.placeId,
+                eventInstanceId: instance.id,
+                teamId: instance.teamId,
+                date,
+                startDate: new Date(eventPayload.startDate), // startDate is NOT in the array
+                endDate: new Date(eventPayload.endDate), // endDate is NOT in the array
+              });
+            }
           }
         }
       }

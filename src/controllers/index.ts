@@ -39,3 +39,4 @@ export * from './tutorial.controller';
 export * from './menu-company.controller';
 export * from './product-company.controller';
 export * from './team-company.controller';
+export * from './place-instance-team.controller';

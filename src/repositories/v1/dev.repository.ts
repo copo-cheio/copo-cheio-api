@@ -234,10 +234,13 @@ export class DevRepository extends BaseRepository<
     const staff = await this.findByAction('staff', 'sign-up', refId);
     const lastSignInUser = await this.findByAction('user', 'sign-in', refId);
     const lastSignInStaff = await this.findByAction('staff', 'check-in', refId);
-
+    const userRepository = await this.userRepositoryGetter();
     const placeRepository: any = await this.getPlaceRepository();
     const balconyRepository: any = await this.getBalconyRepository();
     const systemOrders: any = await this.getSystemOrders();
+    const userRecord = await userRepository.findOne({
+      where: {firebaseUserId: refId},
+    });
     const userActivity: any = systemOrders.filter(so => so.userId == refId);
     const userPlaces = await placeRepository.findAll({
       where: {
@@ -256,6 +259,10 @@ export class DevRepository extends BaseRepository<
       },
     };
     if (staff) {
+      if (userRecord) {
+        response.code = await this.qrService.findQrCodeByRefId(userRecord?.id);
+        response.code = response?.code?.url;
+      }
       const balconies = await this.findAll({
         where: {app: 'staff', action: 'balcony-orders'},
       });

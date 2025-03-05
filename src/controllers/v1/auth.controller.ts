@@ -203,6 +203,11 @@ export class AuthController {
         });
         responsePayload.staffIds = staffIds;
         responsePayload.userTeams = [...new Set(userTeams.map(t => t.teamId))];
+
+        const activity = await this.authService.signInActivityV2(
+          user.id,
+          body.app,
+        );
       } else {
         responsePayload.favorites = await this.userRepository.getFavorites(
           user.id,

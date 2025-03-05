@@ -2,12 +2,16 @@ import {inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 
 import * as admin from 'firebase-admin';
+import {EventFullQuery} from '../blueprints/event.blueprint';
 import {
   ActivityV2Repository,
   CheckInV2Repository,
+  EventInstanceRepository,
   PlaceRepository,
   StaffRepository,
 } from '../repositories';
+import {EventRepository} from '../repositories/v1/event.repository';
+import {QrFactoryService} from './qr-factory.service';
 import {TransactionService} from './transaction.service';
 
 @injectable()
@@ -21,6 +25,12 @@ export class AuthService {
     public staffRepository: StaffRepository,
     @repository('PlaceRepository')
     public placeRepository: PlaceRepository,
+    @repository('EventRepository')
+    public eventRepository: EventRepository,
+    @repository('EventInstanceRepository')
+    public eventInstanceRepository: EventInstanceRepository,
+    @inject('services.QrFactoryService')
+    protected qrFactoryService: QrFactoryService,
     @inject('services.TransactionService')
     private transactionService: TransactionService,
   ) {}
@@ -58,6 +68,8 @@ export class AuthService {
           });
         }
       }
+    } else if (app == 'staff') {
+      await this.qrFactoryService.generateInviteCode(userId);
     }
 
     return activity;
@@ -104,6 +116,30 @@ export class AuthService {
       const placeInstance =
         await this.placeRepository.findCurrentInstanceById(placeId);
       const placeInstanceId = placeInstance?.id;
+      let event: any;
+      if (active) {
+        const events = await this.eventRepository.findAll({
+          where: {and: [{placeId}, {deleted: false}]},
+        });
+        console.log({placeInstance});
+        if (placeInstance) {
+          const eventInstances = await this.eventInstanceRepository.findAll({
+            where: {
+              and: [
+                {eventId: {inq: events.map(e => e.id)}},
+                {date: placeInstance.date},
+              ],
+            },
+          });
+          console.log({eventInstances});
+          if (eventInstances && eventInstances?.[0]) {
+            event = await this.eventRepository.findById(
+              eventInstances[0].eventId,
+              EventFullQuery,
+            );
+          }
+        }
+      }
       if (checkIn?.id) {
         let reload = false;
         const differences: any = {
@@ -132,9 +168,9 @@ export class AuthService {
             placeInstanceId,
           );
           await this.checkInV2Repository.updateById(checkIn.id, differences);
-
-          return this.checkInV2Repository.findById(checkIn.id);
         }
+        const response = await this.checkInV2Repository.findById(checkIn.id);
+        return {...response, event: event};
       } else {
         this.checkInOutActivityV2(
           active ? 'in' : 'out',
