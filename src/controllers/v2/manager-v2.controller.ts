@@ -112,7 +112,7 @@ export class ManagerV2Controller {
     @requestBody({})
     body: any,
   ): Promise<any> {
-    await this.managerService.updateEventV2(id, body);
+    return this.managerService.updateEventV2(id, body);
   }
 
   /* -------------------------------------------------------------------------- */

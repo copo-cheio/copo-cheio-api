@@ -15,6 +15,10 @@ export class EventInstance extends Base {
     type: 'date',
   })
   endDate?: Date;
+  @property({
+    type: 'date',
+  })
+  date?: Date;
 
   @property({
     type: 'number',

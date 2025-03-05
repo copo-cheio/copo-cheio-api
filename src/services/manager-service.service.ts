@@ -45,6 +45,7 @@ import {
 } from '../repositories';
 import {MenuRepository} from '../repositories/v1/menu.repository';
 import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
+import {getNextSameWeekdayOrThisWeek, getNextYearDate} from '../utils/dates';
 import {AuthService} from './auth.service';
 import {EventService} from './event.service';
 import {PlaceService} from './place.service';
@@ -1281,14 +1282,11 @@ export class ManagerService {
 
       // Place itself
       let eventUpdateRequired = false;
+      let eventRecord: any = await this.eventRepository.findById(
+        id,
+        EventManagerQueryFull,
+      );
 
-      const recurrenceType = date?.frequency;
-      const isRecurring =
-        recurrenceType && recurrenceType == 'none'
-          ? false
-          : recurrenceType
-            ? true
-            : null;
       const eventPayload: any = {
         name,
         description,
@@ -1296,62 +1294,29 @@ export class ManagerService {
         teamId,
         tagIds,
         placeId,
-        recurrenceTyoe: date?.frequency,
       };
-      if (typeof isRecurring == 'string') {
-        eventPayload.isRecurring = isRecurring;
-      }
-      if (recurrenceType) {
-        eventPayload.recurrenceType = recurrenceType;
-        if (recurrenceType == 'none') {
-          eventPayload.startDate = date.start;
-          if (new Date(date.start) < new Date(date.end)) {
-            eventPayload.endDate = date.end;
-          } else {
-            throw new Error('Invalid date range');
-          }
-        } else if (recurrenceType == 'weekly') {
-          let startDate =
-            date.start.indexOf('T') > -1
-              ? date.start.split('T')[1]?.slice(0, 5)
-              : date.start;
-          let endDate =
-            date.end.indexOf('T') > -1
-              ? date.end.split('T')[1]?.slice(0, 5)
-              : date.end;
-          const weekday = date.weekday;
-          startDate = this.getNextDateWithWeekday({start: startDate, weekday});
 
-          const _e = endDate;
-          endDate = new Date(startDate);
-          endDate.setHours(_e.split(':')[0], _e.split(':')[1], 0);
-          if (
-            Number(date.end.replaceAll(':', '')) <
-            Number(date.start.replaceAll(':', ''))
-          ) {
-            endDate.setDate(endDate.getDate() + 1);
-          }
-          eventPayload.startDate = new Date(startDate);
-          eventPayload.endDate = new Date(endDate);
+      let dateRequiresUpdate = false;
+      if (payload.date) {
+        if (
+          payload?.date?.endDate !== eventRecord?.endDate?.toISOString() ||
+          payload?.date?.startDate !== eventRecord?.startDate?.toISOString() ||
+          payload?.date?.recurrenceType !== eventRecord?.recurrenceType
+        ) {
+          eventPayload.endDate = payload?.date?.endDate;
+          eventPayload.startDate = payload?.date?.startDate;
+          eventPayload.recurrenceType = payload?.date?.recurrenceType;
+          eventPayload.isRecurring = payload?.date?.isRecurring;
+          dateRequiresUpdate = true;
         }
       }
 
-      const eventRecord = await this.eventRepository.findById(
-        id,
-        EventManagerQueryFull,
-      );
-
-      if (eventPayload.recurrenceType) {
-        const nextYearDate = new Date();
-        nextYearDate.setFullYear(nextYearDate.getFullYear() + 1);
-        this.eventService.createOrUpdateRecurringInstances(
-          eventRecord,
-          eventRecord.recurrenceType,
-          nextYearDate,
-        );
-      }
       for (const key of Object.keys(eventPayload)) {
-        if (eventPayload[key] !== eventRecord[key]) {
+        let a = eventPayload[key];
+        let b = eventRecord[key];
+        if (typeof a == 'object') a = JSON.stringify(a);
+        if (typeof b == 'object') b = JSON.stringify(b);
+        if (a !== b) {
           eventUpdateRequired = true;
           break;
         }
@@ -1418,6 +1383,133 @@ export class ManagerService {
           eventRecord.playlistId,
           playlistPayload,
         );
+      }
+      eventRecord = await this.eventRepository.findById(
+        id,
+        EventManagerQueryFull,
+      );
+      if (dateRequiresUpdate) {
+        if (eventPayload.isRecurring) {
+          const nextYearStartDates = [];
+          const nextYearEndDates = [];
+          // Update all dll dates from now on that are not equal to current next instance
+          if (eventPayload.recurrenceType == 'weekly') {
+            const nextStartDate = getNextSameWeekdayOrThisWeek(
+              eventPayload.startDate,
+            );
+            const nextEndDate = getNextSameWeekdayOrThisWeek(
+              eventPayload.endDate,
+            );
+
+            const endDate = getNextYearDate(1);
+            while (nextEndDate <= endDate) {
+              nextYearStartDates.push(new Date(nextStartDate)); // Store a copy of the date
+              nextYearEndDates.push(new Date(nextEndDate)); // Store a copy of the date
+              nextStartDate.setDate(nextStartDate.getDate() + 7); // Move to next week's instance
+              nextEndDate.setDate(nextEndDate.getDate() + 7); // Move to next week's instance
+            }
+
+            /*     async function processItemsInParallel() {
+              let count = 0;
+              const promises = [];
+
+              while (count < 5) {
+                promises.push(someAsyncFunction(count)); // Collect promises
+                count++;
+              }
+
+              await Promise.all(promises); // Wait for all promises to resolve
+              console.log('Done processing in parallel!');
+            } */
+          } else {
+            const nextStartDate = new Date(eventPayload.startDate);
+            const nextEndDate = new Date(eventPayload.endDate);
+
+            const endDate = new Date();
+            endDate.setHours(0, 0, 0, 0);
+            endDate.setDate(endDate.getDate() + 30 * 3);
+
+            while (nextEndDate <= endDate) {
+              nextYearStartDates.push(new Date(nextStartDate)); // Store a copy of the date
+              nextYearEndDates.push(new Date(nextEndDate)); // Store a copy of the date
+              nextStartDate.setDate(nextStartDate.getDate() + 7); // Move to next week's instance
+              nextEndDate.setDate(nextEndDate.getDate() + 7); // Move to next week's instance
+            }
+          }
+
+          await this.eventInstanceRepository.deleteAll({
+            and: [
+              {eventId: id},
+              {startDate: {gt: new Date()}}, // startDate is greater than now
+              {startDate: {nin: nextYearStartDates}}, // startDate is NOT in the array
+              {endDate: {nin: nextYearEndDates}}, // endDate is NOT in the array
+            ],
+          });
+          const findOrUpdateInstance = async i => {
+            let instance = await this.eventInstanceRepository.findOne({
+              where: {
+                and: [
+                  {eventId: id},
+                  // startDate is greater than now
+                  {startDate: nextYearStartDates[i]}, // startDate is NOT in the array
+                  {endDate: nextYearEndDates[i]}, // endDate is NOT in the array
+                ],
+              },
+            });
+            if (!instance) {
+              instance = await this.eventInstanceRepository.create({
+                eventId: id,
+                teamId: eventRecord.teamId,
+                latitude: eventRecord?.place?.address?.latitude,
+                longitude: eventRecord?.place?.address?.longitude,
+                startDate: nextYearStartDates[i],
+                endDate: nextYearStartDates[i],
+                date: new Date(nextYearEndDates[i]).setHours(0, 0, 0, 0),
+              });
+            }
+            return instance;
+          };
+          async function processItemsInParallel() {
+            const promises = [];
+
+            for (let i = 0; i < nextYearStartDates.length; i++) {
+              promises.push(findOrUpdateInstance(i));
+            }
+
+            Promise.all(promises); // Wait for all promises to resolve
+            console.log('Done processing in parallel!');
+          }
+        } else {
+          await this.eventInstanceRepository.deleteAll({
+            and: [
+              {eventId: id},
+              {startDate: {gt: new Date()}}, // startDate is greater than now
+              {startDate: {neq: new Date(eventPayload.startDate)}}, // startDate is NOT in the array
+              {endDate: {neq: new Date(eventPayload.endDate)}}, // endDate is NOT in the array
+            ],
+          });
+          let instance = await this.eventInstanceRepository.findOne({
+            where: {
+              and: [
+                {eventId: id},
+                {startDate: {gt: new Date()}}, // startDate is greater than now
+                {startDate: {neq: new Date(eventPayload.startDate)}}, // startDate is NOT in the array
+                {endDate: {neq: new Date(eventPayload.endDate)}}, // endDate is NOT in the array
+              ],
+            },
+          });
+          if (!instance) {
+            instance = await this.eventInstanceRepository.create({
+              eventId: id,
+              teamId: eventRecord.teamId,
+              latitude: eventRecord?.place?.address?.latitude,
+              longitude: eventRecord?.place?.address?.longitude,
+              startDate: new Date(eventPayload.startDate),
+              endDate: new Date(eventPayload.endDate),
+              date: new Date(eventPayload.startDate).setHours(0, 0, 0, 0),
+            });
+          }
+        }
       }
 
       return eventRecord;

@@ -341,6 +341,7 @@ export const OrderV2Transformers: any = {
         itemMap,
         qr: item?.qrCode?.url,
         place: item?.place,
+        user: item?.user,
         timeline: timeline.map((t: any) => {
           return {
             id: t.id,
