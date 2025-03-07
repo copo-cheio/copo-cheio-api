@@ -112,7 +112,7 @@ export class ManagerV2Controller {
     @requestBody({})
     body: any,
   ): Promise<any> {
-    return this.managerService.updateEventV2(id, body);
+    return this.managerService.updateEventV3(id, body);
   }
 
   /* -------------------------------------------------------------------------- */

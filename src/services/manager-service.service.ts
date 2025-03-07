@@ -45,7 +45,7 @@ import {
 } from '../repositories';
 import {MenuRepository} from '../repositories/v1/menu.repository';
 import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
-import {getNextSameWeekdayOrThisWeek, getNextYearDate} from '../utils/dates';
+import {getNextYearDate} from '../utils/dates';
 import {voidPromiseCall} from '../utils/query';
 import {AuthService} from './auth.service';
 import {EventService} from './event.service';
@@ -1312,17 +1312,30 @@ export class ManagerService {
       };
 
       let dateRequiresUpdate = false;
-      if (payload.date) {
+      if (
+        payload.date?.endDate &&
+        payload?.date?.startDate &&
+        payload?.date?.recurrenceType
+      ) {
+        console.log(
+          'Record enddate',
+          eventRecord.endDate,
+          typeof eventRecord.endDate,
+        );
         if (
           payload?.date?.endDate !== eventRecord?.endDate?.toISOString() ||
           payload?.date?.startDate !== eventRecord?.startDate?.toISOString() ||
           payload?.date?.recurrenceType !== eventRecord?.recurrenceType
         ) {
-          eventPayload.endDate = payload?.date?.endDate;
-          eventPayload.startDate = payload?.date?.startDate;
+          eventPayload.endDate = new Date(payload?.date?.endDate).toISOString();
+          eventPayload.startDate = new Date(
+            payload?.date?.startDate,
+          ).toISOString();
           eventPayload.recurrenceType = payload?.date?.recurrenceType;
           eventPayload.isRecurring = payload?.date?.isRecurring;
-          dateRequiresUpdate = true;
+          if (new Date(eventPayload.startDate) > new Date()) {
+            dateRequiresUpdate = true;
+          }
         }
       }
 
@@ -1345,7 +1358,15 @@ export class ManagerService {
           eventPayload.addressId = place.addressId;
         }
       }
+
       if (eventUpdateRequired) {
+        console.log(
+          'Event requires update',
+          eventPayload,
+          typeof eventPayload.endDate,
+          typeof eventPayload.startDate,
+        );
+
         await this.eventRepository.updateById(id, eventPayload);
       }
 
@@ -1403,25 +1424,35 @@ export class ManagerService {
         id,
         EventManagerQueryFull,
       );
+      console.log({eventRecord});
       if (dateRequiresUpdate) {
         if (eventPayload.isRecurring) {
           const nextYearStartDates = [];
           const nextYearEndDates = [];
+          const nextYearDates = [];
+
           // Update all dll dates from now on that are not equal to current next instance
           if (eventPayload.recurrenceType == 'weekly') {
-            const nextStartDate = getNextSameWeekdayOrThisWeek(
+            /*  const nextStartDate = getNextSameWeekdayOrThisWeek(
               eventPayload.startDate,
             );
             const nextEndDate = getNextSameWeekdayOrThisWeek(
               eventPayload.endDate,
             );
-
-            const endDate = getNextYearDate(1);
+ */
+            const nextStartDate = new Date(eventPayload.startDate);
+            const nextEndDate = new Date(eventPayload.endDate);
+            const nextDate = new Date(
+              new Date(eventPayload.endDate).setHours(0, 0, 0, 0),
+            );
+            const endDate = getNextYearDate(1, eventPayload.endDate);
             while (nextEndDate <= endDate) {
               nextYearStartDates.push(new Date(nextStartDate)); // Store a copy of the date
               nextYearEndDates.push(new Date(nextEndDate)); // Store a copy of the date
+              nextYearDates.push(new Date(nextDate)); // Store a copy of the date
               nextStartDate.setDate(nextStartDate.getDate() + 7); // Move to next week's instance
               nextEndDate.setDate(nextEndDate.getDate() + 7); // Move to next week's instance
+              nextDate.setDate(nextDate.getDate() + 7); // Move to next week's instance
             }
 
             /*     async function processItemsInParallel() {
@@ -1437,37 +1468,58 @@ export class ManagerService {
               console.log('Done processing in parallel!');
             } */
           } else {
+            // Daily
             const nextStartDate = new Date(eventPayload.startDate);
             const nextEndDate = new Date(eventPayload.endDate);
+            const nextDate = new Date(eventPayload.date);
 
-            const endDate = new Date();
+            // Set for the next 90 days
+            const endDate = new Date(eventPayload.endDate);
             endDate.setHours(0, 0, 0, 0);
-            endDate.setDate(endDate.getDate() + 30 * 3);
+            endDate.setMonth(endDate.getMonth() + 3);
 
             while (nextEndDate <= endDate) {
-              nextYearStartDates.push(new Date(nextStartDate)); // Store a copy of the date
+              nextYearDates.push(new Date(nextDate));
+
               nextYearEndDates.push(new Date(nextEndDate)); // Store a copy of the date
-              nextStartDate.setDate(nextStartDate.getDate() + 7); // Move to next week's instance
-              nextEndDate.setDate(nextEndDate.getDate() + 7); // Move to next week's instance
+              nextYearDates.push(new Date(nextDate)); // Store a copy of the date
+              nextStartDate.setDate(nextStartDate.getDate() + 1); // Move to next week's instance
+              nextEndDate.setDate(nextEndDate.getDate() + 1); // Move to next week's instance
+              nextDate.setDate(nextDate.getDate() + 1); // Move to next week's instance
             }
           }
-
-          await this.eventInstanceRepository.deleteAll({
-            and: [
-              {eventId: id},
-              {startDate: {gt: new Date()}}, // startDate is greater than now
-              {startDate: {nin: nextYearStartDates}}, // startDate is NOT in the array
-              {endDate: {nin: nextYearEndDates}}, // endDate is NOT in the array
-            ],
-          });
+          console.log("Will delete all that aren't in the next Date");
+          const toDeleteQuery = {
+            where: {
+              and: [
+                {eventId: id},
+                {startDate: {gt: new Date()}},
+                {date: {nin: nextYearDates}},
+              ],
+            },
+          };
+          const toDeleteInstances =
+            await this.eventInstanceRepository.findAll(toDeleteQuery);
+          const toDeleteInstanceIds = toDeleteInstances.map(i => i.id);
+          if (toDeleteInstanceIds.length > 0) {
+            await this.eventInstanceRepository.deleteAll({
+              and: [
+                {eventId: id},
+                {startDate: {gt: new Date()}},
+                {date: {nin: nextYearDates}},
+              ],
+            });
+          }
           const findOrUpdateInstance = async i => {
             let instance = await this.eventInstanceRepository.findOne({
               where: {
                 and: [
                   {eventId: id},
+                  {date: new Date(nextYearDates[i])},
+                  {deleted: false},
                   // startDate is greater than now
-                  {startDate: nextYearStartDates[i]}, // startDate is NOT in the array
-                  {endDate: nextYearEndDates[i]}, // endDate is NOT in the array
+                  /*   {startDate: nextYearStartDates[i]}, // startDate is NOT in the array
+                  {endDate: nextYearEndDates[i]}, // endDate is NOT in the array */
                 ],
               },
             });
@@ -1478,19 +1530,27 @@ export class ManagerService {
                 teamId: eventRecord.teamId,
                 latitude: eventRecord?.place?.address?.latitude,
                 longitude: eventRecord?.place?.address?.longitude,
-                startDate: nextYearStartDates[i],
-                endDate: nextYearStartDates[i],
-                date: new Date(
-                  new Date(nextYearStartDates[i]).setHours(0, 0, 0, 0),
-                ),
+                startDate: new Date(nextYearStartDates[i]),
+                endDate: new Date(nextYearEndDates[i]),
+                date: new Date(new Date(nextYearDates[i]).setHours(0, 0, 0, 0)),
               });
             }
+
+            await this.eventInstanceRepository.updateById(instance.id, {
+              eventId: id,
+              teamId: eventRecord.teamId,
+              latitude: eventRecord?.place?.address?.latitude,
+              longitude: eventRecord?.place?.address?.longitude,
+              startDate: new Date(nextYearStartDates[i]),
+              endDate: new Date(nextYearEndDates[i]),
+              date: new Date(new Date(nextYearDates[i]).setHours(0, 0, 0, 0)),
+            });
             const placeInstance = await this.placeInstanceRepository.findOne({
               where: {
                 and: [
                   {
                     date: new Date(
-                      new Date(nextYearStartDates[i]).setHours(0, 0, 0, 0),
+                      new Date(nextYearDates[i]).setHours(0, 0, 0, 0),
                     ),
                   },
                   {
@@ -1511,7 +1571,6 @@ export class ManagerService {
               await this.placeInstanceRepository.create({
                 placeId: eventRecord.placeId,
                 eventInstanceId: instance.id,
-
                 teamId: eventRecord.teamId,
                 startDate: nextYearStartDates[i],
                 endDate: nextYearStartDates[i],
@@ -1523,114 +1582,500 @@ export class ManagerService {
           async function processItemsInParallel() {
             const promises = [];
 
-            for (let i = 0; i < nextYearStartDates.length; i++) {
+            for (let i = 0; i < nextYearDates.length; i++) {
               promises.push(findOrUpdateInstance(i));
             }
 
             Promise.all(promises); // Wait for all promises to resolve
             console.log('Done processing in parallel!');
           }
+          voidPromiseCall(processItemsInParallel);
         } else {
-          await this.eventInstanceRepository.deleteAll({
-            and: [
-              {eventId: id},
-              {startDate: {gt: new Date()}}, // startDate is greater than now
-              {startDate: {neq: new Date(eventPayload.startDate)}}, // startDate is NOT in the array
-              {endDate: {neq: new Date(eventPayload.endDate)}}, // endDate is NOT in the array
-            ],
-          });
-          let instance = await this.eventInstanceRepository.findOne({
+          const now = new Date().toISOString();
+          const _date = new Date(
+            payload?.date?.date
+              ? payload.date.date
+              : new Date(new Date(eventPayload.startDate).setHours(0, 0, 0, 0)),
+          ).toISOString();
+          // delete all instances where eventId = id , endDate > now
+          const toDeleteEventInstancesPayload: any = {
             where: {
               and: [
                 {eventId: id},
-                {startDate: {gt: new Date()}}, // startDate is greater than now
-                {startDate: {neq: new Date(eventPayload.startDate)}}, // startDate is NOT in the array
-                {endDate: {neq: new Date(eventPayload.endDate)}}, // endDate is NOT in the array
+                {startDate: {gt: now}}, // startDate is greater than now
+                {date: {neq: _date}}, // startDate is NOT in the array
+                /*   {endDate: {neq: new Date(eventPayload.endDate)}}, // endDate is NOT in the array */
               ],
             },
-          });
+          };
+          console.log(
+            'Will delete instances where startDate > now and date = payload.date',
+            toDeleteEventInstancesPayload,
+          );
+          const toDeleteInstances: any =
+            await this.eventInstanceRepository.findAll(
+              toDeleteEventInstancesPayload,
+            );
+
+          const toDeleteInstanceIds: any = toDeleteInstances.map(i => i.id);
+          console.log(
+            'Found ' + toDeleteInstanceIds.length + ' instances to delete',
+            toDeleteInstanceIds,
+          );
+          if (toDeleteInstances.length > 0) {
+            const deleteRes: any = await this.eventInstanceRepository.deleteAll(
+              {
+                id: {inq: toDeleteInstanceIds},
+              },
+            );
+            console.log({deleteRes, toDeleteInstanceIds});
+          }
+          const instanceToUpdateSearchPayload: any = {
+            where: {
+              and: [
+                {eventId: id},
+                //{startDate: {gt: new Date()}}, // startDate is greater than now
+                {date: payload.date.date}, // startDate is NOT in the array
+                /*   {endDate: {neq: new Date(eventPayload.endDate)}}, // endDate is NOT in the array */
+              ],
+            },
+          };
+          console.log(
+            'Will search for a instance that has same eventId and date equal now',
+            instanceToUpdateSearchPayload,
+          );
+          let instance = await this.eventInstanceRepository.findOne(
+            instanceToUpdateSearchPayload,
+          );
+
           if (!instance) {
-            instance = await this.eventInstanceRepository.create({
+            const createInstancePayload: any = {
               eventId: id,
               teamId: eventRecord.teamId,
               latitude: eventRecord?.place?.address?.latitude,
               longitude: eventRecord?.place?.address?.longitude,
-              startDate: new Date(eventPayload.startDate),
-              endDate: new Date(eventPayload.endDate),
-              date: new Date(
-                new Date(eventPayload.startDate).setHours(0, 0, 0, 0),
-              ),
-            });
-          }
-          const placeInstances = await this.placeInstanceRepository.findAll({
-            where: {
-              and: [
-                {
-                  eventInstanceId: instance.id,
-                },
-                {
-                  startDate: {gt: new Date()}, // startDate is greater than now
-                },
-              ],
-            },
-          });
-          date = new Date(
-            new Date(eventPayload.startDate).setHours(0, 0, 0, 0),
-          );
-          console.log({date});
-          const placeInstance = await this.placeInstanceRepository.findOne({
-            where: {
-              and: [
-                {
-                  eventInstanceId: instance.id,
-                },
-                {
-                  date, // startDate is greater than now
-                },
-                {placeId: eventRecord.placeId},
-              ],
-            },
-          });
-          console.log({placeInstance});
-          const placeInstanceId = placeInstance?.id;
-          let placeInstanceIds = (placeInstances || []).map(pI => pI.id);
-          if (placeInstanceId) {
-            placeInstanceIds = placeInstanceIds.filter(
-              pi => pi !== placeInstanceId,
+              startDate: new Date(eventPayload.startDate).toISOString(),
+              endDate: new Date(eventPayload.endDate).toISOString(),
+              date: new Date(payload.date.date).toISOString(),
+            };
+            console.log(
+              'No instance found, will create one',
+              createInstancePayload,
             );
-          } else {
-            const pI = await this.placeInstanceRepository.findOne({
+            instance = await this.eventInstanceRepository.create(
+              createInstancePayload,
+            );
+            console.log('instance created');
+          }
+
+          const updateInstancePayload: any = {
+            startDate: new Date(eventPayload.startDate).toISOString(),
+            endDate: new Date(eventPayload.endDate).toISOString(),
+            date: new Date(payload.date.date).toISOString(),
+          };
+
+          await this.eventInstanceRepository.updateById(
+            instance.id,
+            updateInstancePayload,
+          );
+
+          const placeInstance: any = await this.placeInstanceRepository.findOne(
+            {
               where: {
-                and: [
-                  {
-                    date, // startDate is greater than now
-                  },
-                  {placeId: eventRecord.placeId},
-                ],
-              },
-            });
-            console.log({date, placeId: eventRecord.placeId, pI});
-            if (pI) {
-              await this.placeInstanceRepository.updateById(pI.id, {
                 eventInstanceId: instance.id,
-                teamId: instance.teamId,
-              });
-            } else {
-              await this.placeInstanceRepository.create({
                 placeId: eventRecord.placeId,
-                eventInstanceId: instance.id,
-                teamId: instance.teamId,
-                date,
-                startDate: new Date(eventPayload.startDate), // startDate is NOT in the array
-                endDate: new Date(eventPayload.endDate), // endDate is NOT in the array
-              });
-            }
+              },
+            },
+          );
+
+          if (!placeInstance) {
+            console.log('Place instance not found, will create one', {
+              eventInstanceId: instance.id,
+              placeId: eventRecord.placeId,
+              teamId: eventRecord.teamId,
+              startDate: instance.startDate,
+              endDate: instance.endDate,
+              date: instance.date,
+            });
+            await this.placeInstanceRepository.create({
+              eventInstanceId: instance.id,
+              placeId: eventRecord.placeId,
+              teamId: eventRecord.teamId,
+              startDate: instance.startDate,
+              endDate: instance.endDate,
+              date: instance.date,
+              dayofweek: new Date(instance.date).getDate(),
+            });
+          } else {
+            console.log('Place instance found', placeInstance.id);
+          }
+          if (toDeleteInstanceIds.length > 0) {
+            console.log(
+              'Delete all placeInstances that have eventId = deletedIsntanceIds',
+            );
+
+            await this.placeInstanceRepository.deleteAll({
+              eventInstanceId: {inq: toDeleteInstanceIds},
+            });
           }
         }
       }
 
       return eventRecord;
     });
+  }
+
+  async updateEventV3(id: string, payload: any = {}) {
+    return this.transactionService.execute(async tx => {
+      const eventRecord = await this.eventRepository.findById(
+        id,
+        EventManagerQueryFull,
+      );
+      const eventPayload = this.prepareEventPayload(payload, eventRecord);
+
+      const isEventUpdateRequired = this.isEventUpdateRequires(
+        eventPayload,
+        eventRecord,
+      );
+      if (isEventUpdateRequired) {
+        await this.eventRepository.updateById(id, eventPayload);
+      }
+
+      await this.updateContacts(id, payload.contacts);
+      await this.updatePlaylist(eventRecord.playlistId, payload.playlist);
+
+      if (eventPayload.isRecurring) {
+        await this.updateRecurringEventInstances(id, eventPayload, eventRecord);
+      } else {
+        await this.updateSingleEventInstance(id, eventPayload, payload);
+      }
+
+      return this.eventRepository.findById(id, EventManagerQueryFull);
+    });
+  }
+
+  /**
+   * Prepares the event payload with necessary transformations
+   */
+  private prepareEventPayload(payload: any, eventRecord: any) {
+    const tagIds = [
+      ...new Set([
+        ...(payload.eventIds || []),
+        ...(payload.activityIds || []),
+        ...(payload.musicIds || []),
+      ]),
+    ].sort();
+    /*   const eventPayload: any = {...payload, tagIds}; */
+    const eventPayload: any = {
+      name: payload.name,
+      description: payload.description,
+      coverId: payload.coverId,
+      teamId: payload.teamId,
+      placeId: payload.placeId,
+      tagIds,
+    };
+    if (
+      payload.date?.startDate &&
+      payload.date?.endDate &&
+      payload.date?.recurrenceType
+    ) {
+      eventPayload.startDate = new Date(payload.date.startDate).toISOString();
+      eventPayload.endDate = new Date(payload.date.endDate).toISOString();
+      eventPayload.recurrenceType = payload.date.recurrenceType;
+      eventPayload.isRecurring = payload.date.isRecurring;
+    }
+
+    return eventPayload;
+  }
+
+  /**
+   * Checks if the event needs an update
+   */
+  private isEventUpdateRequires(newData: any, existingData: any): boolean {
+    return Object.keys(newData).some(key => {
+      let newValue = newData[key];
+      let oldValue = existingData[key];
+
+      if (typeof newValue === 'object') newValue = JSON.stringify(newValue);
+      if (typeof oldValue === 'object') oldValue = JSON.stringify(oldValue);
+
+      return newValue !== oldValue;
+    });
+  }
+
+  /**
+   * Updates the event's contact details if needed
+   */
+  private async updateContacts(eventId: string, contacts: any) {
+    if (!contacts) return;
+
+    const contactsRecord = await this.contactRepository.findOne({
+      where: {refId: eventId},
+    });
+    if (!contactsRecord) return;
+
+    const isUpdateRequired = Object.keys(contacts).some(
+      key => contactsRecord[key] !== contacts[key] && contacts[key] !== null,
+    );
+    if (isUpdateRequired) {
+      await this.contactRepository.updateById(contactsRecord.id, contacts);
+    }
+  }
+
+  /**
+   * Updates the playlist associated with the event
+   */
+  private async updatePlaylist(playlistId: string, playlist: any) {
+    if (!playlist) return;
+
+    const playlistRecord = await this.playlistRepository.findById(playlistId);
+    const playlistPayload = {
+      url: playlist?.url,
+      name: playlist?.name,
+      description: playlist?.description,
+    };
+
+    const isUpdateRequired = Object.keys(playlistPayload).some(key => {
+      const original = (playlistRecord[key] || '').trim();
+      const current = (playlistPayload[key] || '').trim();
+      return current && current.length > 0 && original !== current;
+    });
+
+    if (isUpdateRequired) {
+      await this.playlistRepository.updateById(playlistId, playlistPayload);
+    }
+  }
+
+  /**
+   * Updates recurring event instances
+   */
+  private async updateRecurringEventInstances(
+    eventId: string,
+    eventPayload: any,
+    eventRecord: any,
+  ) {
+    const {startDate, endDate, recurrenceType} = eventPayload;
+    const nextYearDates = this.generateEventRecurringDates(
+      startDate,
+      endDate,
+      recurrenceType,
+    );
+
+    // Delete outdated instances
+    await this.eventInstanceRepository.deleteAll({
+      and: [
+        {eventId},
+        {startDate: {gt: new Date()}},
+        {date: {nin: nextYearDates}},
+      ],
+    });
+
+    // Create or update instances in parallel
+    await Promise.all(
+      nextYearDates.map(date =>
+        this.findOrCreateEventInstance(eventId, date, eventRecord),
+      ),
+    );
+  }
+
+  /**
+   * Generates recurring event dates for a year
+   */
+  private generateEventRecurringDates(
+    startDate: string,
+    endDate: string,
+    recurrenceType: string,
+  ): Date[] {
+    const nextDates = [];
+    const nextStartDate = new Date(startDate);
+    const nextEndDate = new Date(endDate);
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() + 1);
+
+    while (nextEndDate <= maxDate) {
+      nextDates.push(new Date(nextEndDate));
+      if (recurrenceType === 'weekly') {
+        nextStartDate.setDate(nextStartDate.getDate() + 7);
+        nextEndDate.setDate(nextEndDate.getDate() + 7);
+      } else {
+        // Assume daily
+        nextStartDate.setDate(nextStartDate.getDate() + 1);
+        nextEndDate.setDate(nextEndDate.getDate() + 1);
+      }
+    }
+
+    return nextDates;
+  }
+
+  /**
+   * Finds or creates an event instance
+   */
+  private async findOrCreateEventInstance(
+    eventId: string,
+    date: Date,
+    eventRecord: any,
+  ) {
+    date = new Date(new Date(date).setHours(0, 0, 0, 0));
+    let instance = await this.eventInstanceRepository.findOne({
+      where: {
+        and: [{eventId}, {date: date}, {deleted: false}],
+      },
+    });
+
+    const placeInstance = await this.placeInstanceRepository.findOne({
+      where: {
+        and: [
+          {
+            placeId: eventRecord.placeId,
+          },
+          {
+            date: date,
+          },
+        ],
+      },
+    });
+    if (placeInstance && placeInstance.eventInstanceId) {
+      const currentPlaceInstanceEvent =
+        await this.eventInstanceRepository.findById(
+          placeInstance.eventInstanceId,
+        );
+      const currentEvent = await this.eventRepository.findById(
+        currentPlaceInstanceEvent.eventId,
+      );
+      if (eventId !== currentEvent.id) {
+        if (
+          currentEvent.recurrenceType == 'none' ||
+          currentEvent.recurrenceType == 'once'
+        ) {
+          console.log('Once has priority over recurrence');
+          return;
+        } else if (
+          eventRecord.recurrenceType == 'daily' &&
+          currentEvent.recurrenceType == 'weekly'
+        ) {
+          console.log('Weekly has priority over daily');
+          return;
+        }
+      }
+    }
+    if (!instance) {
+      instance = await this.eventInstanceRepository.create({
+        eventId,
+        teamId: eventRecord.teamId,
+        latitude: eventRecord?.place?.address?.latitude,
+        longitude: eventRecord?.place?.address?.longitude,
+        startDate: new Date(eventRecord.startDate),
+        endDate: new Date(eventRecord.endDate),
+        date: new Date(new Date(date).setHours(0, 0, 0, 0)),
+      });
+    }
+    if (!placeInstance) {
+      await this.placeInstanceRepository.create({
+        eventInstanceId: instance.id,
+        startDate: new Date(eventRecord.startDate),
+        endDate: new Date(eventRecord.endDate),
+        date: new Date(new Date(date).setHours(0, 0, 0, 0)),
+        placeId: eventRecord.placeId,
+        dayofweek: new Date(date).getDay(),
+      });
+    }
+    return instance;
+  }
+
+  /**
+   * Updates a single event instance (non-recurring)
+   * Overrides recurring instances
+   */
+  private async updateSingleEventInstance(
+    eventId: string,
+    eventPayload: any,
+    payload: any,
+  ) {
+    const instanceSearch = {
+      where: {
+        and: [
+          {eventId},
+          {date: new Date(new Date(payload.date.date).setHours(0, 0, 0, 0))},
+        ],
+      },
+    };
+
+    let instance = await this.eventInstanceRepository.findOne(instanceSearch);
+    if (!instance) {
+      instance = await this.eventInstanceRepository.create({
+        eventId,
+        teamId: eventPayload.teamId,
+        latitude: eventPayload.latitude,
+        longitude: eventPayload.longitude,
+        startDate: new Date(eventPayload.startDate).toISOString(),
+        endDate: new Date(eventPayload.endDate).toISOString(),
+        date: new Date(payload.date.date).toISOString(),
+      });
+    }
+
+    await this.eventInstanceRepository.updateById(instance.id, {
+      startDate: new Date(eventPayload.startDate).toISOString(),
+      endDate: new Date(eventPayload.endDate).toISOString(),
+      date: new Date(payload.date.date).toISOString(),
+    });
+
+    const toDeleteInstances = await this.eventInstanceRepository.findAll({
+      where: {
+        and: [{eventId}, {id: {neq: instance.id}}],
+      },
+    });
+
+    if (toDeleteInstances.length > 0) {
+      await this.eventInstanceRepository.deleteAll({
+        id: {
+          inq: toDeleteInstances.map(i => i.id),
+        },
+      });
+      const placeInstances = await this.placeInstanceRepository.findAll({
+        where: {
+          and: [
+            {
+              eventInstanceId: {
+                inq: toDeleteInstances.map(i => i.id),
+              },
+            },
+          ],
+        },
+      });
+      if (placeInstances.length > 0) {
+        for (const pi of placeInstances) {
+          await this.placeInstanceRepository.updateById(pi.id, {
+            eventInstanceId: null,
+          });
+        }
+      }
+    }
+    const placeInstance = await this.placeInstanceRepository.findOne({
+      where: {
+        and: [
+          {
+            deleted: false,
+          },
+          {
+            date: new Date(payload.date.date),
+          },
+        ],
+      },
+    });
+    if (placeInstance) {
+      await this.placeInstanceRepository.updateById(placeInstance.id, {
+        eventIstanceId: instance.id,
+      });
+    } else {
+      await this.placeInstanceRepository.create({
+        placeId: eventPayload.placeId,
+        eventInstanceId: instance.id,
+        date: new Date(payload.date.date),
+        startDate: new Date(payload.date.startDate),
+        endDate: new Date(payload.date.endDate),
+        dayofweek: new Date(payload.date.date).getDay(),
+      });
+    }
   }
 
   /* -------------------------------------------------------------------------- */

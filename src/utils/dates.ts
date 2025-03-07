@@ -164,8 +164,8 @@ export function getNextSameWeekdayOrThisWeek(dateString: string): Date {
   return nextDate;
 }
 
-export function getNextYearDate(years = 2) {
-  const today = new Date();
+export function getNextYearDate(years = 2, date?: any) {
+  const today = date ? new Date(date) : new Date();
   today.setHours(0, 0, 0, 0); // Normalize time to midnight
   const endDate = new Date(today);
   endDate.setFullYear(today.getFullYear() + years); // Set end date (2 years ahead)
