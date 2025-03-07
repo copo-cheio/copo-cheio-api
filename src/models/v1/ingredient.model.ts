@@ -32,6 +32,13 @@ export class Ingredient extends Base {
   })
   description?: string;
 
+  @property({
+    type: 'boolean',
+
+    default: true,
+  })
+  live: boolean;
+
   @belongsTo(() => Image)
   thumbnailId: string;
 

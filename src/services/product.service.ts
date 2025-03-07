@@ -49,6 +49,7 @@ export class ProductService {
   ) {
     const productPayload: any = {
       name: payload.name,
+      live: payload.live,
       description: payload.description,
       thumbnailId: payload.thumbnailId || DEFAULT_MODEL_ID.thumbnailId,
       tagIds: payload.tagIds || [],

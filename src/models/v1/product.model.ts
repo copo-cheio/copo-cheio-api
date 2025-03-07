@@ -32,6 +32,13 @@ export class Product extends Base {
   })
   customizable?: boolean;
 
+  @property({
+    type: 'boolean',
+
+    default: false,
+  })
+  live: boolean;
+
   @referencesMany(() => Tag)
   tagIds: string[];
 

@@ -46,6 +46,7 @@ import {
 import {MenuRepository} from '../repositories/v1/menu.repository';
 import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
 import {getNextSameWeekdayOrThisWeek, getNextYearDate} from '../utils/dates';
+import {voidPromiseCall} from '../utils/query';
 import {AuthService} from './auth.service';
 import {EventService} from './event.service';
 import {PlaceService} from './place.service';
@@ -711,17 +712,30 @@ export class ManagerService {
   async updateProductById(id, payload: any = {}) {
     const {name, description, thumbnailId, tagIds} = payload;
     const {ingredientIds, optionIngredientIds} = payload;
+    let {live} = payload;
+    if (name.toLowerCase().indexOf('[clone') > -1) live = false;
     return this.transactionService.execute(async tx => {
       const parseProductIngredient = (ingredientId: any) => {
         return {
           id: ingredientId,
         };
       };
+
+      console.log({
+        name,
+        description,
+        thumbnailId,
+        tagIds,
+        live,
+        ingredients: ingredientIds.map(parseProductIngredient),
+        options: optionIngredientIds.map(parseProductIngredient),
+      });
       const product = await this.productService.updateProduct(id, {
         name,
         description,
         thumbnailId,
         tagIds,
+        live,
         ingredients: ingredientIds.map(parseProductIngredient),
         options: optionIngredientIds.map(parseProductIngredient),
       });
@@ -753,7 +767,7 @@ export class ManagerService {
       price.id,
       payload.thumbnailId,
     );
-    this.devRepository.migrate();
+    voidPromiseCall(this.devRepository.migrate);
     return menuProduct;
   }
   async updateMenuProduct(id: string, payload: any) {
@@ -800,12 +814,12 @@ export class ManagerService {
     // Precisa de playlistId
     // @TODO Falta address e playlist que n tou com coragem agr
     return this.transactionService.execute(async tx => {
-      let {
+      const {
         coverId,
         name,
         description,
         contacts,
-        tagIds,
+
         venueIds,
         activityIds,
         musicIds,
@@ -813,6 +827,7 @@ export class ManagerService {
         teamId,
         address,
       } = payload;
+      let {tagIds} = payload;
       tagIds = [
         ...new Set([
           ...(venueIds || []),
@@ -1624,14 +1639,14 @@ export class ManagerService {
 
   async updateBalcony(id, payload: any = {}) {
     await this.balconyRepository.updateById(id, payload);
-    await this.devRepository.migrate(id);
+    voidPromiseCall(() => this.devRepository.migrate(id));
     return this.balconyRepository.findById(id, BalconyFullQuery);
   }
 
   async createBalcony(payload: any = {}) {
     const balcony = await this.balconyRepository.create(payload);
     const id = balcony.id;
-    await this.devRepository.migrate(id);
+    voidPromiseCall(() => this.devRepository.migrate(id));
     return this.balconyRepository.findById(id, BalconyFullQuery);
   }
 

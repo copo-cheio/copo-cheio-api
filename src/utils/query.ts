@@ -36,3 +36,7 @@ export const responseError = (
   console.error({file, message, data});
   return new Error(message, data);
 };
+
+export const voidPromiseCall = (fn: any): void => {
+  fn();
+};
