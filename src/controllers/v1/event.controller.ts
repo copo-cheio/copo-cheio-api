@@ -172,9 +172,48 @@ export class EventController {
   async findOngoingEvents(): Promise<EventInstance[]> {
     const currentDateTime = new Date(); //.toISOString();
     const eventIds: any = [];
-    let keepRunning = true;
-    const records: any = [];
-    while (keepRunning) {
+    const keepRunning = true;
+
+    console.log({currentDateTime});
+    const records: any = await this.eventInstanceRepository.findAll({
+      where: {
+        and: [
+          {
+            startDate: {
+              lte: currentDateTime,
+            },
+          },
+          {
+            endDate: {
+              gte: currentDateTime,
+            },
+          },
+          {deleted: false},
+        ],
+      },
+      order: ['startDate ASC'],
+      include: [
+        {
+          relation: 'event',
+          scope: {
+            ...EventsQuery,
+          },
+        },
+      ],
+    });
+
+    return records.map((record: any) => {
+      return {
+        ...record,
+        event: {
+          ...record.event,
+          startDate: record.startDate,
+          endDate: record.endDate,
+          now: currentDateTime,
+        },
+      };
+    });
+    /*     while (keepRunning) {
       const record: any = await this.eventInstanceRepository.findOne({
         where: {
           and: [
@@ -211,7 +250,7 @@ export class EventController {
       } else {
         keepRunning = false;
       }
-    }
+    } */
     return records;
   }
 
