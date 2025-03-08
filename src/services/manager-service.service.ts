@@ -1855,25 +1855,23 @@ export class ManagerService {
     eventRecord: any,
   ) {
     const {startDate, endDate, recurrenceType} = eventPayload;
-    const nextYearDates = this.generateEventRecurringDates(
-      startDate,
-      endDate,
-      recurrenceType,
-    );
+
+    const {nextDates, nextStartDates, nextEndDates} =
+      this.generateEventRecurringDates(startDate, endDate, recurrenceType);
 
     // Delete outdated instances
     await this.eventInstanceRepository.deleteAll({
-      and: [
-        {eventId},
-        {startDate: {gt: new Date()}},
-        {date: {nin: nextYearDates}},
-      ],
+      and: [{eventId}, {startDate: {gt: new Date()}}, {date: {nin: nextDates}}],
     });
-
+    console.log({nextDates, nextEndDates});
     // Create or update instances in parallel
     await Promise.all(
-      nextYearDates.map(date =>
-        this.findOrCreateEventInstance(eventId, date, eventRecord),
+      nextDates.map((date, i) =>
+        this.findOrCreateEventInstance(
+          eventId,
+          {date: nextDates[i], start: nextStartDates[i], end: nextEndDates[i]},
+          eventRecord,
+        ),
       ),
     );
   }
@@ -1885,26 +1883,33 @@ export class ManagerService {
     startDate: string,
     endDate: string,
     recurrenceType: string,
-  ): Date[] {
+  ): any {
     const nextDates = [];
+    const nextStartDates = [];
+    const nextEndDates = [];
     const nextStartDate = new Date(startDate);
     const nextEndDate = new Date(endDate);
     const maxDate = new Date();
+    const nextDate = new Date(new Date(startDate).setHours(0, 0, 0, 0));
     maxDate.setFullYear(maxDate.getFullYear() + 1);
 
     while (nextEndDate <= maxDate) {
-      nextDates.push(new Date(nextEndDate));
+      nextStartDates.push(new Date(nextStartDate));
+      nextEndDates.push(new Date(nextEndDate));
+      nextDates.push(new Date(nextDate));
       if (recurrenceType === 'weekly') {
+        nextDate.setDate(nextDate.getDate() + 7);
         nextStartDate.setDate(nextStartDate.getDate() + 7);
         nextEndDate.setDate(nextEndDate.getDate() + 7);
       } else {
         // Assume daily
+        nextDate.setDate(nextDate.getDate() + 1);
         nextStartDate.setDate(nextStartDate.getDate() + 1);
         nextEndDate.setDate(nextEndDate.getDate() + 1);
       }
     }
 
-    return nextDates;
+    return {nextDates, nextStartDates, nextEndDates};
   }
 
   /**
@@ -1912,10 +1917,14 @@ export class ManagerService {
    */
   private async findOrCreateEventInstance(
     eventId: string,
-    date: Date,
+    date: any,
     eventRecord: any,
   ) {
-    date = new Date(new Date(date).setHours(0, 0, 0, 0));
+    const start = new Date(new Date(date.start));
+    const end = new Date(new Date(date.end));
+    date = new Date(new Date(date.date).setHours(0, 0, 0, 0));
+
+    console.log({start, end, date});
     let instance = await this.eventInstanceRepository.findOne({
       where: {
         and: [{eventId}, {date: date}, {deleted: false}],
@@ -1964,17 +1973,23 @@ export class ManagerService {
         teamId: eventRecord.teamId,
         latitude: eventRecord?.place?.address?.latitude,
         longitude: eventRecord?.place?.address?.longitude,
-        startDate: new Date(eventRecord.startDate),
-        endDate: new Date(eventRecord.endDate),
-        date: new Date(new Date(date).setHours(0, 0, 0, 0)),
+        startDate: start,
+        endDate: end,
+        date: date,
       });
     }
+
+    await this.eventInstanceRepository.updateById(instance.id, {
+      startDate: start,
+      endDate: end,
+      date: date,
+    });
     if (!placeInstance) {
       await this.placeInstanceRepository.create({
         eventInstanceId: instance.id,
-        startDate: new Date(eventRecord.startDate),
-        endDate: new Date(eventRecord.endDate),
-        date: new Date(new Date(date).setHours(0, 0, 0, 0)),
+        startDate: new Date(start),
+        endDate: new Date(end),
+        date: date,
         placeId: eventRecord.placeId,
         dayofweek: new Date(date).getDay(),
       });
