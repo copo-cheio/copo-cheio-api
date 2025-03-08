@@ -1763,11 +1763,6 @@ export class ManagerService {
       await this.updateContacts(id, payload.contacts);
       await this.updatePlaylist(eventRecord.playlistId, payload.playlist);
       await this.instanceService.generateEventInstances(id);
-      /*  if (eventPayload.isRecurring) {
-        await this.updateRecurringEventInstances(id, eventPayload, eventRecord);
-      } else {
-        await this.updateSingleEventInstance(id, eventPayload, payload);
-      } */
 
       return this.eventRepository.findById(id, EventManagerQueryFull);
     });

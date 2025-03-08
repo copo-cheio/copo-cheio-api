@@ -2,7 +2,10 @@ import {IncludeAddressRelation} from './shared/address.include';
 import {IncludeBalconysRelations} from './shared/balcony.include';
 import {IncludeContactsRelation} from './shared/contacts.include';
 import {IncludeEventsRelation} from './shared/event.include';
-import {IncludeEventInstancesRelation} from './shared/eventinstance.include';
+import {
+  IncludeNextPlaceEventInstancesRelation,
+  IncludeNextPlaceInstancesRelation,
+} from './shared/eventinstance.include';
 import {IncludeCover, IncludeGallery} from './shared/image.include';
 import {IncludeOpeningHoursRelation} from './shared/openinghours.include';
 import {IncludePlaylistRelation} from './shared/playlist.include';
@@ -122,7 +125,8 @@ export const PlaceManagerQueryFull: any = {
     IncludeGallery,
     IncludeContactsRelation,
     IncludeTeamRelation,
-    IncludeEventInstancesRelation,
+    IncludeNextPlaceEventInstancesRelation,
+    IncludeNextPlaceInstancesRelation,
   ],
 };
 

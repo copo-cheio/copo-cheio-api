@@ -122,96 +122,129 @@ export class InstanceService {
     const event = await this.eventRepo.findById(eventId);
     if (!event) throw new Error('Event not found');
 
-    const {placeId, recurrenceType, startDate, endDate, recurrenceEndDate} =
-      event;
+    const {
+      placeId,
+      recurrenceType,
+      startDate,
+      endDate,
+      recurrenceEndDate,
+      teamId,
+    } = event;
     const place: any = await this.placeRepo.findById(event.placeId, {
       include: [{relation: 'address'}],
     });
-    const today = moment().startOf('day'); // Get today at 00:00:00
 
-    // Fetch only future event instances for this place & recurrence type
+    // Getting the place coordinates
+    const {latitude, longitude} = place.address;
+
+    const today = moment(startDate).startOf('day'); // Get today at 00:00:00
+    const last = moment(recurrenceEndDate).startOf('day');
+    const days = last.diff(today, 'days');
+    // Fetch all future event instances for this event
     const existingInstances = await this.eventInstanceRepo.find({
       where: {
-        placeId,
         eventId,
-        date: {gt: today.toDate()}, // Only get instances in the future
+        date: {gte: today.toDate()},
       },
     });
 
-    const datesToGenerate: Date[] = [];
-    const instanceStartDate = moment.max(moment(startDate), today); // Ensure we start from today or later
+    let newDates: Date[] = [];
 
     if (recurrenceType === 'daily') {
-      // Generate next 100 days but exclude existing ones
-      for (let i = 0; i < 100; i++) {
-        const instanceDate = instanceStartDate
+      const firstInstanceDate = today.clone().add(1, 'days'); // Always start from tomorrow
+
+      for (let i = 0; i < days - 1; i++) {
+        const instanceDate = firstInstanceDate
           .clone()
           .add(i, 'days')
           .startOf('day')
           .toDate();
-
-        if (
-          !existingInstances.some(ei =>
-            moment(ei.date).isSame(instanceDate, 'day'),
-          )
-        ) {
-          datesToGenerate.push(instanceDate);
-        }
+        newDates.push(instanceDate);
       }
     } else if (recurrenceType === 'weekly') {
-      const weekday = moment(startDate).day(); // Get day of the week (0 = Sunday, 1 = Monday, etc.)
+      const eventWeekday = moment(startDate).day(); // Original weekday
+      const firstInstanceDate = today.clone().day(eventWeekday); // Find next occurrence
 
-      for (let i = 0; i < 100; i++) {
-        const instanceDate = instanceStartDate
+      // If today is on or after this week's recurrence day, move to next week
+      if (!firstInstanceDate.isAfter(today)) {
+        firstInstanceDate.add(7, 'days');
+      }
+
+      for (let i = 0; i < Math.ceil(days / 7); i++) {
+        const instanceDate = firstInstanceDate
           .clone()
           .add(i * 7, 'days')
           .startOf('day')
           .toDate();
+        newDates.push(instanceDate);
+      }
 
-        if (
-          !existingInstances.some(ei =>
-            moment(ei.date).isSame(instanceDate, 'day'),
-          )
-        ) {
-          datesToGenerate.push(instanceDate);
+      // Delete past instances that do not match the new weekday
+      const instancesToDelete = existingInstances.filter(
+        ei => moment(ei.date).day() !== eventWeekday,
+      );
+      for (const instance of instancesToDelete) {
+        await this.eventInstanceRepo.deleteById(instance.id);
+      }
+
+      // Update existing instances that match the new weekday
+      for (const instance of existingInstances) {
+        if (moment(instance.date).day() === eventWeekday) {
+          instance.startDate = moment(instance.date)
+            .set({
+              hour: moment(startDate).hour(),
+              minute: moment(startDate).minute(),
+            })
+            .toDate();
+          instance.endDate = moment(instance.date)
+            .set({
+              hour: moment(endDate).hour(),
+              minute: moment(endDate).minute(),
+            })
+            .toDate();
+          await this.eventInstanceRepo.update(instance);
         }
       }
     } else if (recurrenceType === 'none') {
-      // Single event, only create if not already exists in the future
       const eventDate = moment(startDate).startOf('day').toDate();
-
-      if (
-        moment(eventDate).isAfter(today) &&
-        !existingInstances.some(ei => moment(ei.date).isSame(eventDate, 'day'))
-      ) {
-        datesToGenerate.push(eventDate);
+      if (moment(eventDate).isAfter(moment().startOf('day'))) {
+        newDates = [eventDate];
       }
-    }
 
-    // Create new event instances only for future dates
-    for (const date of datesToGenerate) {
-      await this.eventInstanceRepo.create({
-        latitude: place.address.latitude,
-        longitude: place.address.longitude,
-        date,
-        startDate: moment(date)
-          .set({
-            hour: moment(startDate).hour(),
-            minute: moment(startDate).minute(),
-          })
-          .toDate(),
-        endDate: moment(date)
-          .set({
-            hour: moment(endDate).hour(),
-            minute: moment(endDate).minute(),
-          })
-          .toDate(),
-        placeId,
+      // Delete any existing single event instance at this place if it changed
+      await this.eventInstanceRepo.deleteAll({
         eventId,
+        date: {gte: today.toDate()},
       });
     }
 
-    return `Created ${datesToGenerate.length} new future event instances`;
+    // Create only new instances that do not already exist
+    for (const date of newDates) {
+      if (!existingInstances.some(ei => moment(ei.date).isSame(date, 'day'))) {
+        await this.eventInstanceRepo.create({
+          date,
+          startDate: moment(date)
+            .set({
+              hour: moment(startDate).hour(),
+              minute: moment(startDate).minute(),
+            })
+            .toDate(),
+          endDate: moment(date)
+            .set({
+              hour: moment(endDate).hour(),
+              minute: moment(endDate).minute(),
+            })
+            .toDate(),
+          placeId,
+          eventId,
+          teamId,
+          latitude,
+          longitude,
+        });
+      }
+    }
+
+    return `Updated event instances successfully`;
   }
 }
 /* 🔹 How It Works
