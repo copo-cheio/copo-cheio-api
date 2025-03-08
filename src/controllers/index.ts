@@ -40,3 +40,5 @@ export * from './menu-company.controller';
 export * from './product-company.controller';
 export * from './team-company.controller';
 export * from './place-instance-team.controller';
+export * from './event-instance-place.controller';
+export * from './place-event-instance.controller';

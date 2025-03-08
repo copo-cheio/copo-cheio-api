@@ -16,6 +16,7 @@ import {Event} from './event.model';
 import {Image} from './image.model';
 import {OpeningHours} from './opening-hours.model';
 
+import {EventInstance} from './event-instance.model';
 import {PlaceInstance} from './place-instance.model';
 import {PlaceRule} from './place-rule.model';
 import {Playlist} from './playlist.model';
@@ -102,6 +103,9 @@ export class Place extends Base {
 
   @hasMany(() => PlaceInstance)
   instances: PlaceInstance[];
+
+  @hasMany(() => EventInstance)
+  eventInstances: EventInstance[];
   // companyId: string;
   @property({
     type: 'string',

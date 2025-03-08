@@ -3,8 +3,13 @@ import {Getter, inject} from '@loopback/core';
 import {BelongsToAccessor, repository} from '@loopback/repository';
 import {SoftCrudRepository} from 'loopback4-soft-delete';
 import {PostgresSqlDataSource} from '../../datasources';
-import {Event, EventInstance, EventInstanceRelations, Team} from '../../models';
+import {Event, Place, Team} from '../../models';
+import {
+  EventInstance,
+  EventInstanceRelations,
+} from '../../models/v1/event-instance.model';
 import {EventRepository} from './event.repository';
+import {PlaceRepository} from './place.repository';
 import {TeamRepository} from './team.repository';
 
 export class EventInstanceRepository extends SoftCrudRepository<
@@ -22,6 +27,11 @@ export class EventInstanceRepository extends SoftCrudRepository<
     typeof EventInstance.prototype.id
   >;
 
+  public readonly place: BelongsToAccessor<
+    Place,
+    typeof EventInstance.prototype.id
+  >;
+
   constructor(
     @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
     @repository.getter('EventRepository')
@@ -30,8 +40,15 @@ export class EventInstanceRepository extends SoftCrudRepository<
     public readonly getCurrentUser: Getter<any>,
     @repository.getter('TeamRepository')
     protected teamRepositoryGetter: Getter<TeamRepository>,
+    @repository.getter('PlaceRepository')
+    protected placeRepositoryGetter: Getter<PlaceRepository>,
   ) {
     super(EventInstance, dataSource, getCurrentUser);
+    this.place = this.createBelongsToAccessorFor(
+      'place',
+      placeRepositoryGetter,
+    );
+    this.registerInclusionResolver('place', this.place.inclusionResolver);
     this.team = this.createBelongsToAccessorFor('team', teamRepositoryGetter);
     this.registerInclusionResolver('team', this.team.inclusionResolver);
     this.event = this.createBelongsToAccessorFor(

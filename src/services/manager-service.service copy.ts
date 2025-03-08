@@ -230,23 +230,7 @@ export class ManagerService {
     return this.executeManagerAction(
       [{repository: 'placeRepository', id}],
       async () => {
-        const place = await this.placeRepository.findById(
-          id,
-          PlaceManagerQueryFull,
-        );
-        const eventInstances = await this.eventInstanceRepository.find({
-          where: {
-            placeId: id, // Replace with actual place ID
-            date: {gte: new Date()}, // Get only future events
-          },
-          include: [
-            {relation: 'event', scope: {include: [{relation: 'cover'}]}},
-          ],
-          order: ['date ASC'], // Order by date (soonest first)
-          limit: 10, // Limit results (optional)
-        });
-        place.eventInstances = eventInstances;
-        return place;
+        return this.placeRepository.findById(id, PlaceManagerQueryFull);
       },
     );
   }
@@ -1762,12 +1746,12 @@ export class ManagerService {
 
       await this.updateContacts(id, payload.contacts);
       await this.updatePlaylist(eventRecord.playlistId, payload.playlist);
-      await this.instanceService.generateEventInstances(id);
-      /*  if (eventPayload.isRecurring) {
+
+      if (eventPayload.isRecurring) {
         await this.updateRecurringEventInstances(id, eventPayload, eventRecord);
       } else {
         await this.updateSingleEventInstance(id, eventPayload, payload);
-      } */
+      }
 
       return this.eventRepository.findById(id, EventManagerQueryFull);
     });

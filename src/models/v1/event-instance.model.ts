@@ -1,6 +1,7 @@
 import {belongsTo, model, property} from '@loopback/repository';
 import {Base} from './base.model';
 import {Event} from './event.model';
+import {Place} from './place.model';
 import {Team} from './team.model';
 
 @model()
@@ -55,6 +56,9 @@ export class EventInstance extends Base {
 
   @belongsTo(() => Team)
   teamId: string;
+
+  @belongsTo(() => Place)
+  placeId: string;
 
   constructor(data?: Partial<EventInstance>) {
     super(data);

@@ -15,6 +15,7 @@ import {
   CheckInV2,
   Contacts,
   Event,
+  EventInstance,
   Image,
   OpeningHours,
   Place,
@@ -37,6 +38,7 @@ import {EventRepository} from './event.repository';
 import {ImageRepository} from './image.repository';
 import {OpeningHoursRepository} from './opening-hours.repository';
 
+import {EventInstanceRepository} from './event-instance.repository';
 import {PlaceInstanceRepository} from './place-instance.repository';
 import {PlaceRuleRepository} from './place-rule.repository';
 import {PlaylistRepository} from './playlist.repository';
@@ -120,6 +122,11 @@ export class PlaceRepository extends SoftCrudRepository<
     PlaceInstance,
     typeof Place.prototype.id
   >;
+
+  public readonly eventInstances: HasManyRepositoryFactory<
+    EventInstance,
+    typeof Place.prototype.id
+  >;
   // public readonly company: BelongsToAccessor<Company, typeof Place.prototype.id>;
   // public readonly tags: ReferencesManyAccessor<Tag, typeof Artist.prototype.id>;
 
@@ -154,8 +161,18 @@ export class PlaceRepository extends SoftCrudRepository<
     protected checkInV2RepositoryGetter: Getter<CheckInV2Repository>,
     @repository.getter('PlaceInstanceRepository')
     protected placeInstanceRepositoryGetter: Getter<PlaceInstanceRepository>,
+    @repository.getter('EventInstanceRepository')
+    protected eventInstanceRepositoryGetter: Getter<EventInstanceRepository>,
   ) {
     super(Place, dataSource);
+    this.eventInstances = this.createHasManyRepositoryFactoryFor(
+      'eventInstances',
+      eventInstanceRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'eventInstances',
+      this.eventInstances.inclusionResolver,
+    );
     this.instances = this.createHasManyRepositoryFactoryFor(
       'instances',
       placeInstanceRepositoryGetter,
