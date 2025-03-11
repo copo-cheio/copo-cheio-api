@@ -10,7 +10,7 @@ export const DEFAULT_MODEL_ID: any = {
 };
 
 export const DEFAULT_IMAGE_SIZES: any = {
-  cover: [430, 240],
+  cover: [430, 560],
   thumbnail: [52, 52],
   qr: [430, 430],
 };
