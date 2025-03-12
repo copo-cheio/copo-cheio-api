@@ -22,6 +22,7 @@ import {
   PlaceRepository,
   StaffRepository,
   StockRepository,
+  UserRepository,
 } from '../repositories';
 import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
 import {TeamStaffRepository} from '../repositories/v1/team-staff.repository';
@@ -57,6 +58,7 @@ export class StaffService {
     @repository('EventInstanceRepository')
     public eventInstanceRepository: EventInstanceRepository,
     @repository('StaffRepository') public staffRepository: StaffRepository,
+    @repository('UserRepository') public userRepository: UserRepository,
     @repository('TeamStaffRepository')
     public teamStaffRepository: TeamStaffRepository,
   ) {
@@ -238,13 +240,18 @@ export class StaffService {
 
   async notifyCheckedInUsersOnStockUpdate(placeId) {
     const checkedInUsers = await this.getCheckedInUsers(placeId);
+
     const notificationTokens = [
       ...new Set(
         checkedInUsers
-          .map(cu => cu.data.pushNotificationToken)
+          .map(cu => cu.pushNotificationToken)
           .filter(token => (token ? true : false)),
       ),
     ];
+    console.log(
+      'will notify ',
+      checkedInUsers.map(cu => cu.name),
+    );
     await this.notify(
       notificationTokens,
       'stock change',
@@ -261,7 +268,7 @@ export class StaffService {
           title: title,
           body: body,
         };
-
+        console.log({token, notification, data});
         await this.pushNotificationService.sendPushNotification(
           token,
           notification,
@@ -274,13 +281,40 @@ export class StaffService {
   }
 
   async getCheckedInUsers(placeId: any = {}) {
-    const checkedInUsers = await this.devRepository.findAll({
+    const checkedInUsers: any = await this.activityV2Repository.execute(
+      `SELECT DISTINCT ON (userId) userId, created_at from activityv2 where action='check-in--place' AND deleted = false AND referenceId = $1 ORDER BY userId, created_at DESC`,
+      [placeId],
+    );
+    const checkedOutUsers: any = await this.activityV2Repository.execute(
+      `SELECT DISTINCT ON (userId) userId, created_at from activityv2 where action='check-out--place' AND deleted = false AND referenceId = $1 ORDER BY userId, created_at DESC`,
+      [placeId],
+    );
+
+    let users: any = {};
+    for (const user of checkedInUsers) {
+      users[user.userid] = new Date(user.created_at);
+    }
+
+    for (const user of checkedOutUsers) {
+      if (
+        users[user.userid] &&
+        new Date(user.created_at) > users[user.userid]
+      ) {
+        delete users[user.userid];
+      }
+    }
+
+    users = Object.keys(users);
+    const allUsers = await this.userRepository.findAll({
+      where: {id: {inq: users}},
+    });
+    /*     const checkedInUsers = await this.devRepository.findAll({
       where: {and: [{app: 'user', action: 'check-in'}]},
     });
     const allUsers: any = checkedInUsers.filter(
       user => user.data.placeId == placeId && user.data.active,
-    );
-    const notificationUsers = await this.devRepository.findAll({
+    ); */
+    /*     const notificationUsers = await this.devRepository.findAll({
       where: {
         and: [
           {action: 'sign-in'},
@@ -293,8 +327,8 @@ export class StaffService {
         ],
       },
     });
-
-    return notificationUsers;
+ */
+    return allUsers;
   }
 
   /**
