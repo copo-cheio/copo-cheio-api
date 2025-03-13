@@ -71,4 +71,43 @@ export class PaymentController {
 
     //  return paymentIntent;
   }
+
+  @post('/create-payment-intent', {
+    responses: {
+      '200': {
+        description: 'Payment Intent',
+        content: {'application/json': {schema: {'x-ts-type': Object}}},
+      },
+    },
+  })
+  async createPaymentIntentV2(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              orderId: {type: 'string'},
+              // currency: { type: 'string' },
+              amount: {type: 'string'},
+              currency: {type: 'string'},
+              // currency: { type: 'string' },
+            },
+            required: ['orderId', 'amount', 'currency'],
+          },
+        },
+      },
+    })
+    data: any,
+  ): Promise<any> {
+    const paymentIntent: any = this.stripeService.createPaymentIntentV2(
+      data,
+      // You can also add additional parameters here, such as a customer ID or payment method ID
+      // metadata: { integration_check: 'accept_a_payment' },,
+    );
+    // Create order payment intent to do later
+    return paymentIntent;
+
+    //  return paymentIntent;
+  }
 }

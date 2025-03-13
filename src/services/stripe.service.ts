@@ -34,4 +34,26 @@ export class StripeService {
       throw error;
     }
   }
+  async createPaymentIntentV2(createPaymentIntentDto: any = {}) {
+    const customerId = await (async () => {
+      if (createPaymentIntentDto.customer_id)
+        return createPaymentIntentDto.customer_id;
+      const customer = await this.stripe.customers.create();
+      return customer.id;
+    })();
+    const ephemeralKey = await this.stripe.ephemeralKeys.create(
+      {customer: customerId},
+      {apiVersion: '2020-08-27'},
+    );
+    const paymentIntent = await this.stripe.paymentIntents.create({
+      amount: createPaymentIntentDto.amount || 1099,
+      currency: createPaymentIntentDto.currency || 'usd',
+      customer: customerId,
+    });
+    return {
+      paymentIntent: paymentIntent.client_secret,
+      ephemeralKey: ephemeralKey.secret,
+      customer: customerId,
+    };
+  }
 }
