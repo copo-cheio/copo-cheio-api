@@ -72,7 +72,7 @@ export class PaymentController {
     //  return paymentIntent;
   }
 
-  @post('/create-payment-intent', {
+  @post('/create-payment-intent/v2', {
     responses: {
       '200': {
         description: 'Payment Intent',
