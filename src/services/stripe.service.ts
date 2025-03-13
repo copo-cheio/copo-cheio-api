@@ -3,6 +3,9 @@ import Stripe from 'stripe';
 // import { Stripe } from 'stripe';
 // import {CreatePaymentIntentDTO, CreateSetupIntentDTO} from './payment-intent.dto';
 
+// RENDER ORIGINAL PK -> pk_test_51MmARtKzMYim9cy3tOI5vOdHbai4G26V1AiDJmiE4aiAXc8BaSzh9Z0b0f8Novn0Jyyi8JqNdzLzcI2rUGT4g8ct00gfUVdLuM
+// RENDER ORIGINAL SK -> sk_test_51MmARtKzMYim9cy3l0jRblHOagmulcxNgJpXRLB3yDDyObnep8C5Eo70FrT5oDJr60G3CPAqdLVHagSyXizvk0ko00645CTaT5
+
 @injectable({scope: BindingScope.TRANSIENT})
 export class StripeService {
   private stripe: Stripe;
