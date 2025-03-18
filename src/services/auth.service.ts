@@ -118,7 +118,8 @@ export class AuthService {
       const placeInstanceId = placeInstance?.id;
       let event: any;
       if (active) {
-        const events = await this.eventRepository.findAll({
+        event = await this.getCheckInPlaceEventInstance(placeId);
+        /*  const events = await this.eventRepository.findAll({
           where: {and: [{placeId}, {deleted: false}]},
         });
         console.log({placeInstance});
@@ -138,7 +139,7 @@ export class AuthService {
               EventFullQuery,
             );
           }
-        }
+        } */
       }
       if (checkIn?.id) {
         let reload = false;
@@ -268,11 +269,45 @@ export class AuthService {
     );
   }
 
+  async getCheckInPlaceEventInstance(placeId: any) {
+    const placeInstance =
+      await this.placeRepository.findCurrentInstanceById(placeId);
+    const placeInstanceId = placeInstance?.id;
+    let event: any;
+
+    const events = await this.eventRepository.findAll({
+      where: {and: [{placeId}, {deleted: false}]},
+    });
+
+    if (placeInstance) {
+      const eventInstances = await this.eventInstanceRepository.findAll({
+        where: {
+          and: [
+            {eventId: {inq: events.map(e => e.id)}},
+            {date: placeInstance.date},
+            {deleted: false},
+          ],
+        },
+      });
+
+      console.log({eventInstances});
+      if (eventInstances && eventInstances?.[0]) {
+        event = await this.eventRepository.findById(
+          eventInstances[0].eventId,
+          EventFullQuery,
+        );
+      }
+    }
+    return event;
+  }
+
   async verifyCheckIn(body: {userId: string; app: string}) {
     const action: any =
       body.app == 'user' ? 'findUserCheckIn' : 'findStaffCheckIn';
 
-    const result = await this.checkInV2Repository[action](body.userId);
+    const result: any = await this.checkInV2Repository[action](body.userId);
+    result.event = await this.getCheckInPlaceEventInstance(result.placeId);
+
     return result;
   }
 

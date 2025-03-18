@@ -1902,15 +1902,22 @@ export class ManagerService {
     const nextStartDates = [];
     const nextEndDates = [];
     const nextStartDate = new Date(startDate);
-    const nextEndDate = new Date(endDate);
+    let nextEndDate = new Date(endDate);
     const maxDate = new Date();
     const nextDate = new Date(new Date(startDate).setHours(0, 0, 0, 0));
     maxDate.setFullYear(maxDate.getFullYear() + 1);
+
+    //  Ensure endDate is at least one day after startDate while preserving time
+    if (nextEndDate <= nextStartDate) {
+      nextEndDate = new Date(nextStartDate);
+      nextEndDate.setDate(nextStartDate.getDate() + 1); // Add 1 day
+    }
 
     while (nextEndDate <= maxDate) {
       nextStartDates.push(new Date(nextStartDate));
       nextEndDates.push(new Date(nextEndDate));
       nextDates.push(new Date(nextDate));
+
       if (recurrenceType === 'weekly') {
         nextDate.setDate(nextDate.getDate() + 7);
         nextStartDate.setDate(nextStartDate.getDate() + 7);
@@ -1925,7 +1932,6 @@ export class ManagerService {
 
     return {nextDates, nextStartDates, nextEndDates};
   }
-
   /**
    * Finds or creates an event instance
    */
@@ -1938,7 +1944,6 @@ export class ManagerService {
     const end = new Date(new Date(date.end));
     date = new Date(new Date(date.date).setHours(0, 0, 0, 0));
 
-    console.log({start, end, date});
     let instance = await this.eventInstanceRepository.findOne({
       where: {
         and: [{eventId}, {date: date}, {deleted: false}],

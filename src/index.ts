@@ -1,9 +1,13 @@
 import debugFactory from 'debug';
 import {ApplicationConfig, CopoCheioServerApplication} from './application';
+import {debugMemoryLeaks} from './debug';
 import {CompanyOwnershipValidation} from './interceptors/company-ownership-validation';
 debugFactory.disable();
 export * from './application';
 
+process.once('ready', () => {
+  debugMemoryLeaks();
+});
 export async function main(options: ApplicationConfig = {}) {
   const app = new CopoCheioServerApplication(options);
   await app.boot();

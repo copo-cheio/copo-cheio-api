@@ -28,6 +28,10 @@ import {MultipartFormDataBodyParser} from './utils/parser';
 
 export {ApplicationConfig};
 
+setInterval(() => {
+  console.log('ping memory');
+  console.log(process.memoryUsage());
+}, 60000); // Logs every 60 seconds
 export class CopoCheioServerApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
 ) {

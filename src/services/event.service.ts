@@ -105,19 +105,20 @@ ORDER BY eventid,startdate ASC;
         params,
       );
 
-    const distinctOngoingEventInstanceIds = distinctOngoingEventsIds.map(
-      (e: any) => e.eventid,
-    );
+    const distinctOngoing = distinctOngoingEventsIds
+      /*        .filter(
+            (e: any) =>
+              distinctOngoingEventInstanceIds.indexOf(e.eventid) == -1,
+          ) */
+      .map((deid: any) => deid.eventid);
 
-    const distinctEventsInstanceIds = distinctEventsIds
-      .filter(
-        (e: any) => distinctOngoingEventInstanceIds.indexOf(e.eventid) == -1,
-      )
-      .map((deid: any) => deid.id);
+    const distinctUpcomingEventInstanceIds = distinctEventsIds
+      .filter((e: any) => distinctOngoing.indexOf(e.eventid) == -1)
+      .map((e: any) => e.id);
 
     return this.eventInstanceRepository.findAll({
       where: {
-        id: {inq: distinctEventsInstanceIds},
+        id: {inq: distinctUpcomingEventInstanceIds},
       },
       order: ['startDate ASC'],
       include: [
@@ -128,29 +129,38 @@ ORDER BY eventid,startdate ASC;
           },
         },
       ],
-    }); // const currentDateTime = new Date().toISOString();
-    // const callbackFn = (eventIds: any = []) =>
-    //   this.eventInstanceRepository.findOne({
-    //     where: {
-    //       startDate: { gte: currentDateTime },
-    //       eventId: { nin: eventIds },
-    //     },
-
-    //     order: ["startDate ASC"],
-    //     include: [
-    //       {
-    //         relation: "event",
-    //         scope: {
-    //           ...EventsQuery,
-    //         },
-    //       },
-    //     ],
-    //   });
-
-    // return await this.queryLoop(callbackFn);
+    });
   }
   async ongoing() {
-    const currentDateTime = new Date(); //.toISOString();
+    const startDate = new Date().toISOString();
+    const params = [startDate];
+
+    const query = `SELECT DISTINCT ON (eventid) id,eventid, endDate,startDate, latitude,longitude
+    FROM eventinstance WHERE startDate <= $1  and endDate >= $1 and deleted = false
+    ORDER BY eventid,startDate ASC;`;
+
+    const distinctEventsIds =
+      await this.eventInstanceRepository.dataSource.execute(query, params);
+    console.log({ongoing: distinctEventsIds});
+    const distinctEventsInstanceIds = distinctEventsIds.map(e => e.id);
+    if (distinctEventsInstanceIds.length > 0) {
+      return this.eventInstanceRepository.findAll({
+        where: {
+          id: {inq: distinctEventsInstanceIds},
+        },
+        order: ['startDate ASC'],
+        include: [
+          {
+            relation: 'event',
+            scope: {
+              ...BaseEventsQuery,
+            },
+          },
+        ],
+      });
+    }
+    return [];
+    /*     const currentDateTime = new Date(); //.toISOString();
     const callbackFn = (eventIds: any = []) =>
       this.eventInstanceRepository.findOne({
         where: {
@@ -169,7 +179,7 @@ ORDER BY eventid,startdate ASC;
           },
         ],
       });
-    return this.queryLoop(callbackFn);
+    return this.queryLoop(callbackFn); */
   }
 
   async findUpcomingNearbyEvents(
