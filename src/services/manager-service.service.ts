@@ -2180,8 +2180,8 @@ export class ManagerService {
         priceId,
         thumbnailId,
       });
-      await this.stockService.updateBalconyStockRequirementsByMenu(menuId);
     }
+    await this.stockService.updateBalconyStockRequirementsByMenu(menuId);
     record = await this.menuProductRepository.findOne({
       where: {
         and: [{menuId}, {productId}],
