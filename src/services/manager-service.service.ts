@@ -777,7 +777,9 @@ export class ManagerService {
       });
       await this.productOptionRepository.updateById(productOption.id, {
         ...productOption,
-        includedByDefault: option.includedByDefault,
+        includedByDefault: option.includedByDefault || false,
+        group: (option.group || 'undefined').trim().toLowerCase(),
+        multiple: option.multiple || false,
       });
     }
     const menuProduct = await this.addOrUpdateMenuProduct(
@@ -807,7 +809,9 @@ export class ManagerService {
       });
       await this.productOptionRepository.updateById(productOption.id, {
         ...productOption,
-        includedByDefault: option.includedByDefault,
+        includedByDefault: option.includedByDefault || false,
+        group: (option.group || 'undefined').trim().toLowerCase(),
+        multiple: option.multiple || false,
       });
     }
     menuProduct = await this.addOrUpdateMenuProduct(

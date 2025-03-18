@@ -1,0 +1,9 @@
+# Get all undefined productoptions with ingredient
+
+SELECT *
+FROM productoption
+INNER JOIN ingredient
+ON productoption.ingredientid::UUID = ingredient.id
+WHERE productoption.group = 'undefined'
+AND productoption.deleted = false
+AND ingredient.deleted = false

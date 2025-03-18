@@ -19,6 +19,13 @@ export class ProductOption extends Base {
   })
   includedByDefault: boolean;
 
+  @property({
+    type: 'boolean',
+    required: false,
+    default: false,
+  })
+  multiple: boolean;
+
   @belongsTo(() => Product)
   productId: string;
 
