@@ -9,6 +9,7 @@ export const MenuFullQuery: any = {
     created_at: true,
     updated_at: true,
     name: true,
+    companyId: true,
   },
   include: [
     {

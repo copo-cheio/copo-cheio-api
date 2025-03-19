@@ -177,6 +177,15 @@ export class ManagerV2Controller {
   async getBalconiesWithStock() {
     return this.managerService.findBalconyStocks();
   }
+  @get('/v2/manager/balconies')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(200, {
+    description: 'Manager balcony stocks page',
+  })
+  async getBalconiesStock() {
+    return this.managerService.findBalconies();
+  }
 
   @get('/v2/manager/stocks')
   @authenticate('firebase')

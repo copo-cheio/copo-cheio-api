@@ -154,11 +154,11 @@ export class ManagerService {
   async getHomePage() {
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-    const places =
+    const places: any =
       await this.placeService.getManagerPlacesWhichAreOrWillOpenToday([
         {companyId: this.currentUser.companyId},
       ]);
-    const events =
+    const events: any =
       await this.eventService.getManagerEventsWhichAreOrWillOpenToday([
         {
           companyId: this.currentUser.companyId,
@@ -210,7 +210,10 @@ export class ManagerService {
         },
       },
       totalRevenue,
-      orders: orders.length,
+      orders: orders?.length || 0,
+      places: places?.length || 0,
+      events: events?.length || 0,
+      newUser: !orders?.length && !places?.length && !events?.length,
     };
   }
 
@@ -321,14 +324,7 @@ export class ManagerService {
   }
   async getStocksPageV2(managerBalconies?: any) {
     // PROOF OF CONCEPT
-    const balconies =
-      managerBalconies ||
-      (await this.balconyRepository.findAll({
-        include: [
-          {relation: 'cover'},
-          {relation: 'place', scope: {include: [{relation: 'cover'}]}},
-        ],
-      }));
+    const balconies = managerBalconies || (await this.findBalconies());
     const response: any = [];
     const outOfStockIngredientIds = [];
     const outOfStockIngredients = [];
@@ -550,9 +546,15 @@ export class ManagerService {
   }
 
   async findOrders(filters: any = {}) {
+    const balconies = await this.findBalconies();
+    if (balconies?.length == 0) return [];
     const where: any = {
-      ...QueryFilterBaseBlueprint.where,
-      status: {neq: 'WAITING_PAYMENT'},
+      and: [
+        QueryFilterBaseBlueprint.where,
+
+        {status: {neq: 'WAITING_PAYMENT'}},
+        {balconyId: {inq: balconies.map(b => b.id)}},
+      ],
       ...(filters?.where || {}),
     };
 
@@ -2136,10 +2138,28 @@ export class ManagerService {
   async findMenus() {
     return this.menuRepository.findAll({
       ...MenuFullQuery,
+      where: {
+        and: [{companyId: this.currentUser.companyId, delted: false}],
+      },
       include: [...MenuFullQuery.include, {relation: 'balconies'}],
     });
   }
 
+  async findBalconies() {
+    const allPlaces = await this.placeRepository.findAll({
+      where: {
+        and: [{deleted: false}, {companyId: this.currentUser?.companyId}],
+      },
+    });
+    const allBalconies = await this.balconyRepository.findAll({
+      ...BalconyFullQuery,
+      where: {
+        and: [{deleted: false}, {placeId: {inq: allPlaces.map(p => p.id)}}],
+      },
+    });
+
+    return allBalconies;
+  }
   async findBalconyStocks(balconyId?: any) {
     const balconies: any = [];
     let balconyIds: any = [];
