@@ -1,5 +1,5 @@
 import {AuthenticationBindings} from '@loopback/authentication';
-import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
+import { /* inject, */ BindingScope,inject,injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
@@ -41,6 +41,7 @@ import {
   StockRepository,
   TeamRepository,
   TeamStaffRepository,
+  TicketRepository,
   UserRepository,
 } from '../repositories';
 import {MenuRepository} from '../repositories/v1/menu.repository';
@@ -88,6 +89,8 @@ export class ManagerService {
     public eventRepository: EventRepository,
     @repository('PlaylistRepository')
     public playlistRepository: PlaylistRepository,
+    @repository('TicketRepository')
+    public ticketRepository: TicketRepository,
     @repository('PlaceInstanceRepository')
     public placeInstanceRepository: PlaceInstanceRepository,
     @repository('EventInstanceRepository')
@@ -1205,6 +1208,7 @@ export class ManagerService {
         eventPayload.placeId,
       );
 
+
       let team: any;
       if (teamId) {
         team = await this.teamRepository.findById(teamId);
@@ -1234,6 +1238,19 @@ export class ManagerService {
         tagIds: eventPayload.tagIds || [],
         companyId: this.currentUser.companyId,
       });
+
+      const ticketPrice =  await this.priceRepository.create({
+        price: 0,
+        currencyId: DEFAULT_MODEL_ID.currencyId,
+      });
+      const ticket = await this.ticketRepository.create({
+        refId:eventRecord.id,
+        priceId:ticketPrice.id,
+        name: eventRecord.name,
+        status:1,
+        quantity:0,
+        description:""
+      })
 
       const contactsRecord = await this.contactRepository.create({
         ...contacts,
