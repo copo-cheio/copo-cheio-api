@@ -251,9 +251,9 @@ export class ManagerService {
       },
       totalRevenue,
       orders: orders?.length || 0,
-      places: places?.length || 0,
-      events: events?.length || 0,
-      newUser: !orders?.length && !places?.length && !events?.length,
+      places: places?.total || 0,
+      events: events?.total || 0,
+      newUser: !orders?.length && !places?.total && !events?.total,
     };
   }
 
