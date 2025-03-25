@@ -1,5 +1,5 @@
 import {AuthenticationBindings} from '@loopback/authentication';
-import {/* inject, */ BindingScope, inject, injectable} from '@loopback/core';
+import { /* inject, */ BindingScope,inject,injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
@@ -41,6 +41,7 @@ import {
   StockRepository,
   TeamRepository,
   TeamStaffRepository,
+  TicketRepository,
   UserRepository,
 } from '../repositories';
 import {MenuRepository} from '../repositories/v1/menu.repository';
@@ -117,6 +118,8 @@ export class ManagerService {
     public teamStaffRepository: TeamStaffRepository,
     @repository('StaffRepository')
     public staffRepository: StaffRepository,
+    @repository('TicketRepository')
+    public ticketRepository: TicketRepository,
     @repository('OpeningHoursRepository')
     public openingHoursRepository: OpeningHoursRepository,
     @repository('UserRepository')
@@ -136,6 +139,33 @@ export class ManagerService {
    * 2. Place começou / Terminou
    * 3. Ruptura / actualização de stock
    */
+
+  /* ********************************** */
+  /*               TICKETS              */
+  /* ********************************** */
+  async updateTicket(id,data:any ={}){
+    const ticket = await this.ticketRepository.findById(id);
+    const price = await this.priceRepository.findById(ticket.priceId);
+    if(data?.price?.price){
+      await this.priceRepository.updateById(price.id,{price:data.price.price})
+    }
+    const payload = data
+    delete payload.id
+    delete payload.price
+    delete payload._price
+    return this.ticketRepository.updateById(id,payload)
+  }
+  async createTicket(data:any ={}){
+
+    const price = await this.priceRepository.create({price:data?.price?.price || 0,     currencyId: DEFAULT_MODEL_ID.currencyId});
+
+    const payload:any = data
+    payload.priceId = price.id
+    delete payload.id
+    delete payload.price
+    delete payload._price
+    return this.ticketRepository.create(payload)
+  }
 
   /* -------------------------------------------------------------------------- */
   /*                                    STAFF                                   */

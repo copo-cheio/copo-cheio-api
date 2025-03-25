@@ -1,24 +1,24 @@
-import {AuthenticationBindings} from '@loopback/authentication';
-import { /* inject, */ BindingScope,inject,injectable} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {HttpErrors} from '@loopback/rest';
-import {UserProfile} from '@loopback/security';
-import {BalconyFullQuery} from '../blueprints/balcony.blueprint';
+import {AuthenticationBindings} from "@loopback/authentication";
+import { /* inject, */ BindingScope,inject,injectable} from "@loopback/core";
+import {repository} from "@loopback/repository";
+import {HttpErrors} from "@loopback/rest";
+import {UserProfile} from "@loopback/security";
+import {BalconyFullQuery} from "../blueprints/balcony.blueprint";
 import {
   EventManagerQueryFull,
   EventsQuery,
-} from '../blueprints/event.blueprint';
-import {MenuFullQuery} from '../blueprints/menu.blueprint';
+} from "../blueprints/event.blueprint";
+import {MenuFullQuery} from "../blueprints/menu.blueprint";
 import {
   PlaceManagerQueryFull,
   PlacesQuery,
-} from '../blueprints/place.blueprint';
-import {ProductQueryFull} from '../blueprints/product.blueprint';
+} from "../blueprints/place.blueprint";
+import {ProductQueryFull} from "../blueprints/product.blueprint";
 import {
   ExtendQueryFilterWhere,
   QueryFilterBaseBlueprint,
-} from '../blueprints/shared/query-filter.interface';
-import {DEFAULT_MODEL_ID} from '../constants';
+} from "../blueprints/shared/query-filter.interface";
+import {DEFAULT_MODEL_ID} from "../constants";
 import {
   AddressRepository,
   BalconyRepository,
@@ -43,89 +43,90 @@ import {
   TeamStaffRepository,
   TicketRepository,
   UserRepository,
-} from '../repositories';
-import {MenuRepository} from '../repositories/v1/menu.repository';
-import {PlaceInstanceRepository} from '../repositories/v1/place-instance.repository';
-import {getNextYearDate} from '../utils/dates';
-import {voidPromiseCall} from '../utils/query';
-import {AuthService} from './auth.service';
-import {EventService} from './event.service';
-import {InstanceService} from './instance.service';
-import {PlaceService} from './place.service';
-import {ProductService} from './product.service';
-import {StockService} from './stock-service.service';
-import {TransactionService} from './transaction.service';
+} from "../repositories";
+import {MenuRepository} from "../repositories/v1/menu.repository";
+import {PlaceInstanceRepository} from "../repositories/v1/place-instance.repository";
+import {getNextYearDate} from "../utils/dates";
+import {voidPromiseCall} from "../utils/query";
+import {AuthService} from "./auth.service";
+import {EventService} from "./event.service";
+import {InstanceService} from "./instance.service";
+import {PlaceService} from "./place.service";
+import {ProductService} from "./product.service";
+import {StockService} from "./stock-service.service";
+import {TransactionService} from "./transaction.service";
 
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({ scope: BindingScope.TRANSIENT })
 export class ManagerService {
   constructor(
-    @inject('services.StockService')
+    @inject("services.StockService")
     protected stockService: StockService,
-    @inject('services.InstanceService')
+    @inject("services.InstanceService")
     protected instanceService: InstanceService,
-    @inject('services.AuthService')
+    @inject("services.AuthService")
     protected authService: AuthService,
-    @inject('services.ProductService')
+    @inject("services.ProductService")
     protected productService: ProductService,
-    @inject('services.PlaceService')
+    @inject("services.PlaceService")
     protected placeService: PlaceService,
-    @inject('services.EventService')
+    @inject("services.EventService")
     protected eventService: EventService,
-    @repository('MenuProductRepository')
+    @repository("MenuProductRepository")
     public menuProductRepository: MenuProductRepository,
-    @repository('BalconyRepository')
+    @repository("BalconyRepository")
     public balconyRepository: BalconyRepository,
-    @repository('DevRepository')
+    @repository("DevRepository")
     public devRepository: DevRepository,
-    @repository('MenuRepository')
+    @repository("MenuRepository")
     public menuRepository: MenuRepository,
-    @repository('AddressRepository')
+    @repository("AddressRepository")
     public addressRepository: AddressRepository,
-    @repository('RegionRepository')
+    @repository("RegionRepository")
     public regionRepository: RegionRepository,
-    @repository('PlaceRepository')
+    @repository("PlaceRepository")
     public placeRepository: PlaceRepository,
-    @repository('EventRepository')
+    @repository("EventRepository")
     public eventRepository: EventRepository,
-    @repository('PlaylistRepository')
+    @repository("PlaylistRepository")
     public playlistRepository: PlaylistRepository,
-    @repository('TicketRepository')
+    @repository("TicketRepository")
     public ticketRepository: TicketRepository,
-    @repository('PlaceInstanceRepository')
+    @repository("PlaceInstanceRepository")
     public placeInstanceRepository: PlaceInstanceRepository,
-    @repository('EventInstanceRepository')
+    @repository("EventInstanceRepository")
     public eventInstanceRepository: EventInstanceRepository,
-    @repository('PriceRepository')
+    @repository("PriceRepository")
     public priceRepository: PriceRepository,
-    @repository('OrderV2Repository')
+    @repository("OrderV2Repository")
     public orderV2Repository: OrderV2Repository,
-    @repository('CompanyRepository')
+    @repository("CompanyRepository")
     public companyRepository: CompanyRepository,
-    @repository('ContactsRepository')
+    @repository("ContactsRepository")
     public contactRepository: ContactsRepository,
 
-    @repository('ProductRepository')
+    @repository("ProductRepository")
     public productRepository: ProductRepository | any,
-    @repository('ProductOptionRepository')
+    @repository("ProductOptionRepository")
     public productOptionRepository: ProductOptionRepository | any,
-    @repository('IngredientRepository')
+    @repository("IngredientRepository")
     public ingredientRepository: IngredientRepository | any,
-    @inject('services.TransactionService')
+    @inject("services.TransactionService")
     private transactionService: TransactionService,
-    @repository('StockRepository')
+    @repository("StockRepository")
     public stockRepository: StockRepository,
-    @repository('TeamRepository')
+    @repository("TeamRepository")
     public teamRepository: TeamRepository,
-    @repository('TeamStaffRepository')
+    @repository("TeamStaffRepository")
     public teamStaffRepository: TeamStaffRepository,
-    @repository('StaffRepository')
+    @repository("StaffRepository")
     public staffRepository: StaffRepository,
-    @repository('OpeningHoursRepository')
+    @repository("OpeningHoursRepository")
     public openingHoursRepository: OpeningHoursRepository,
-    @repository('UserRepository')
+
+    @repository("UserRepository")
     public userRepository: UserRepository,
-    @inject(AuthenticationBindings.CURRENT_USER, {optional: true})
-    private currentUser: UserProfile, // Inject the current user profile
+    @inject(AuthenticationBindings.CURRENT_USER, { optional: true })
+    private currentUser: UserProfile // Inject the current user profile
   ) {}
 
   /**
@@ -140,15 +141,51 @@ export class ManagerService {
    * 3. Ruptura / actualização de stock
    */
 
+  /* ********************************** */
+  /*               TICKETS              */
+  /* ********************************** */
+  async updateTicket(id, data: any = {}) {
+    const ticket = await this.ticketRepository.findById(id);
+    const price = await this.priceRepository.findById(ticket.priceId);
+    if (data?.price?.price) {
+      await this.priceRepository.updateById(price.id, {
+        price: data.price.price,
+      });
+    }
+    const payload = data;
+    delete payload.id;
+    delete payload.price;
+    delete payload._price;
+    delete payload.companyId;
+    return this.ticketRepository.updateById(id, payload);
+  }
+  async createTicket(data: any = {}) {
+    const price = await this.priceRepository.create({
+      price: data?.price?.price || 0,
+      currencyId: DEFAULT_MODEL_ID.currencyId,
+    });
+
+    const payload: any = data;
+    payload.priceId = price.id;
+    delete payload.id;
+    delete payload.price;
+    delete payload._price;
+    delete payload.companyId;
+    return this.ticketRepository.create(payload);
+  }
+  async deleteTicket(id) {
+    return this.ticketRepository.deleteById(id);
+  }
+
   /* -------------------------------------------------------------------------- */
   /*                                    STAFF                                   */
   /* -------------------------------------------------------------------------- */
   async getCompanyStaff() {
     return this.staffRepository.findAll({
       where: {
-        and: [{companyId: this.currentUser.companyId}, {deleted: false}],
+        and: [{ companyId: this.currentUser.companyId }, { deleted: false }],
       },
-      include: [{relation: 'user'}],
+      include: [{ relation: "user" }],
     });
   }
   /* -------------------------------------------------------------------------- */
@@ -157,29 +194,29 @@ export class ManagerService {
   async getHomePage() {
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-    const places: any =
-      await this.placeService.getManagerPlacesWhichAreOrWillOpenToday([
-        {companyId: this.currentUser.companyId},
-      ]);
-    const events: any =
-      await this.eventService.getManagerEventsWhichAreOrWillOpenToday([
+    const places: any = await this.placeService.getManagerPlacesWhichAreOrWillOpenToday(
+      [{ companyId: this.currentUser.companyId }]
+    );
+    const events: any = await this.eventService.getManagerEventsWhichAreOrWillOpenToday(
+      [
         {
           companyId: this.currentUser.companyId,
         },
-      ]);
+      ]
+    );
     const orders = await this.findOrders({
       limit: 5000,
-      where: {created_at: {gte: oneDayAgo.toISOString()}},
+      where: { created_at: { gte: oneDayAgo.toISOString() } },
     });
     const totalRevenue = orders.reduce(
       (a: any, b: any) => a + parseFloat(b.details?.totalPrice),
-      0,
+      0
     );
 
     const averagePrice =
       orders.length > 0
-        ? (parseFloat(totalRevenue) / parseFloat('' + orders.length)).toFixed(2)
-        : '0.00';
+        ? (parseFloat(totalRevenue) / parseFloat("" + orders.length)).toFixed(2)
+        : "0.00";
 
     const stockStatus = await this.stockService.getManagerStockStatusOverview([
       {
@@ -195,11 +232,11 @@ export class ManagerService {
         },
         places: {
           ...places,
-          full: {ongoing: places.ongoingFull, upcoming: places.upcomingFull},
+          full: { ongoing: places.ongoingFull, upcoming: places.upcomingFull },
         },
         events: {
           ...events,
-          full: {ongoing: events.ongoingFull, upcoming: events.upcomingFull},
+          full: { ongoing: events.ongoingFull, upcoming: events.upcomingFull },
         },
         stocks: {
           total: stockStatus.total,
@@ -224,8 +261,8 @@ export class ManagerService {
     const staff = await this.staffRepository.findOne({
       where: {
         and: [
-          {userId: this.currentUser.id},
-          {role: {inq: ['owner', 'admin', 'manager']}},
+          { userId: this.currentUser.id },
+          { role: { inq: ["owner", "admin", "manager"] } },
         ],
       },
     });
@@ -234,26 +271,26 @@ export class ManagerService {
   }
   async getPlacePage(id: string) {
     return this.executeManagerAction(
-      [{repository: 'placeRepository', id}],
+      [{ repository: "placeRepository", id }],
       async () => {
         const place = await this.placeRepository.findById(
           id,
-          PlaceManagerQueryFull,
+          PlaceManagerQueryFull
         );
         const eventInstances = await this.eventInstanceRepository.find({
           where: {
             placeId: id, // Replace with actual place ID
-            date: {gte: new Date()}, // Get only future events
+            date: { gte: new Date() }, // Get only future events
           },
           include: [
-            {relation: 'event', scope: {include: [{relation: 'cover'}]}},
+            { relation: "event", scope: { include: [{ relation: "cover" }] } },
           ],
-          order: ['date ASC'], // Order by date (soonest first)
+          order: ["date ASC"], // Order by date (soonest first)
           limit: 10, // Limit results (optional)
         });
         place.eventInstances = eventInstances;
         return place;
-      },
+      }
     );
   }
   async getPlaceInstancePage(id: string) {
@@ -261,9 +298,9 @@ export class ManagerService {
     const instance = await this.placeInstanceRepository.findById(id);
     const place = await this.placeRepository.findById(
       instance.placeId,
-      PlaceManagerQueryFull,
+      PlaceManagerQueryFull
     );
-    return {...place, instance};
+    return { ...place, instance };
     /*   }); */
   }
 
@@ -271,8 +308,8 @@ export class ManagerService {
     return this.executeManagerAction([], async () => {
       return this.placeRepository.findAll(
         ExtendQueryFilterWhere(PlacesQuery, [
-          {companyId: this.currentUser.companyId},
-        ]),
+          { companyId: this.currentUser.companyId },
+        ])
       );
     });
   }
@@ -283,35 +320,41 @@ export class ManagerService {
         ExtendQueryFilterWhere(
           {
             include: [
-              {relation: 'cover'},
-              {relation: 'events'},
-              {relation: 'places'},
-              {relation: 'staff', scope: {include: [{relation: 'user'}]}},
+              { relation: "cover" },
+              { relation: "events" },
+              { relation: "places" },
+              { relation: "staff", scope: { include: [{ relation: "user" }] } },
             ],
           },
-          [{companyId: this.currentUser.companyId}, {deleted: false}],
-        ),
+          [{ companyId: this.currentUser.companyId }, { deleted: false }]
+        )
       );
     });
   }
 
   async getTeamPage(id) {
     return this.executeManagerAction(
-      [{repository: 'teamRepository', id}],
+      [{ repository: "teamRepository", id }],
       async () => {
         return this.teamRepository.findById(
           id,
 
           {
             include: [
-              {relation: 'cover'},
-              {relation: 'events', scope: {include: [{relation: 'cover'}]}},
-              {relation: 'places', scope: {include: [{relation: 'cover'}]}},
-              {relation: 'staff', scope: {include: [{relation: 'user'}]}},
+              { relation: "cover" },
+              {
+                relation: "events",
+                scope: { include: [{ relation: "cover" }] },
+              },
+              {
+                relation: "places",
+                scope: { include: [{ relation: "cover" }] },
+              },
+              { relation: "staff", scope: { include: [{ relation: "user" }] } },
             ],
-          },
+          }
         );
-      },
+      }
     );
   }
 
@@ -319,9 +362,9 @@ export class ManagerService {
     return this.executeManagerAction([], async () => {
       return this.productRepository.findAll(
         ExtendQueryFilterWhere(ProductQueryFull, [
-          {deleted: false},
-          {companyId: this.currentUser.companyId},
-        ]),
+          { deleted: false },
+          { companyId: this.currentUser.companyId },
+        ])
       );
     });
   }
@@ -337,17 +380,17 @@ export class ManagerService {
       const balconyId = b.id; //'efb6c280-f40b-403c-b32e-f9c4a58b21cc';
       const balcony = await this.balconyRepository.findById(balconyId, {
         include: [
-          {relation: 'place'},
+          { relation: "place" },
           {
-            relation: 'stocks',
+            relation: "stocks",
             scope: {
               where: {
                 deleted: false,
               },
               include: [
                 {
-                  relation: 'ingredient',
-                  scope: {include: [{relation: 'thumbnail'}]},
+                  relation: "ingredient",
+                  scope: { include: [{ relation: "thumbnail" }] },
                 },
               ],
             },
@@ -355,7 +398,7 @@ export class ManagerService {
         ],
       });
       const impact: any = await this.stockService.getMenuIngredientImpactList(
-        balcony.menuId,
+        balcony.menuId
       );
       const stock = balcony.stocks.map((s: any) => {
         return {
@@ -370,7 +413,7 @@ export class ManagerService {
       for (const item of stock) {
         const ingredientId = item.ingredientId;
         const index = impact.ingredients.findIndex(
-          (i: any) => i.id == ingredientId,
+          (i: any) => i.id == ingredientId
         );
         if (stockIngredientIds.indexOf(ingredientId) == -1) {
           stockIngredientIds.push(ingredientId);
@@ -379,42 +422,42 @@ export class ManagerService {
         if (index > -1) {
           impact.ingredients[index].status = item.status;
           if (
-            item.status == 'OUT_OF_STOCK' &&
+            item.status == "OUT_OF_STOCK" &&
             impact.outOfStockIngredientIds.indexOf(ingredientId) == -1
           ) {
             impact.outOfStockIngredientIds.push(ingredientId);
           }
           if (
-            item.status == 'OUT_OF_STOCK' &&
+            item.status == "OUT_OF_STOCK" &&
             outOfStockIngredientIds.indexOf(ingredientId) == -1
           ) {
             outOfStockIngredientIds.push(ingredientId);
             outOfStockIngredients.push(item);
           }
         } else {
-          console.log({index, ingredientId});
+          console.log({ index, ingredientId });
         }
       }
       impact.products = impact.products.map((ip: any) => {
         return {
           ...ip,
-          status: ip.requiredIds.some(element =>
-            impact.outOfStockIngredientIds.includes(element),
+          status: ip.requiredIds.some((element) =>
+            impact.outOfStockIngredientIds.includes(element)
           )
-            ? 'OUT_OF_STOCK'
-            : ip.optionalIds.some(element =>
-                  impact.outOfStockIngredientIds.includes(element),
-                )
-              ? 'LIMITED'
-              : 'IN_STOCK',
+            ? "OUT_OF_STOCK"
+            : ip.optionalIds.some((element) =>
+                impact.outOfStockIngredientIds.includes(element)
+              )
+            ? "LIMITED"
+            : "IN_STOCK",
         };
       });
-      response.push({balcony, impact});
+      response.push({ balcony, impact });
     }
     response.sort((a: any, b: any) =>
-      a.balcony.name > b.balcony.name ? 1 : -1,
+      a.balcony.name > b.balcony.name ? 1 : -1
     );
-    return {items: response, outOfStockIngredients, stockIngredients};
+    return { items: response, outOfStockIngredients, stockIngredients };
   }
 
   async getStockPageV2(balconyId: string) {
@@ -422,21 +465,21 @@ export class ManagerService {
     const result = await this.getStocksPageV2([balcony]);
     const topProducts = await this.orderV2Repository.findAll({
       limit: 100,
-      order: ['created_at DESC'],
-      where: {balconyId},
+      order: ["created_at DESC"],
+      where: { balconyId },
       include: [
         {
-          relation: 'items',
+          relation: "items",
           scope: {
             include: [
               {
-                relation: 'menuProduct',
+                relation: "menuProduct",
                 scope: {
                   include: [
                     {
-                      relation: 'product',
+                      relation: "product",
                       scope: {
-                        include: [{relation: 'thumbnail'}],
+                        include: [{ relation: "thumbnail" }],
                       },
                     },
                   ],
@@ -447,7 +490,7 @@ export class ManagerService {
         },
       ],
     });
-    return {...result, item: result.items[0], topProducts};
+    return { ...result, item: result.items[0], topProducts };
   }
   async getSchedulePage() {
     const today = new Date();
@@ -463,49 +506,49 @@ export class ManagerService {
     const _places = await this.placeRepository.findAll({
       where: {
         and: [
-          {companyId: this.currentUser.companyId},
-          {live: true},
-          {deleted: false},
+          { companyId: this.currentUser.companyId },
+          { live: true },
+          { deleted: false },
         ],
       },
     });
     const _events = await this.eventRepository.findAll({
       where: {
         and: [
-          {companyId: this.currentUser.companyId},
-          {live: true},
-          {deleted: false},
+          { companyId: this.currentUser.companyId },
+          { live: true },
+          { deleted: false },
         ],
       },
     });
     let placeInstances: any = await this.placeInstanceRepository.findAll({
       where: {
         and: [
-          {placeId: {inq: _places.map(p => p.id)}},
-          {startDate: {gte: today}},
-          {endDate: {lte: future}},
-          {deleted: false},
+          { placeId: { inq: _places.map((p) => p.id) } },
+          { startDate: { gte: today } },
+          { endDate: { lte: future } },
+          { deleted: false },
         ],
       },
-      include: [{relation: 'place', scope: {fields: {name: true}}}],
+      include: [{ relation: "place", scope: { fields: { name: true } } }],
     });
     let eventInstances: any = await this.eventInstanceRepository.findAll({
       where: {
         and: [
-          {eventId: {inq: _events.map(p => p.id)}},
-          {startDate: {gte: today}},
-          {endDate: {lte: future}},
-          {deleted: false},
+          { eventId: { inq: _events.map((p) => p.id) } },
+          { startDate: { gte: today } },
+          { endDate: { lte: future } },
+          { deleted: false },
         ],
       },
-      include: [{relation: 'event', scope: {fields: {name: true}}}],
+      include: [{ relation: "event", scope: { fields: { name: true } } }],
     });
     placeInstances = placeInstances.map((e: any) => {
       if (placeNames.indexOf(e.place.name) == -1) {
         placeNames.push(e.place.name);
       }
       return {
-        type: 'place',
+        type: "place",
         id: e.id,
         placeId: e.placeId,
         title: e.place.name,
@@ -518,7 +561,7 @@ export class ManagerService {
         eventNames.push(e.event.name);
       }
       return {
-        type: 'event',
+        type: "event",
         id: e.id,
         eventId: e.eventId,
         title: e.event.name,
@@ -534,7 +577,7 @@ export class ManagerService {
           id: name,
           name: name,
           title: name,
-          type: 'schedule-event',
+          type: "schedule-event",
         };
       }),
       placeNames: placeNames.map((name: string) => {
@@ -542,7 +585,7 @@ export class ManagerService {
           id: name,
           name: name,
           title: name,
-          type: 'schedule-place',
+          type: "schedule-place",
         };
       }),
     };
@@ -555,8 +598,8 @@ export class ManagerService {
       and: [
         QueryFilterBaseBlueprint.where,
 
-        {status: {neq: 'WAITING_PAYMENT'}},
-        {balconyId: {inq: balconies.map(b => b.id)}},
+        { status: { neq: "WAITING_PAYMENT" } },
+        { balconyId: { inq: balconies.map((b) => b.id) } },
       ],
       ...(filters?.where || {}),
     };
@@ -565,12 +608,12 @@ export class ManagerService {
       ...QueryFilterBaseBlueprint,
       where,
       limit: filters?.limit || 100,
-      order: ['created_at DESC'],
+      order: ["created_at DESC"],
       include: [
         {
-          relation: 'details',
+          relation: "details",
         },
-        {relation: 'place'},
+        { relation: "place" },
       ],
     };
     return this.orderV2Repository.findAll(query);
@@ -588,17 +631,17 @@ export class ManagerService {
     const instance = await this.eventInstanceRepository.findById(id);
     const event = await this.eventRepository.findById(
       instance.eventId,
-      EventManagerQueryFull,
+      EventManagerQueryFull
     );
-    return {...event, instance};
+    return { ...event, instance };
     /* }); */
   }
   async getEventsPage() {
     return this.executeManagerAction([], async () => {
       return this.eventRepository.findAll(
         ExtendQueryFilterWhere(EventsQuery, [
-          {companyId: this.currentUser.companyId},
-        ]),
+          { companyId: this.currentUser.companyId },
+        ])
       );
     });
   }
@@ -606,7 +649,7 @@ export class ManagerService {
   /*                               MANAGER ROUTES                               */
   /* -------------------------------------------------------------------------- */
   async createCompany(payload: any = {}) {
-    const {name, description, coverId} = payload;
+    const { name, description, coverId } = payload;
     const {
       email,
       phone,
@@ -616,7 +659,7 @@ export class ManagerService {
       social_threads,
     } = payload.contacts || {};
 
-    return this.transactionService.execute(async tx => {
+    return this.transactionService.execute(async (tx) => {
       const company = await this.companyRepository.create({
         name,
         description,
@@ -625,9 +668,9 @@ export class ManagerService {
 
       const staff = await this.staffRepository.create({
         userId: this.currentUser.id,
-        role: 'admin',
+        role: "admin",
         companyId: company.id,
-        roles: ['admin'],
+        roles: ["admin"],
       });
 
       const contacts = await this.contactRepository.create({
@@ -640,7 +683,7 @@ export class ManagerService {
         social_threads,
       });
       const team = await this.teamRepository.create({
-        name: name + 'team',
+        name: name + "team",
         companyId: company.id,
         coverId: coverId,
       });
@@ -650,12 +693,12 @@ export class ManagerService {
         staffId: staff.id,
       });
 
-      await this.authService.signInActivityV2(this.currentUser.id, 'admin');
-      return {...company, contacts};
+      await this.authService.signInActivityV2(this.currentUser.id, "admin");
+      return { ...company, contacts };
     });
   }
   async updateCompany(id, payload: any = {}) {
-    const {name, description, coverId} = payload;
+    const { name, description, coverId } = payload;
     const {
       email,
       phone,
@@ -665,13 +708,13 @@ export class ManagerService {
       social_threads,
     } = payload.contacts || {};
 
-    return this.transactionService.execute(async tx => {
+    return this.transactionService.execute(async (tx) => {
       let company = await this.companyRepository.findById(id);
       let contacts = await this.contactRepository.findOne({
-        where: {and: [{refId: id}, {deleted: false}]},
+        where: { and: [{ refId: id }, { deleted: false }] },
       });
       const companyPayload: any = {};
-      for (const key of Object.keys({name, description, coverId})) {
+      for (const key of Object.keys({ name, description, coverId })) {
         const value = payload?.[key];
         if (!value) continue;
         if (company[key] !== value) {
@@ -709,14 +752,14 @@ export class ManagerService {
         contacts = await this.contactRepository.findById(contacts.id);
       }
 
-      return {...company, contacts};
+      return { ...company, contacts };
     });
   }
 
   async createProduct(payload: any = {}) {
-    const {name, description, thumbnailId, tagIds} = payload;
-    const {ingredientIds, optionIngredientIds} = payload;
-    return this.transactionService.execute(async tx => {
+    const { name, description, thumbnailId, tagIds } = payload;
+    const { ingredientIds, optionIngredientIds } = payload;
+    return this.transactionService.execute(async (tx) => {
       const parseProductIngredient = (ingredientId: any) => {
         return {
           id: ingredientId,
@@ -734,11 +777,11 @@ export class ManagerService {
     });
   }
   async updateProductById(id, payload: any = {}) {
-    const {name, description, thumbnailId, tagIds} = payload;
-    const {ingredientIds, optionIngredientIds} = payload;
-    let {live} = payload;
-    if (name.toLowerCase().indexOf('[clone') > -1) live = false;
-    return this.transactionService.execute(async tx => {
+    const { name, description, thumbnailId, tagIds } = payload;
+    const { ingredientIds, optionIngredientIds } = payload;
+    let { live } = payload;
+    if (name.toLowerCase().indexOf("[clone") > -1) live = false;
+    return this.transactionService.execute(async (tx) => {
       const parseProductIngredient = (ingredientId: any) => {
         return {
           id: ingredientId,
@@ -775,7 +818,7 @@ export class ManagerService {
 
     for (const option of payload.options) {
       const productOption = await this.productOptionRepository.findById(
-        option.id,
+        option.id
       );
       await this.priceRepository.updateById(productOption.priceId, {
         price: option.price.price,
@@ -783,7 +826,7 @@ export class ManagerService {
       await this.productOptionRepository.updateById(productOption.id, {
         ...productOption,
         includedByDefault: option.includedByDefault || false,
-        group: (option.group || 'undefined').trim().toLowerCase(),
+        group: (option.group || "undefined").trim().toLowerCase(),
         multiple: option.multiple || false,
       });
     }
@@ -791,7 +834,7 @@ export class ManagerService {
       payload.menuId,
       payload.productId,
       price.id,
-      payload.thumbnailId,
+      payload.thumbnailId
     );
     voidPromiseCall(this.devRepository.migrate);
     return menuProduct;
@@ -807,7 +850,7 @@ export class ManagerService {
 
     for (const option of payload.options) {
       const productOption = await this.productOptionRepository.findById(
-        option.id,
+        option.id
       );
       await this.priceRepository.updateById(productOption.priceId, {
         price: option.price.price,
@@ -815,7 +858,7 @@ export class ManagerService {
       await this.productOptionRepository.updateById(productOption.id, {
         ...productOption,
         includedByDefault: option.includedByDefault || false,
-        group: (option.group || 'undefined').trim().toLowerCase(),
+        group: (option.group || "undefined").trim().toLowerCase(),
         multiple: option.multiple || false,
       });
     }
@@ -823,7 +866,7 @@ export class ManagerService {
       menuProduct.menuId,
       menuProduct.productId,
       menuProduct.priceId,
-      payload.thumbnailId || menuProduct.thumbnailId,
+      payload.thumbnailId || menuProduct.thumbnailId
     );
 
     return menuProduct;
@@ -841,7 +884,7 @@ export class ManagerService {
     // Precisa de tagIds
     // Precisa de playlistId
     // @TODO Falta address e playlist que n tou com coragem agr
-    return this.transactionService.execute(async tx => {
+    return this.transactionService.execute(async (tx) => {
       const {
         coverId,
         name,
@@ -855,7 +898,7 @@ export class ManagerService {
         teamId,
         address,
       } = payload;
-      let {tagIds} = payload;
+      let { tagIds } = payload;
       tagIds = [
         ...new Set([
           ...(venueIds || []),
@@ -868,7 +911,7 @@ export class ManagerService {
 
       const region = await this.regionRepository.findOne({
         where: {
-          name: (address?.region?.name || '').toLowerCase().trim(),
+          name: (address?.region?.name || "").toLowerCase().trim(),
         },
       });
       const regionId = region?.id || DEFAULT_MODEL_ID.regionId;
@@ -878,14 +921,14 @@ export class ManagerService {
         postal: address.postal,
         latitude: address.latitude,
         longitude: address.longitude,
-        type: 'POI',
+        type: "POI",
         name: payload.name,
-        long_label: [name, address?.address, address?.postal].join(','),
+        long_label: [name, address?.address, address?.postal].join(","),
         short_label: [
           address?.address,
           address?.region?.name,
           address?.postal,
-        ].join(','),
+        ].join(","),
         regionId: regionId,
         countryId: region?.countryId || DEFAULT_MODEL_ID.countryId,
       });
@@ -895,12 +938,12 @@ export class ManagerService {
       }
       if (!team) {
         team = await this.teamRepository.findOne({
-          where: {companyId: this.currentUser.companyId},
+          where: { companyId: this.currentUser.companyId },
         });
       }
 
       const playlist = await this.playlistRepository.create({
-        name: name + ' playlist',
+        name: name + " playlist",
       });
 
       const placeRecord = await this.placeRepository.create({
@@ -924,8 +967,8 @@ export class ManagerService {
         await this.openingHoursRepository.create({
           dayofweek: i,
 
-          openhour: '10:00',
-          closehour: '20:00',
+          openhour: "10:00",
+          closehour: "20:00",
           placeId: placeRecord.id,
 
           active: false,
@@ -947,7 +990,7 @@ export class ManagerService {
   }
 
   async updatePlaceV2(id: string, place: any = {}) {
-    return this.transactionService.execute(async tx => {
+    return this.transactionService.execute(async (tx) => {
       let {
         coverId,
         name,
@@ -986,7 +1029,7 @@ export class ManagerService {
       };
       const placeRecord = await this.placeRepository.findById(
         id,
-        PlaceManagerQueryFull,
+        PlaceManagerQueryFull
       );
       for (const key of Object.keys(placePayload)) {
         if (placePayload[key] !== placeRecord[key]) {
@@ -1000,7 +1043,7 @@ export class ManagerService {
       // Contacts
       const contactsPayload = contacts;
       const contactsRecord = await this.contactRepository.findOne({
-        where: {refId: id},
+        where: { refId: id },
         /*    include: [{relation: 'region'}], */
       });
       let contactsUpdateRequired = false;
@@ -1017,21 +1060,21 @@ export class ManagerService {
       if (contactsUpdateRequired) {
         await this.contactRepository.updateById(
           contactsRecord.id,
-          contactsPayload,
+          contactsPayload
         );
       }
 
       const addressRecord = await this.addressRepository.findById(
-        placeRecord.addressId,
+        placeRecord.addressId
       );
       // Region
       const region = address?.region || {};
-      const regionName = (region?.name || '').toLowerCase().trim();
+      const regionName = (region?.name || "").toLowerCase().trim();
       let regionRecord: any;
 
       if (regionName) {
         regionRecord = await this.regionRepository.findOne({
-          where: {name: regionName},
+          where: { name: regionName },
         });
         if (!regionRecord) {
           regionRecord = await this.regionRepository.create({
@@ -1041,7 +1084,7 @@ export class ManagerService {
         }
       } else if (addressRecord?.regionId) {
         regionRecord = await this.regionRepository.findById(
-          addressRecord.regionId,
+          addressRecord.regionId
         );
       }
 
@@ -1071,17 +1114,17 @@ export class ManagerService {
           address.address,
           regionRecord?.name,
           address.postal,
-        ].join(',');
+        ].join(",");
 
         await this.addressRepository.updateById(
           addressRecord.id,
-          addressPayload,
+          addressPayload
         );
       }
 
       let playlistUpdateRequired = false;
       const playlistRecord = await this.playlistRepository.findById(
-        placeRecord.playlistId,
+        placeRecord.playlistId
       );
       const playlistPayload = {
         url: place?.playlist?.url,
@@ -1089,8 +1132,8 @@ export class ManagerService {
         description: place?.playlist?.description,
       };
       for (const key of Object.keys(playlistPayload)) {
-        const original = (playlistRecord[key] || '')?.trim();
-        const current = (playlistPayload[key] || '')?.trim();
+        const original = (playlistRecord[key] || "")?.trim();
+        const current = (playlistPayload[key] || "")?.trim();
         if (current && current?.length > 0) {
           if (original !== current) {
             playlistUpdateRequired = true;
@@ -1100,7 +1143,7 @@ export class ManagerService {
       if (playlistUpdateRequired) {
         await this.playlistRepository.updateById(
           placeRecord.playlistId,
-          playlistPayload,
+          playlistPayload
         );
       }
 
@@ -1119,7 +1162,7 @@ export class ManagerService {
   /*                                    EVENT                                   */
   /* -------------------------------------------------------------------------- */
   async createEvent(payload: any = {}) {
-    return this.transactionService.execute(async tx => {
+    return this.transactionService.execute(async (tx) => {
       let {
         coverId,
         name,
@@ -1148,11 +1191,11 @@ export class ManagerService {
 
       const recurrenceType = date?.frequency;
       const isRecurring =
-        recurrenceType && recurrenceType == 'none'
+        recurrenceType && recurrenceType == "none"
           ? false
           : recurrenceType
-            ? true
-            : null;
+          ? true
+          : null;
       const eventPayload: any = {
         name,
         description,
@@ -1163,36 +1206,39 @@ export class ManagerService {
         recurrenceTyoe: date?.frequency,
         isRecurring: false,
       };
-      if (typeof isRecurring == 'string') {
+      if (typeof isRecurring == "string") {
         eventPayload.isRecurring = isRecurring;
       }
       if (recurrenceType) {
         eventPayload.recurrenceType = recurrenceType;
-        if (recurrenceType == 'none') {
+        if (recurrenceType == "none") {
           eventPayload.startDate = date.start;
           if (new Date(date.start) < new Date(date.end)) {
             eventPayload.endDate = date.end;
           } else {
-            throw new Error('Invalid date range');
+            throw new Error("Invalid date range");
           }
-        } else if (recurrenceType == 'weekly') {
+        } else if (recurrenceType == "weekly") {
           let startDate =
-            date.start.indexOf('T') > -1
-              ? date.start.split('T')[1]?.slice(0, 5)
+            date.start.indexOf("T") > -1
+              ? date.start.split("T")[1]?.slice(0, 5)
               : date.start;
           let endDate =
-            date.end.indexOf('T') > -1
-              ? date.end.split('T')[1]?.slice(0, 5)
+            date.end.indexOf("T") > -1
+              ? date.end.split("T")[1]?.slice(0, 5)
               : date.end;
           const weekday = date.weekday;
-          startDate = this.getNextDateWithWeekday({start: startDate, weekday});
+          startDate = this.getNextDateWithWeekday({
+            start: startDate,
+            weekday,
+          });
 
           const _e = endDate;
           endDate = new Date(startDate);
-          endDate.setHours(_e.split(':')[0], _e.split(':')[1], 0);
+          endDate.setHours(_e.split(":")[0], _e.split(":")[1], 0);
           if (
-            Number(date.end.replaceAll(':', '')) <
-            Number(date.start.replaceAll(':', ''))
+            Number(date.end.replaceAll(":", "")) <
+            Number(date.start.replaceAll(":", ""))
           ) {
             endDate.setDate(endDate.getDate() + 1);
           }
@@ -1202,12 +1248,11 @@ export class ManagerService {
       }
       const playlistRecord = await this.playlistRepository.create({
         ...playlist,
-        name: playlist?.name || name + ' playlist',
+        name: playlist?.name || name + " playlist",
       });
       const placeRecord = await this.placeRepository.findById(
-        eventPayload.placeId,
+        eventPayload.placeId
       );
-
 
       let team: any;
       if (teamId) {
@@ -1215,7 +1260,7 @@ export class ManagerService {
       }
       if (!team) {
         team = await this.teamRepository.findOne({
-          where: {companyId: this.currentUser.companyId},
+          where: { companyId: this.currentUser.companyId },
         });
       }
       const eventRecord = await this.eventRepository.create({
@@ -1226,7 +1271,7 @@ export class ManagerService {
         //eventType:eventIds.type,
         name,
         description,
-        type: recurrenceType == 'none' ? 'once' : 'repeat',
+        type: recurrenceType == "none" ? "once" : "repeat",
         status: 0,
         live: false,
         coverId: eventPayload.coverId,
@@ -1239,18 +1284,18 @@ export class ManagerService {
         companyId: this.currentUser.companyId,
       });
 
-      const ticketPrice =  await this.priceRepository.create({
+      const ticketPrice = await this.priceRepository.create({
         price: 0,
         currencyId: DEFAULT_MODEL_ID.currencyId,
       });
       const ticket = await this.ticketRepository.create({
-        refId:eventRecord.id,
-        priceId:ticketPrice.id,
+        refId: eventRecord.id,
+        priceId: ticketPrice.id,
         name: eventRecord.name,
-        status:1,
-        quantity:0,
-        description:""
-      })
+        status: 1,
+        quantity: 0,
+        description: "",
+      });
 
       const contactsRecord = await this.contactRepository.create({
         ...contacts,
@@ -1263,7 +1308,7 @@ export class ManagerService {
         this.eventService.createOrUpdateRecurringInstances(
           eventRecord,
           eventRecord.recurrenceType,
-          nextYearDate,
+          nextYearDate
         );
       }
 
@@ -1293,7 +1338,7 @@ export class ManagerService {
     return;
   }
 
-  getNextDateWithWeekday({start, weekday}) {
+  getNextDateWithWeekday({ start, weekday }) {
     const today = new Date();
     const currentDay = today.getDay(); // 0 (Sunday) - 6 (Saturday)
 
@@ -1306,13 +1351,13 @@ export class ManagerService {
     nextDate.setDate(today.getDate() + daysUntilNext);
 
     // Set the start time
-    const [hours, minutes] = start.split(':').map(Number);
+    const [hours, minutes] = start.split(":").map(Number);
     nextDate.setHours(hours, minutes, 0, 0);
 
     return nextDate;
   }
   async updateEventV2(id: string, payload: any = {}) {
-    return this.transactionService.execute(async tx => {
+    return this.transactionService.execute(async (tx) => {
       let {
         coverId,
         name,
@@ -1341,7 +1386,7 @@ export class ManagerService {
       let eventUpdateRequired = false;
       let eventRecord: any = await this.eventRepository.findById(
         id,
-        EventManagerQueryFull,
+        EventManagerQueryFull
       );
 
       const eventPayload: any = {
@@ -1360,9 +1405,9 @@ export class ManagerService {
         payload?.date?.recurrenceType
       ) {
         console.log(
-          'Record enddate',
+          "Record enddate",
           eventRecord.endDate,
-          typeof eventRecord.endDate,
+          typeof eventRecord.endDate
         );
         if (
           payload?.date?.endDate !== eventRecord?.endDate?.toISOString() ||
@@ -1371,7 +1416,7 @@ export class ManagerService {
         ) {
           eventPayload.endDate = new Date(payload?.date?.endDate).toISOString();
           eventPayload.startDate = new Date(
-            payload?.date?.startDate,
+            payload?.date?.startDate
           ).toISOString();
           eventPayload.recurrenceType = payload?.date?.recurrenceType;
           eventPayload.isRecurring = payload?.date?.isRecurring;
@@ -1384,8 +1429,8 @@ export class ManagerService {
       for (const key of Object.keys(eventPayload)) {
         let a = eventPayload[key];
         let b = eventRecord[key];
-        if (typeof a == 'object') a = JSON.stringify(a);
-        if (typeof b == 'object') b = JSON.stringify(b);
+        if (typeof a == "object") a = JSON.stringify(a);
+        if (typeof b == "object") b = JSON.stringify(b);
         if (a !== b) {
           eventUpdateRequired = true;
           break;
@@ -1403,10 +1448,10 @@ export class ManagerService {
 
       if (eventUpdateRequired) {
         console.log(
-          'Event requires update',
+          "Event requires update",
           eventPayload,
           typeof eventPayload.endDate,
-          typeof eventPayload.startDate,
+          typeof eventPayload.startDate
         );
 
         await this.eventRepository.updateById(id, eventPayload);
@@ -1415,7 +1460,7 @@ export class ManagerService {
       // Contacts
       const contactsPayload = contacts;
       const contactsRecord = await this.contactRepository.findOne({
-        where: {refId: id},
+        where: { refId: id },
         /*    include: [{relation: 'region'}], */
       });
       let contactsUpdateRequired = false;
@@ -1432,7 +1477,7 @@ export class ManagerService {
       if (contactsUpdateRequired) {
         await this.contactRepository.updateById(
           contactsRecord.id,
-          contactsPayload,
+          contactsPayload
         );
       }
 
@@ -1440,7 +1485,7 @@ export class ManagerService {
 
       let playlistUpdateRequired = false;
       const playlistRecord = await this.playlistRepository.findById(
-        eventRecord.playlistId,
+        eventRecord.playlistId
       );
       const playlistPayload = {
         url: playlist?.url,
@@ -1448,8 +1493,8 @@ export class ManagerService {
         description: playlist?.description,
       };
       for (const key of Object.keys(playlistPayload)) {
-        const original = (playlistRecord[key] || '')?.trim();
-        const current = (playlistPayload[key] || '')?.trim();
+        const original = (playlistRecord[key] || "")?.trim();
+        const current = (playlistPayload[key] || "")?.trim();
         if (current && current?.length > 0) {
           if (original !== current) {
             playlistUpdateRequired = true;
@@ -1459,14 +1504,14 @@ export class ManagerService {
       if (playlistUpdateRequired) {
         await this.playlistRepository.updateById(
           eventRecord.playlistId,
-          playlistPayload,
+          playlistPayload
         );
       }
       eventRecord = await this.eventRepository.findById(
         id,
-        EventManagerQueryFull,
+        EventManagerQueryFull
       );
-      console.log({eventRecord});
+      console.log({ eventRecord });
       if (dateRequiresUpdate) {
         if (eventPayload.isRecurring) {
           const nextYearStartDates = [];
@@ -1474,7 +1519,7 @@ export class ManagerService {
           const nextYearDates = [];
 
           // Update all dll dates from now on that are not equal to current next instance
-          if (eventPayload.recurrenceType == 'weekly') {
+          if (eventPayload.recurrenceType == "weekly") {
             /*  const nextStartDate = getNextSameWeekdayOrThisWeek(
               eventPayload.startDate,
             );
@@ -1485,7 +1530,7 @@ export class ManagerService {
             const nextStartDate = new Date(eventPayload.startDate);
             const nextEndDate = new Date(eventPayload.endDate);
             const nextDate = new Date(
-              new Date(eventPayload.endDate).setHours(0, 0, 0, 0),
+              new Date(eventPayload.endDate).setHours(0, 0, 0, 0)
             );
             const endDate = getNextYearDate(1, eventPayload.endDate);
             while (nextEndDate <= endDate) {
@@ -1534,31 +1579,32 @@ export class ManagerService {
           const toDeleteQuery = {
             where: {
               and: [
-                {eventId: id},
-                {startDate: {gt: new Date()}},
-                {date: {nin: nextYearDates}},
+                { eventId: id },
+                { startDate: { gt: new Date() } },
+                { date: { nin: nextYearDates } },
               ],
             },
           };
-          const toDeleteInstances =
-            await this.eventInstanceRepository.findAll(toDeleteQuery);
-          const toDeleteInstanceIds = toDeleteInstances.map(i => i.id);
+          const toDeleteInstances = await this.eventInstanceRepository.findAll(
+            toDeleteQuery
+          );
+          const toDeleteInstanceIds = toDeleteInstances.map((i) => i.id);
           if (toDeleteInstanceIds.length > 0) {
             await this.eventInstanceRepository.deleteAll({
               and: [
-                {eventId: id},
-                {startDate: {gt: new Date()}},
-                {date: {nin: nextYearDates}},
+                { eventId: id },
+                { startDate: { gt: new Date() } },
+                { date: { nin: nextYearDates } },
               ],
             });
           }
-          const findOrUpdateInstance = async i => {
+          const findOrUpdateInstance = async (i) => {
             let instance = await this.eventInstanceRepository.findOne({
               where: {
                 and: [
-                  {eventId: id},
-                  {date: new Date(nextYearDates[i])},
-                  {deleted: false},
+                  { eventId: id },
+                  { date: new Date(nextYearDates[i]) },
+                  { deleted: false },
                   // startDate is greater than now
                   /*   {startDate: nextYearStartDates[i]}, // startDate is NOT in the array
                   {endDate: nextYearEndDates[i]}, // endDate is NOT in the array */
@@ -1592,7 +1638,7 @@ export class ManagerService {
                 and: [
                   {
                     date: new Date(
-                      new Date(nextYearDates[i]).setHours(0, 0, 0, 0),
+                      new Date(nextYearDates[i]).setHours(0, 0, 0, 0)
                     ),
                   },
                   {
@@ -1629,7 +1675,7 @@ export class ManagerService {
             }
 
             Promise.all(promises); // Wait for all promises to resolve
-            console.log('Done processing in parallel!');
+            console.log("Done processing in parallel!");
           }
           voidPromiseCall(processItemsInParallel);
         } else {
@@ -1637,57 +1683,56 @@ export class ManagerService {
           const _date = new Date(
             payload?.date?.date
               ? payload.date.date
-              : new Date(new Date(eventPayload.startDate).setHours(0, 0, 0, 0)),
+              : new Date(new Date(eventPayload.startDate).setHours(0, 0, 0, 0))
           ).toISOString();
           // delete all instances where eventId = id , endDate > now
           const toDeleteEventInstancesPayload: any = {
             where: {
               and: [
-                {eventId: id},
-                {startDate: {gt: now}}, // startDate is greater than now
-                {date: {neq: _date}}, // startDate is NOT in the array
+                { eventId: id },
+                { startDate: { gt: now } }, // startDate is greater than now
+                { date: { neq: _date } }, // startDate is NOT in the array
                 /*   {endDate: {neq: new Date(eventPayload.endDate)}}, // endDate is NOT in the array */
               ],
             },
           };
           console.log(
-            'Will delete instances where startDate > now and date = payload.date',
-            toDeleteEventInstancesPayload,
+            "Will delete instances where startDate > now and date = payload.date",
+            toDeleteEventInstancesPayload
           );
-          const toDeleteInstances: any =
-            await this.eventInstanceRepository.findAll(
-              toDeleteEventInstancesPayload,
-            );
+          const toDeleteInstances: any = await this.eventInstanceRepository.findAll(
+            toDeleteEventInstancesPayload
+          );
 
-          const toDeleteInstanceIds: any = toDeleteInstances.map(i => i.id);
+          const toDeleteInstanceIds: any = toDeleteInstances.map((i) => i.id);
           console.log(
-            'Found ' + toDeleteInstanceIds.length + ' instances to delete',
-            toDeleteInstanceIds,
+            "Found " + toDeleteInstanceIds.length + " instances to delete",
+            toDeleteInstanceIds
           );
           if (toDeleteInstances.length > 0) {
             const deleteRes: any = await this.eventInstanceRepository.deleteAll(
               {
-                id: {inq: toDeleteInstanceIds},
-              },
+                id: { inq: toDeleteInstanceIds },
+              }
             );
-            console.log({deleteRes, toDeleteInstanceIds});
+            console.log({ deleteRes, toDeleteInstanceIds });
           }
           const instanceToUpdateSearchPayload: any = {
             where: {
               and: [
-                {eventId: id},
+                { eventId: id },
                 //{startDate: {gt: new Date()}}, // startDate is greater than now
-                {date: payload.date.date}, // startDate is NOT in the array
+                { date: payload.date.date }, // startDate is NOT in the array
                 /*   {endDate: {neq: new Date(eventPayload.endDate)}}, // endDate is NOT in the array */
               ],
             },
           };
           console.log(
-            'Will search for a instance that has same eventId and date equal now',
-            instanceToUpdateSearchPayload,
+            "Will search for a instance that has same eventId and date equal now",
+            instanceToUpdateSearchPayload
           );
           let instance = await this.eventInstanceRepository.findOne(
-            instanceToUpdateSearchPayload,
+            instanceToUpdateSearchPayload
           );
 
           if (!instance) {
@@ -1701,13 +1746,13 @@ export class ManagerService {
               date: new Date(payload.date.date).toISOString(),
             };
             console.log(
-              'No instance found, will create one',
-              createInstancePayload,
+              "No instance found, will create one",
+              createInstancePayload
             );
             instance = await this.eventInstanceRepository.create(
-              createInstancePayload,
+              createInstancePayload
             );
-            console.log('instance created');
+            console.log("instance created");
           }
 
           const updateInstancePayload: any = {
@@ -1718,7 +1763,7 @@ export class ManagerService {
 
           await this.eventInstanceRepository.updateById(
             instance.id,
-            updateInstancePayload,
+            updateInstancePayload
           );
 
           const placeInstance: any = await this.placeInstanceRepository.findOne(
@@ -1727,11 +1772,11 @@ export class ManagerService {
                 eventInstanceId: instance.id,
                 placeId: eventRecord.placeId,
               },
-            },
+            }
           );
 
           if (!placeInstance) {
-            console.log('Place instance not found, will create one', {
+            console.log("Place instance not found, will create one", {
               eventInstanceId: instance.id,
               placeId: eventRecord.placeId,
               teamId: eventRecord.teamId,
@@ -1749,15 +1794,15 @@ export class ManagerService {
               dayofweek: new Date(instance.date).getDate(),
             });
           } else {
-            console.log('Place instance found', placeInstance.id);
+            console.log("Place instance found", placeInstance.id);
           }
           if (toDeleteInstanceIds.length > 0) {
             console.log(
-              'Delete all placeInstances that have eventId = deletedIsntanceIds',
+              "Delete all placeInstances that have eventId = deletedIsntanceIds"
             );
 
             await this.placeInstanceRepository.deleteAll({
-              eventInstanceId: {inq: toDeleteInstanceIds},
+              eventInstanceId: { inq: toDeleteInstanceIds },
             });
           }
         }
@@ -1768,16 +1813,16 @@ export class ManagerService {
   }
 
   async updateEventV3(id: string, payload: any = {}) {
-    return this.transactionService.execute(async tx => {
+    return this.transactionService.execute(async (tx) => {
       const eventRecord = await this.eventRepository.findById(
         id,
-        EventManagerQueryFull,
+        EventManagerQueryFull
       );
       const eventPayload = this.prepareEventPayload(payload, eventRecord);
 
       const isEventUpdateRequired = this.isEventUpdateRequires(
         eventPayload,
-        eventRecord,
+        eventRecord
       );
       if (isEventUpdateRequired) {
         await this.eventRepository.updateById(id, eventPayload);
@@ -1829,12 +1874,12 @@ export class ManagerService {
    * Checks if the event needs an update
    */
   private isEventUpdateRequires(newData: any, existingData: any): boolean {
-    return Object.keys(newData).some(key => {
+    return Object.keys(newData).some((key) => {
       let newValue = newData[key];
       let oldValue = existingData[key];
 
-      if (typeof newValue === 'object') newValue = JSON.stringify(newValue);
-      if (typeof oldValue === 'object') oldValue = JSON.stringify(oldValue);
+      if (typeof newValue === "object") newValue = JSON.stringify(newValue);
+      if (typeof oldValue === "object") oldValue = JSON.stringify(oldValue);
 
       return newValue !== oldValue;
     });
@@ -1847,12 +1892,12 @@ export class ManagerService {
     if (!contacts) return;
 
     const contactsRecord = await this.contactRepository.findOne({
-      where: {refId: eventId},
+      where: { refId: eventId },
     });
     if (!contactsRecord) return;
 
     const isUpdateRequired = Object.keys(contacts).some(
-      key => contactsRecord[key] !== contacts[key] && contacts[key] !== null,
+      (key) => contactsRecord[key] !== contacts[key] && contacts[key] !== null
     );
     if (isUpdateRequired) {
       await this.contactRepository.updateById(contactsRecord.id, contacts);
@@ -1872,9 +1917,9 @@ export class ManagerService {
       description: playlist?.description,
     };
 
-    const isUpdateRequired = Object.keys(playlistPayload).some(key => {
-      const original = (playlistRecord[key] || '').trim();
-      const current = (playlistPayload[key] || '').trim();
+    const isUpdateRequired = Object.keys(playlistPayload).some((key) => {
+      const original = (playlistRecord[key] || "").trim();
+      const current = (playlistPayload[key] || "").trim();
       return current && current.length > 0 && original !== current;
     });
 
@@ -1889,27 +1934,38 @@ export class ManagerService {
   private async updateRecurringEventInstances(
     eventId: string,
     eventPayload: any,
-    eventRecord: any,
+    eventRecord: any
   ) {
-    const {startDate, endDate, recurrenceType} = eventPayload;
+    const { startDate, endDate, recurrenceType } = eventPayload;
 
-    const {nextDates, nextStartDates, nextEndDates} =
-      this.generateEventRecurringDates(startDate, endDate, recurrenceType);
+    const {
+      nextDates,
+      nextStartDates,
+      nextEndDates,
+    } = this.generateEventRecurringDates(startDate, endDate, recurrenceType);
 
     // Delete outdated instances
     await this.eventInstanceRepository.deleteAll({
-      and: [{eventId}, {startDate: {gt: new Date()}}, {date: {nin: nextDates}}],
+      and: [
+        { eventId },
+        { startDate: { gt: new Date() } },
+        { date: { nin: nextDates } },
+      ],
     });
-    console.log({nextDates, nextEndDates});
+    console.log({ nextDates, nextEndDates });
     // Create or update instances in parallel
     await Promise.all(
       nextDates.map((date, i) =>
         this.findOrCreateEventInstance(
           eventId,
-          {date: nextDates[i], start: nextStartDates[i], end: nextEndDates[i]},
-          eventRecord,
-        ),
-      ),
+          {
+            date: nextDates[i],
+            start: nextStartDates[i],
+            end: nextEndDates[i],
+          },
+          eventRecord
+        )
+      )
     );
   }
 
@@ -1919,7 +1975,7 @@ export class ManagerService {
   private generateEventRecurringDates(
     startDate: string,
     endDate: string,
-    recurrenceType: string,
+    recurrenceType: string
   ): any {
     const nextDates = [];
     const nextStartDates = [];
@@ -1941,7 +1997,7 @@ export class ManagerService {
       nextEndDates.push(new Date(nextEndDate));
       nextDates.push(new Date(nextDate));
 
-      if (recurrenceType === 'weekly') {
+      if (recurrenceType === "weekly") {
         nextDate.setDate(nextDate.getDate() + 7);
         nextStartDate.setDate(nextStartDate.getDate() + 7);
         nextEndDate.setDate(nextEndDate.getDate() + 7);
@@ -1953,7 +2009,7 @@ export class ManagerService {
       }
     }
 
-    return {nextDates, nextStartDates, nextEndDates};
+    return { nextDates, nextStartDates, nextEndDates };
   }
   /**
    * Finds or creates an event instance
@@ -1961,7 +2017,7 @@ export class ManagerService {
   private async findOrCreateEventInstance(
     eventId: string,
     date: any,
-    eventRecord: any,
+    eventRecord: any
   ) {
     const start = new Date(new Date(date.start));
     const end = new Date(new Date(date.end));
@@ -1969,7 +2025,7 @@ export class ManagerService {
 
     let instance = await this.eventInstanceRepository.findOne({
       where: {
-        and: [{eventId}, {date: date}, {deleted: false}],
+        and: [{ eventId }, { date: date }, { deleted: false }],
       },
     });
 
@@ -1986,25 +2042,24 @@ export class ManagerService {
       },
     });
     if (placeInstance && placeInstance.eventInstanceId) {
-      const currentPlaceInstanceEvent =
-        await this.eventInstanceRepository.findById(
-          placeInstance.eventInstanceId,
-        );
+      const currentPlaceInstanceEvent = await this.eventInstanceRepository.findById(
+        placeInstance.eventInstanceId
+      );
       const currentEvent = await this.eventRepository.findById(
-        currentPlaceInstanceEvent.eventId,
+        currentPlaceInstanceEvent.eventId
       );
       if (eventId !== currentEvent.id) {
         if (
-          currentEvent.recurrenceType == 'none' ||
-          currentEvent.recurrenceType == 'once'
+          currentEvent.recurrenceType == "none" ||
+          currentEvent.recurrenceType == "once"
         ) {
-          console.log('Once has priority over recurrence');
+          console.log("Once has priority over recurrence");
           return;
         } else if (
-          eventRecord.recurrenceType == 'daily' &&
-          currentEvent.recurrenceType == 'weekly'
+          eventRecord.recurrenceType == "daily" &&
+          currentEvent.recurrenceType == "weekly"
         ) {
-          console.log('Weekly has priority over daily');
+          console.log("Weekly has priority over daily");
           return;
         }
       }
@@ -2046,13 +2101,13 @@ export class ManagerService {
   private async updateSingleEventInstance(
     eventId: string,
     eventPayload: any,
-    payload: any,
+    payload: any
   ) {
     const instanceSearch = {
       where: {
         and: [
-          {eventId},
-          {date: new Date(new Date(payload.date.date).setHours(0, 0, 0, 0))},
+          { eventId },
+          { date: new Date(new Date(payload.date.date).setHours(0, 0, 0, 0)) },
         ],
       },
     };
@@ -2078,14 +2133,14 @@ export class ManagerService {
 
     const toDeleteInstances = await this.eventInstanceRepository.findAll({
       where: {
-        and: [{eventId}, {id: {neq: instance.id}}],
+        and: [{ eventId }, { id: { neq: instance.id } }],
       },
     });
 
     if (toDeleteInstances.length > 0) {
       await this.eventInstanceRepository.deleteAll({
         id: {
-          inq: toDeleteInstances.map(i => i.id),
+          inq: toDeleteInstances.map((i) => i.id),
         },
       });
       const placeInstances = await this.placeInstanceRepository.findAll({
@@ -2093,7 +2148,7 @@ export class ManagerService {
           and: [
             {
               eventInstanceId: {
-                inq: toDeleteInstances.map(i => i.id),
+                inq: toDeleteInstances.map((i) => i.id),
               },
             },
           ],
@@ -2156,22 +2211,25 @@ export class ManagerService {
     return this.menuRepository.findAll({
       ...MenuFullQuery,
       where: {
-        and: [{companyId: this.currentUser.companyId, delted: false}],
+        and: [{ companyId: this.currentUser.companyId, delted: false }],
       },
-      include: [...MenuFullQuery.include, {relation: 'balconies'}],
+      include: [...MenuFullQuery.include, { relation: "balconies" }],
     });
   }
 
   async findBalconies() {
     const allPlaces = await this.placeRepository.findAll({
       where: {
-        and: [{deleted: false}, {companyId: this.currentUser?.companyId}],
+        and: [{ deleted: false }, { companyId: this.currentUser?.companyId }],
       },
     });
     const allBalconies = await this.balconyRepository.findAll({
       ...BalconyFullQuery,
       where: {
-        and: [{deleted: false}, {placeId: {inq: allPlaces.map(p => p.id)}}],
+        and: [
+          { deleted: false },
+          { placeId: { inq: allPlaces.map((p) => p.id) } },
+        ],
       },
     });
 
@@ -2184,7 +2242,7 @@ export class ManagerService {
       balconyIds = [balconyId];
     } else {
       const allBalconies = await this.balconyRepository.findAll();
-      balconyIds = allBalconies.map(b => b.id);
+      balconyIds = allBalconies.map((b) => b.id);
     }
 
     for (const id of balconyIds) {
@@ -2201,7 +2259,7 @@ export class ManagerService {
   async addOrUpdateMenuProduct(menuId, productId, priceId, thumbnailId) {
     let record = await this.menuProductRepository.findOne({
       where: {
-        and: [{menuId}, {productId}],
+        and: [{ menuId }, { productId }],
       },
     });
 
@@ -2221,7 +2279,7 @@ export class ManagerService {
     await this.stockService.updateBalconyStockRequirementsByMenu(menuId);
     record = await this.menuProductRepository.findOne({
       where: {
-        and: [{menuId}, {productId}],
+        and: [{ menuId }, { productId }],
       },
     });
     return record;
@@ -2233,14 +2291,14 @@ export class ManagerService {
   async findTeam(id: any) {
     return this.teamRepository.findById(id, {
       include: [
-        {relation: 'cover'},
-        {relation: 'staff', scope: {include: [{relation: 'user'}]}},
+        { relation: "cover" },
+        { relation: "staff", scope: { include: [{ relation: "user" }] } },
       ],
     });
   }
   async createTeam(body: any) {
     return this.executeManagerAction([], async () => {
-      const keys = ['name', 'description', 'coverId'];
+      const keys = ["name", "description", "coverId"];
       const payload: any = {};
       for (const key of keys) {
         if (body?.[key] && body?.[key].trim().length > 0) {
@@ -2250,7 +2308,7 @@ export class ManagerService {
       payload.companyId = DEFAULT_MODEL_ID.companyId;
       if (!payload.coverId || payload.coverId == DEFAULT_MODEL_ID.coverId) {
         const company = await this.companyRepository.findById(
-          payload.companyId,
+          payload.companyId
         );
         payload.coverId = company.coverId;
       }
@@ -2258,22 +2316,22 @@ export class ManagerService {
       const staff = await this.staffRepository.findOne({
         where: {
           and: [
-            {userId: this.currentUser.id},
-            {role: 'admin'},
-            {companyId: payload.companyId},
+            { userId: this.currentUser.id },
+            { role: "admin" },
+            { companyId: payload.companyId },
           ],
         },
       });
-      await this.updateTeamStaff(team.id, staff.id, [], ['admin']);
+      await this.updateTeamStaff(team.id, staff.id, [], ["admin"]);
       return this.findTeam(team.id);
     });
   }
   async updateTeam(id: any, body: any) {
     return this.executeManagerAction(
-      [{repository: 'teamRepository', id}],
+      [{ repository: "teamRepository", id }],
       async () => {
         //const team = await this.teamRepository.findById(id)
-        const keys = ['name', 'description', 'coverId'];
+        const keys = ["name", "description", "coverId"];
         const payload: any = {};
         for (const key of keys) {
           if (body?.[key] && body?.[key].trim().length > 0) {
@@ -2283,26 +2341,26 @@ export class ManagerService {
         await this.teamRepository.updateById(id, payload);
 
         return this.findTeam(id);
-      },
+      }
     );
   }
 
   async cloneTeamById(id: string) {
     return this.executeManagerAction(
-      [{repository: 'teamRepository', id}],
+      [{ repository: "teamRepository", id }],
       async () => {
         const team = await this.teamRepository.findById(id, {
-          include: [{relation: 'staff'}],
+          include: [{ relation: "staff" }],
         });
 
         const newTeamPayload = this.parseCloneObject(
-          {...team, name: '[Cloned] ' + team.name},
-          ['staff'],
+          { ...team, name: "[Cloned] " + team.name },
+          ["staff"]
         );
         const newTeam = await this.teamRepository.create(newTeamPayload);
 
         const newTeamStaffPayload = (team.staff || []).map(
-          this.parseCloneObject,
+          this.parseCloneObject
         );
 
         for (const staff of newTeamStaffPayload) {
@@ -2310,16 +2368,16 @@ export class ManagerService {
         }
 
         return this.teamRepository.findById(newTeam.id, {
-          include: [{relation: 'staff'}],
+          include: [{ relation: "staff" }],
         });
-      },
+      }
     );
   }
 
   async deleteTeam(id: string) {
     return this.executeManagerAction(
-      [{repository: 'teamRepository', id}],
-      async () => this.teamRepository.deleteById(id),
+      [{ repository: "teamRepository", id }],
+      async () => this.teamRepository.deleteById(id)
     );
   }
   /**
@@ -2330,7 +2388,7 @@ export class ManagerService {
 
   async updateTeamStaff(teamId, staffId, currentRoles, newRoles) {
     return this.executeManagerAction(
-      [{repository: 'teamRepository', id: teamId}],
+      [{ repository: "teamRepository", id: teamId }],
       async () => {
         const team = await this.teamRepository.findById(teamId);
 
@@ -2338,7 +2396,7 @@ export class ManagerService {
 
         if (!staffUser) {
           const user = await this.userRepository.findById(staffId);
-          if (!user) throw new Error('Invalid user');
+          if (!user) throw new Error("Invalid user");
           staffUser = await this.staffRepository.create({
             userId: staffId,
             role: newRoles[0],
@@ -2352,7 +2410,7 @@ export class ManagerService {
         for (const role of newRoles) {
           if (currentRoles.indexOf(role) == -1) {
             let staff = await this.staffRepository.findOne({
-              where: {and: [{userId}, {role}]},
+              where: { and: [{ userId }, { role }] },
             });
 
             if (!staff) {
@@ -2363,40 +2421,43 @@ export class ManagerService {
               });
             }
 
-            await this.teamStaffRepository.create({teamId, staffId: staff.id});
+            await this.teamStaffRepository.create({
+              teamId,
+              staffId: staff.id,
+            });
           }
         }
         for (const role of currentRoles) {
           if (newRoles.indexOf(role) == -1) {
             const staff = await this.staffRepository.findOne({
-              where: {and: [{userId}, {role}]},
+              where: { and: [{ userId }, { role }] },
             });
 
             if (staff) {
               await this.teamStaffRepository.deleteAll({
-                and: [{teamId}, {staffId: staff.id}],
+                and: [{ teamId }, { staffId: staff.id }],
               });
             }
           }
         }
 
         return this.findTeam(team.id);
-      },
+      }
     );
   }
 
   async removeStaffFromTeam(teamId: string, staffId: string) {
-    if (!teamId || !staffId) throw new Error('Missing required parameters');
+    if (!teamId || !staffId) throw new Error("Missing required parameters");
     const result = await this.teamStaffRepository.findOne({
       where: {
-        and: [{teamId: teamId}, {staffId: staffId}, {deleted: false}],
+        and: [{ teamId: teamId }, { staffId: staffId }, { deleted: false }],
       },
     });
 
     if (result && result.teamId == teamId && result.staffId == staffId) {
       await this.teamStaffRepository.deleteById(result.id);
     }
-    return {result};
+    return { result };
   }
 
   /* -------------------------------------------------------------------------- */
@@ -2412,16 +2473,16 @@ export class ManagerService {
   /* -------------------------------------------------------------------------- */
 
   private async executeManagerAction(validations: any = [], callback: any) {
-    return this.transactionService.execute(async tx => {
+    return this.transactionService.execute(async (tx) => {
       try {
         const companyId = this.currentUser.companyId;
 
         if (!companyId) {
-          throw new HttpErrors.Unauthorized('Error verifying token.');
+          throw new HttpErrors.Unauthorized("Error verifying token.");
         }
         for (const validation of validations) {
           const record = await this[validation.repository].findById(
-            validation.id,
+            validation.id
           );
 
           if (companyId !== record.companyId) {
@@ -2434,7 +2495,7 @@ export class ManagerService {
         return response;
       } catch (ex) {
         console.log(ex);
-        throw new HttpErrors.Unauthorized('Didnt meet company requirements');
+        throw new HttpErrors.Unauthorized("Didnt meet company requirements");
       }
     });
   }

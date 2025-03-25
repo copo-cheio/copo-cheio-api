@@ -1,7 +1,7 @@
 // Uncomment these imports to begin using these cool features!
 
-import {authenticate, AuthenticationBindings} from '@loopback/authentication';
-import {inject, intercept} from '@loopback/core';
+import {authenticate,AuthenticationBindings} from '@loopback/authentication';
+import {inject,intercept} from '@loopback/core';
 import {
   del,
   get,
@@ -13,7 +13,7 @@ import {
 } from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 
-import {AuthService, ManagerService} from '../../services';
+import {AuthService,ManagerService} from '../../services';
 
 // import {inject} from '@loopback/core';
 
@@ -113,6 +113,49 @@ export class ManagerV2Controller {
     body: any,
   ): Promise<any> {
     return this.managerService.updateEventV3(id, body);
+  }
+
+
+  /* ********************************** */
+  /*               TICKET               */
+  /* ********************************** */
+  @post('/v2/manager/tickets')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(200, {
+    description: 'Create a place',
+  })
+  async createTicket(
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.createTicket(body);
+  }
+  @del('/v2/manager/tickets/{id}')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(200, {
+    description: 'Create a place',
+  })
+  async deleteTicket(
+    @param.path.string('id') id: string,
+
+  ): Promise<any> {
+    return this.managerService.deleteTicket(id);
+  }
+
+  @patch('/v2/manager/tickets/{id}')
+  @authenticate('firebase')
+  @intercept('interceptors.CompanyOwnershipValidation')
+  @response(204, {
+    description: 'Balcony PATCH success',
+  })
+  async updateTicketById(
+    @param.path.string('id') id: string,
+    @requestBody({})
+    body: any,
+  ): Promise<any> {
+    return this.managerService.updateTicket(id, body);
   }
 
   /* -------------------------------------------------------------------------- */
