@@ -1,10 +1,12 @@
-import {Getter, inject} from '@loopback/core';
+import {Getter,inject} from "@loopback/core";
 import {
   HasManyRepositoryFactory,
   HasOneRepositoryFactory,
   repository,
-} from '@loopback/repository';
-import {PostgresSqlDataSource} from '../../datasources';
+} from "@loopback/repository";
+import {EventsQuery} from "../../blueprints/event.blueprint";
+import {PlacesQuery} from "../../blueprints/place.blueprint";
+import {PostgresSqlDataSource} from "../../datasources";
 import {
   ActivityV2,
   CheckInV2,
@@ -13,13 +15,15 @@ import {
   ShoppingCart,
   User,
   UserRelations,
-} from '../../models';
-import {ActivityV2Repository} from '../activity-v2.repository';
-import {BaseRepository} from '../base.repository.base';
-import {CheckInV2Repository} from '../check-in-v2.repository';
-import {OrderV2Repository} from '../order-v2.repository';
-import {FavoriteRepository} from './favorite.repository';
-import {ShoppingCartRepository} from './shopping-cart.repository';
+} from "../../models";
+import {ActivityV2Repository} from "../activity-v2.repository";
+import {BaseRepository} from "../base.repository.base";
+import {CheckInV2Repository} from "../check-in-v2.repository";
+import {OrderV2Repository} from "../order-v2.repository";
+import {EventRepository} from "./event.repository";
+import {FavoriteRepository} from "./favorite.repository";
+import {PlaceRepository} from "./place.repository";
+import {ShoppingCartRepository} from "./shopping-cart.repository";
 
 export class UserRepository extends BaseRepository<
   User,
@@ -52,57 +56,61 @@ export class UserRepository extends BaseRepository<
   >;
 
   constructor(
-    @inject('datasources.PostgresSql') dataSource: PostgresSqlDataSource,
-    @repository.getter('ShoppingCartRepository')
+    @inject("datasources.PostgresSql") dataSource: PostgresSqlDataSource,
+    @repository.getter("ShoppingCartRepository")
     protected shoppingCartRepositoryGetter: Getter<ShoppingCartRepository>,
-    @repository.getter('FavoriteRepository')
+    @repository.getter("FavoriteRepository")
     protected favoriteRepositoryGetter: Getter<FavoriteRepository>,
-    @repository.getter('OrderV2Repository')
+    @repository.getter("EventRepository")
+    protected eventRepositoryGetter: Getter<EventRepository>,
+    @repository.getter("PlaceRepository")
+    protected placeRepositoryGetter: Getter<PlaceRepository>,
+    @repository.getter("OrderV2Repository")
     protected orderV2RepositoryGetter: Getter<OrderV2Repository>,
-    @repository.getter('CheckInV2Repository')
+    @repository.getter("CheckInV2Repository")
     protected checkInV2RepositoryGetter: Getter<CheckInV2Repository>,
-    @repository.getter('ActivityV2Repository')
-    protected activityV2RepositoryGetter: Getter<ActivityV2Repository>,
-    // @inject.getter(AuthenticationBindings.CURRENT_USER, {optional: true})
-    // protected readonly getCurrentUser?: Getter<User | undefined>,
-  ) {
+    @repository.getter("ActivityV2Repository")
+    protected activityV2RepositoryGetter: Getter<ActivityV2Repository>
+  ) // @inject.getter(AuthenticationBindings.CURRENT_USER, {optional: true})
+  // protected readonly getCurrentUser?: Getter<User | undefined>,
+  {
     super(User, dataSource);
     this.activitiesV2 = this.createHasManyRepositoryFactoryFor(
-      'activitiesV2',
-      activityV2RepositoryGetter,
+      "activitiesV2",
+      activityV2RepositoryGetter
     );
     this.registerInclusionResolver(
-      'activitiesV2',
-      this.activitiesV2.inclusionResolver,
+      "activitiesV2",
+      this.activitiesV2.inclusionResolver
     );
     this.checkInV2 = this.createHasOneRepositoryFactoryFor(
-      'checkInV2',
-      checkInV2RepositoryGetter,
+      "checkInV2",
+      checkInV2RepositoryGetter
     );
     this.registerInclusionResolver(
-      'checkInV2',
-      this.checkInV2.inclusionResolver,
+      "checkInV2",
+      this.checkInV2.inclusionResolver
     );
     this.ordersV2 = this.createHasManyRepositoryFactoryFor(
-      'ordersV2',
-      orderV2RepositoryGetter,
+      "ordersV2",
+      orderV2RepositoryGetter
     );
-    this.registerInclusionResolver('ordersV2', this.ordersV2.inclusionResolver);
+    this.registerInclusionResolver("ordersV2", this.ordersV2.inclusionResolver);
     this.favorites = this.createHasManyRepositoryFactoryFor(
-      'favorites',
-      favoriteRepositoryGetter,
+      "favorites",
+      favoriteRepositoryGetter
     );
     this.registerInclusionResolver(
-      'favorites',
-      this.favorites.inclusionResolver,
+      "favorites",
+      this.favorites.inclusionResolver
     );
     this.shoppingCart = this.createHasOneRepositoryFactoryFor(
-      'shoppingCart',
-      shoppingCartRepositoryGetter,
+      "shoppingCart",
+      shoppingCartRepositoryGetter
     );
     this.registerInclusionResolver(
-      'shoppingCart',
-      this.shoppingCart.inclusionResolver,
+      "shoppingCart",
+      this.shoppingCart.inclusionResolver
     );
   }
 
@@ -123,5 +131,24 @@ export class UserRepository extends BaseRepository<
     }
 
     return result;
+  }
+
+  async getFullFavorites(userId: string) {
+    const favorites = await this.getFavorites(userId);
+    if (favorites.events.length > 0) {
+      const eventRepository = await this.eventRepositoryGetter();
+      favorites.events = await eventRepository.findAll({
+        ...EventsQuery,
+        where: { id: { inq: favorites.events } },
+      });
+    }
+    if (favorites.places.length > 0) {
+      const placeRepository = await this.placeRepositoryGetter();
+      favorites.places = await placeRepository.findAll({
+        ...PlacesQuery,
+        where: { id: { inq: favorites.places } },
+      });
+    }
+    return favorites;
   }
 }

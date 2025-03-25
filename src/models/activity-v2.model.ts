@@ -1,4 +1,4 @@
-import {belongsTo, model, property, referencesMany} from '@loopback/repository';
+import {belongsTo,model,property,referencesMany} from '@loopback/repository';
 import {Base} from './v1/base.model';
 import {Tag} from './v1/tag.model';
 import {User} from './v1/user.model';
@@ -22,14 +22,44 @@ export class ActivityV2 extends Base {
   })
   referenceId?: string;
 
+  @property({
+    type: 'string',
+  })
+  keyword?: string;
+
   @belongsTo(() => User)
   userId: string;
 
   @referencesMany(() => Tag)
   tagIds: string[];
 
+  @property({
+    type: 'number',
+    required: false,
+    postgresql: {
+      dataType: 'NUMERIC', // Explicitly specify NUMERIC
+      precision: 10, // Total number of digits
+      scale: 2, // Number of digits after the decimal point
+      default: 0, // Default value of 0 in PostgreSQL
+    },
+  })
+  latitude: number;
+
+  @property({
+    type: 'number',
+    required: false,
+    postgresql: {
+      dataType: 'NUMERIC', // Explicitly specify NUMERIC
+      precision: 10, // Total number of digits
+      scale: 2, // Number of digits after the decimal point
+      default: 0, // Default value of 0 in PostgreSQL
+    },
+  })
+  longitude: number;
+
   constructor(data?: Partial<ActivityV2>) {
     super(data);
+    this.tagIds = data?.tagIds ?? [];
   }
 }
 

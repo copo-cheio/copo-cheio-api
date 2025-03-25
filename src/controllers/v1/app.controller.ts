@@ -1,12 +1,11 @@
 // Uncomment these imports to begin using these cool features!
 
-import {authenticate, AuthenticationBindings} from '@loopback/authentication';
+import {authenticate,AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {get, param, post, requestBody} from '@loopback/rest';
+import {get,param} from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 import {EventsQuery} from '../../blueprints/event.blueprint';
-import {PlacesQuery} from '../../blueprints/place.blueprint';
 import {
   EventRepository,
   FavoriteRepository,
@@ -115,86 +114,15 @@ export class AppController {
   @get('/app/favorites')
   @authenticate('firebase')
   async findFavorites() {
-    const favorites = await this.userRepository.getFavorites(
-      this.currentUser.id,
-    );
-    if (favorites.events.length > 0) {
-      favorites.events = await this.eventRepository.findAll({
-        ...EventsQuery,
-        where: {id: {inq: favorites.events}},
-      });
-    }
-    if (favorites.places.length > 0) {
-      favorites.places = await this.placeRepository.findAll({
-        ...PlacesQuery,
-        where: {id: {inq: favorites.places}},
-      });
-    }
-    return favorites;
-    // const results: any = await this.eventRepository.findNearUpcoming(
-    //   latitude,
-    //   longitude
-    // );
-
-    // const _filter = {
-    //   ...EventsQuery,
-    //   where: {
-    //     or: results.map((r: any) => {
-    //       return { id: r.eventid };
-    //     }),
-    //   },
-    //   sort: ["startdate ASC"],
-    // };
-    // return this.eventRepository.find(_filter);
+    return this.getUserFavorites(this.currentUser.id)
   }
-  @post('/app/favorite')
-  @authenticate('firebase')
-  async toggleFavorites(
-    @requestBody({
-      content: {},
-    })
-    data: any,
-  ) {
-    let favorites = await this.userRepository.getFavorites(this.currentUser.id);
-    const payload: any = {
-      userId: this.currentUser.id,
-    };
-    payload[data.type + 'Id'] = data.id;
-    if (favorites[data.type + 's'].indexOf(data.id) > -1) {
-      await this.favoriteRepository.deleteAllHard(payload);
-    } else {
-      await this.favoriteRepository.create(payload);
-    }
 
-    favorites = await this.userRepository.getFavorites(this.currentUser.id);
 
-    if (favorites.events.length > 0) {
-      favorites.events = await this.eventRepository.findAll({
-        ...EventsQuery,
-        where: {id: {inq: favorites.events}},
-      });
-    }
-    if (favorites.places.length > 0) {
-      favorites.places = await this.placeRepository.findAll({
-        ...PlacesQuery,
-        where: {id: {inq: favorites.places}},
-      });
-    }
+  private async getUserFavorites(userId:string){
+    const favorites = await this.userRepository.getFullFavorites(
+      userId,
+    );
+
     return favorites;
-    // const results: any = await this.eventRepository.findNearUpcoming(
-    //   latitude,
-    //   longitude
-    // );
-
-    // const _filter = {
-    //   ...EventsQuery,
-    //   where: {
-    //     or: results.map((r: any) => {
-    //       return { id: r.eventid };
-    //     }),
-    //   },
-    //   sort: ["startdate ASC"],
-    // };
-    // return this.eventRepository.find(_filter);
   }
 }
